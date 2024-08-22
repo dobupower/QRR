@@ -24,7 +24,11 @@
 #### 현재 진행사항
 
 - 사용자용 회원가입 프론트 제작 완료 /lib/screens/signup_screen.dart
-ios 스크린샷
+
+- ios 스크린샷
+
 <img width="354" alt="스크린샷 2024-08-22 오후 7 04 53" src="https://github.com/user-attachments/assets/6e896ad1-e239-48ab-b16f-c4073d5b8d77">
-안드로이드 스크린샷
+
+- 안드로이드 스크린샷
+
 <img width="338" alt="스크린샷 2024-08-22 오후 8 35 17" src="https://github.com/user-attachments/assets/075a19f8-ad7e-43e3-ae38-37d01eee3e14">
