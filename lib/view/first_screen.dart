@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth 사용
+import 'package:google_sign_in/google_sign_in.dart'; // Google Sign-In 사용
+import 'home_screen.dart'; // HomeScreen 가져오기
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
 
-// FirstScreen 클래스 정의 (ConsumerWidget을 상속받아 상태 관리)
 class FirstScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -11,7 +13,6 @@ class FirstScreen extends ConsumerWidget {
     final signUpState = ref.watch(signUpViewModelProvider); // 현재 상태를 감시
 
     return Scaffold(
-      // 페이지의 기본 UI 틀을 제공
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0), // 화면 좌우 여백 설정
         child: Column(
@@ -73,7 +74,9 @@ class FirstScreen extends ConsumerWidget {
                 SizedBox(width: 16), // 버튼 간의 간격
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {}, // 'ログイン' 버튼 클릭 시 이벤트 (추후 추가 예정)
+                    onPressed: () {
+                      // 로그인 버튼 클릭 시 처리 (구현 예정)
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 13), // 버튼 안쪽 패딩
                       shape: RoundedRectangleBorder(
@@ -93,8 +96,31 @@ class FirstScreen extends ConsumerWidget {
 
             // 'Google'로 로그인 버튼
             ElevatedButton.icon(
-              onPressed: () {
-                // Google 로그인 로직 추가 예정
+              onPressed: () async {
+                // Google 로그인 로직 구현
+                try {
+                  final googleUser = await GoogleSignIn().signIn(); // Google Sign-In
+                  if (googleUser == null) return; // 사용자가 로그인 취소할 경우
+
+                  final googleAuth = await googleUser.authentication; // 인증 정보 요청
+                  final credential = GoogleAuthProvider.credential(
+                    accessToken: googleAuth.accessToken,
+                    idToken: googleAuth.idToken,
+                  );
+
+                  // Firebase로 인증 정보 전달
+                  await FirebaseAuth.instance.signInWithCredential(credential);
+
+                  // 로그인 성공 시 HomeScreen으로 이동
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen으로 이동
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Google 로그인에 실패했습니다.')),
+                  );
+                }
               },
               icon: Image.asset(
                 'lib/img/google_logo.png', // Google 로고 이미지
@@ -117,7 +143,7 @@ class FirstScreen extends ConsumerWidget {
             ),
             SizedBox(height: 10), // Google 로그인 버튼 아래 빈 공간
 
-            // 'LINE'으로 로그인 버튼
+            // 'LINE'으로 로그인 버튼 (구현 예정)
             ElevatedButton.icon(
               onPressed: () {
                 // Line 로그인 로직 추가 예정
