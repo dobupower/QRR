@@ -1,120 +1,117 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../viewModel/sign_up_view_model.dart';
-import '../model/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 가져오기
+import '../model/user_model.dart'; // User 모델 가져오기
 
-class EmailAuthScreen extends StatelessWidget {
-  final User user; // 사용자 정보를 담고 있는 User 객체
+// 이메일 인증 화면 클래스 (ConsumerWidget을 사용하여 Riverpod 상태를 감시)
+class EmailAuthScreen extends ConsumerWidget {
+  final User user; // 이메일 인증 대상인 사용자
 
+  // 생성자에서 필수적으로 User 객체를 받아옴
   EmailAuthScreen({required this.user});
 
-  final _codeController = TextEditingController(); // 인증 코드를 입력받을 텍스트 컨트롤러
-
   @override
-  Widget build(BuildContext context) {
-    final signUpViewModel = Provider.of<SignUpViewModel>(context, listen: false); // SignUpViewModel을 제공받아 사용
+  Widget build(BuildContext context, WidgetRef ref) {
+    // SignUpState 및 SignUpViewModel 상태를 감시
+    final signUpState = ref.watch(signUpViewModelProvider); 
+    final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () {
-            Navigator.pop(context); // 뒤로가기 버튼 클릭 시 이전 화면으로 이동
-          },
+          onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.transparent, // AppBar의 배경색 투명
+        elevation: 0, // 그림자 제거
       ),
+      // 본문 내용
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // 화면 여백
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
           children: [
+            // 중앙에 위치한 타이틀 텍스트
             Center(
               child: Text(
-                'アカウント認証', // "アカウント認証" (계정 인증) 제목 표시
+                'アカウント認証', // 'アカウント認証' = 계정 인증
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 16), // 간격 추가
+            // 사용자 이메일 정보와 안내 메시지
             Center(
               child: Text(
-                '${user.email}に認証コードを送りました。\n認証コードを入力してください。', // 사용자의 이메일 주소로 인증 코드가 전송되었음을 안내
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
+                '${user.email}に認証コードを送りました。\n認証コードを入力してください。', 
+                // '認証コードを送りました。' = 인증 코드를 보냈습니다.
+                textAlign: TextAlign.center, // 텍스트 가운데 정렬
+                style: TextStyle(fontSize: 16, color: Colors.black),
               ),
             ),
-            SizedBox(height: 32),
+            SizedBox(height: 32), // 간격 추가
+            // 인증 코드 입력 필드 라벨
             Text(
-              '認証コード', // "認証コード" (인증 코드) 라벨 표시
+              '認証コード', // '認証コード' = 인증 코드
               style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 8), // 간격 추가
+            // 인증 코드 입력 필드
             TextField(
-              controller: _codeController, // 인증 코드를 입력받는 필드
+              controller: signUpState.codeController, // 인증 코드 입력을 위한 컨트롤러
               decoration: InputDecoration(
-                hintText: '4桁コードを入力', // "4桁コードを入力" (4자리 코드를 입력) 힌트 텍스트
+                hintText: '4桁コードを入力', // '4桁コードを入力' = 4자리 코드를 입력
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(10.0), // 필드 테두리 둥글게 설정
                 ),
               ),
-              keyboardType: TextInputType.number, // 숫자만 입력받도록 설정
-              maxLength: 4, // 최대 4자리까지만 입력 가능
+              keyboardType: TextInputType.number, // 숫자 입력만 가능하도록 설정
+              maxLength: 4, // 최대 입력 길이 4자리로 설정
             ),
-            Spacer(), // 남은 공간을 채우기 위한 위젯
+            Spacer(), // 화면 남은 공간 채우기 (필드와 버튼 사이 간격 유지)
+            // 코드 재전송 버튼
             Center(
               child: TextButton(
                 onPressed: () {
-                  signUpViewModel.resendVerificationCode(); // 인증 코드 재전송 요청
+                  signUpViewModel.resendVerificationCode(); // 코드 재전송 함수 호출
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('新しいコードが送信されました。')), // "新しいコードが送信されました。" (새로운 코드가 전송되었습니다) 안내 메시지
+                    SnackBar(content: Text('新しいコードが送信されました。')), 
+                    // '新しいコードが送信されました' = 새로운 코드가 전송되었습니다.
                   );
                 },
                 child: Text(
-                  'コード再送する', // "コード再送する" (코드 재전송) 버튼 텍스트
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                  ),
+                  'コード再送する', // 'コード再送する' = 코드 재전송
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
                 ),
               ),
             ),
+            // 인증 확인 버튼
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  if (signUpViewModel.verifyCode(_codeController.text)) {
-                    // 인증 코드가 올바른 경우 Firestore에 사용자 정보를 저장
-                    signUpViewModel.onEmailVerified(context, user);
-                  } else {
-                    // 인증 코드가 틀린 경우 오류 메시지 표시
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('認証コードが正しくありません。')), // "認証コードが正しくありません。" (인증 코드가 올바르지 않습니다) 오류 메시지
-                    );
-                  }
+                onPressed: () async {
+                  // 입력된 코드를 기반으로 인증 처리
+                  await signUpViewModel.verifyCode(
+                    signUpState.codeController.text, 
+                    context, 
+                    user
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF1D2538), // 버튼 배경색 설정
-                  padding: EdgeInsets.symmetric(horizontal: 120, vertical: 12),
+                  padding: EdgeInsets.symmetric(horizontal: 120, vertical: 12), // 버튼 크기 설정
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius: BorderRadius.circular(50), // 버튼 모서리를 둥글게 설정
                   ),
                 ),
                 child: Text(
-                  'アカウント認証', // "アカウント認証" (계정 인증) 버튼 텍스트
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
+                  'アカウント認証', // 'アカウント認証' = 계정 인증
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 16), // 마지막 간격
           ],
         ),
       ),

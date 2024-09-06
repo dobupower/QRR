@@ -1,65 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
-import 'view/first_screen.dart';
-import 'view/sign_up_screen.dart';
-import 'view/store_select_screen.dart';
-import 'view/email_auth_screen.dart';
-import 'viewModel/sign_up_view_model.dart';
-import 'firebase_options.dart';  // 자동으로 생성된 Firebase 초기화 파일
-import 'model/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart'; // Firebase Core 패키지 가져오기
+import 'view/first_screen.dart'; // FirstScreen 가져오기
+import 'view/sign_up_screen.dart'; // SignUpScreen 가져오기
+import 'view/store_select_screen.dart'; // StoreSelectionScreen 가져오기
+import 'view/email_auth_screen.dart'; // EmailAuthScreen 가져오기
+import 'model/user_model.dart'; // User 모델 가져오기
 
+// 메인 함수, Firebase 초기화
 void main() async {
-  // Flutter가 비동기 초기화 작업을 수행할 수 있도록 보장
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // 위젯 바인딩 초기화 (비동기 호출 전 필요)
+  await Firebase.initializeApp(); // Firebase 앱 초기화
 
-  // Firebase 초기화. Firebase와 통신하기 전에 반드시 초기화가 필요합니다.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  // 앱 시작
-  runApp(MyApp());
+  // ProviderScope는 Riverpod 상태 관리를 위한 최상위 위젯
+  runApp(ProviderScope(child: MyApp()));
 }
 
-// MyApp은 앱의 루트 위젯입니다.
+// MyApp 클래스, Flutter 앱의 진입점
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      // MultiProvider를 사용하여 앱 전체에서 사용될 여러 ViewModel을 제공
-      providers: [
-        // ChangeNotifierProvider는 SignUpViewModel을 제공하여 상태 변화를 감지하고 UI에 반영
-        ChangeNotifierProvider(create: (_) => SignUpViewModel()),
-      ],
-      child: MaterialApp(
-        // 앱의 타이틀
-        title: 'Flutter Demo',
-        // 앱의 테마 설정
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        // 앱이 시작될 때 처음으로 표시될 라우트 지정
-        initialRoute: '/',
-        // 앱에서 사용할 라우트를 정의
-        routes: {
-          '/': (context) => FirstScreen(),            // 첫 화면
-          '/sign-up': (context) => SignUpScreen(),    // 회원가입 화면
-          '/store-selection': (context) => StoreSelectionScreen(),  // 매장 선택 화면
-        },
-        // 특정 상황에서 동적으로 라우트를 생성하기 위해 onGenerateRoute 사용
-        onGenerateRoute: (settings) {
-          // '/email-auth' 라우트가 호출되면 EmailAuthScreen을 표시
-          if (settings.name == '/email-auth') {
-            // 전달된 인자(argument)로 User 객체를 받아옴
-            final user = settings.arguments as User;
+    return MaterialApp(
+      title: 'Flutter Demo', // 앱의 제목
+      theme: ThemeData(
+        primarySwatch: Colors.blue, // 기본 색상 테마 설정
+        visualDensity: VisualDensity.adaptivePlatformDensity, // 플랫폼에 맞는 밀도 설정
+      ),
+      initialRoute: '/', // 첫 화면을 루트('/')로 설정
+      routes: {
+        '/': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
+        '/sign-up': (context) => SignUpScreen(), // '/sign-up' 경로에서 SignUpScreen 표시
+        '/store-selection': (context) => StoreSelectionScreen(), // '/store-selection' 경로에서 StoreSelectionScreen 표시
+      },
+      // 동적 경로 생성, 이메일 인증 화면
+      onGenerateRoute: (settings) {
+        if (settings.name == '/email-auth') {
+          final user = settings.arguments as User?; // 전달된 User 객체를 받음
+          if (user != null) {
             return MaterialPageRoute(
-              builder: (context) => EmailAuthScreen(user: user),
+              builder: (context) => EmailAuthScreen(user: user), // User가 있으면 EmailAuthScreen으로 이동
+            );
+          } else {
+            return MaterialPageRoute(
+              builder: (context) => FirstScreen(), // User가 없으면 FirstScreen으로 이동
             );
           }
-          return null; // 해당하는 라우트가 없을 경우 null을 반환
-        },
-      ),
+        }
+        return null; // 해당 경로가 없으면 null 반환
+      },
+      // 알 수 없는 경로 처리
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => FirstScreen(), // 잘못된 경로일 경우 FirstScreen으로 이동
+        );
+      },
     );
   }
 }

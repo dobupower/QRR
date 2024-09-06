@@ -1,211 +1,284 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'dart:math';
 import '../model/user_model.dart';
+import '../services/auth_service.dart';
 
-class SignUpViewModel extends ChangeNotifier {
-  // TextEditingController들을 정의하여 사용자 입력을 관리합니다.
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+// 회원가입 화면 상태를 관리하는 SignUpState 클래스
+class SignUpState {
+  final TextEditingController nameController; // 사용자 이름 입력 필드 컨트롤러
+  final TextEditingController emailController; // 이메일 입력 필드 컨트롤러
+  final TextEditingController passwordController; // 비밀번호 입력 필드 컨트롤러
+  final TextEditingController confirmPasswordController; // 비밀번호 확인 입력 필드 컨트롤러
+  final TextEditingController codeController; // 인증 코드 입력 필드 컨트롤러
 
-  // 인증 코드를 저장할 변수입니다.
-  String? _verificationCode;
+  final String? verificationCode; // 서버에서 생성된 인증 코드
+  final String? emailError; // 이메일 유효성 검사 오류 메시지
+  final String? passwordError; // 비밀번호 유효성 검사 오류 메시지
+  final String? confirmPasswordError; // 비밀번호 확인 유효성 검사 오류 메시지
+  final String? verificationErrorMessage; // 인증 코드 오류 메시지
+  final bool isLoading; // 로딩 상태
+  final String type; // 사용자 유형 ('customer' or 'owner')
+  final User? user; // 사용자 정보
+  final bool isPasswordVisible; // 비밀번호 가시성 상태
+  final bool isConfirmPasswordVisible; // 비밀번호 확인 가시성 상태
 
-  // 비밀번호와 확인 비밀번호 필드의 가시성을 관리하는 변수들입니다.
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+  // 생성자
+  SignUpState({
+    required this.nameController,
+    required this.emailController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+    required this.codeController,
+    this.verificationCode,
+    this.emailError,
+    this.passwordError,
+    this.confirmPasswordError,
+    this.verificationErrorMessage,
+    this.isLoading = false,
+    this.type = 'customer',
+    this.user,
+    this.isPasswordVisible = false,
+    this.isConfirmPasswordVisible = false,
+  });
 
-  // Getter를 통해 외부에서 각 컨트롤러에 접근할 수 있습니다.
-  TextEditingController get nameController => _nameController;
-  TextEditingController get emailController => _emailController;
-  TextEditingController get passwordController => _passwordController;
-  TextEditingController get confirmPasswordController => _confirmPasswordController;
-
-  // Getter를 통해 비밀번호 필드의 가시성을 제어합니다.
-  bool get isPasswordVisible => _isPasswordVisible;
-  bool get isConfirmPasswordVisible => _isConfirmPasswordVisible;
-
-  // 각 필드의 오류 메시지를 저장할 변수들입니다.
-  String? _passwordError;
-  String? _confirmPasswordError;
-  String? _emailError;
-
-  // Getter를 통해 외부에서 오류 메시지에 접근할 수 있습니다.
-  String? get passwordError => _passwordError;
-  String? get confirmPasswordError => _confirmPasswordError;
-  String? get emailError => _emailError;
-
-  // 폼이 유효한지 확인하는 메서드입니다. 각 필드를 검증한 후 오류가 없으면 true를 반환합니다.
+  // 폼의 유효성을 판단하는 getter
   bool get isFormValid {
-    validatePasswordFields(); // 비밀번호 필드 검증
-    validateEmail(_emailController.text); // 이메일 필드 검증
-    return _passwordError == null && _confirmPasswordError == null && _emailError == null;
+    return emailError == null &&
+        passwordError == null &&
+        confirmPasswordError == null &&
+        nameController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty &&
+        confirmPasswordController.text.isNotEmpty;
   }
 
-  // 비밀번호와 확인 비밀번호 필드를 검증하는 메서드입니다.
-  void validatePasswordFields() {
-    if (_passwordController.text.length < 8) {
-      _passwordError = 'パスワードは8文字以上で入力してください。'; // 비밀번호가 8자리 이상인지 확인
-    } else {
-      _passwordError = null;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _confirmPasswordError = 'パスワードが一致しません。'; // 비밀번호와 확인 비밀번호가 일치하는지 확인
-    } else {
-      _confirmPasswordError = null;
-    }
-    notifyListeners(); // 상태가 변경되었음을 알립니다.
+  // SignUpState의 복사본을 생성하여 상태를 업데이트
+  SignUpState copyWith({
+    TextEditingController? nameController,
+    TextEditingController? emailController,
+    TextEditingController? passwordController,
+    TextEditingController? confirmPasswordController,
+    TextEditingController? codeController,
+    String? verificationCode,
+    String? emailError,
+    String? passwordError,
+    String? confirmPasswordError,
+    String? verificationErrorMessage,
+    bool? isLoading,
+    String? type,
+    User? user,
+    bool? isPasswordVisible,
+    bool? isConfirmPasswordVisible,
+  }) {
+    return SignUpState(
+      nameController: nameController ?? this.nameController,
+      emailController: emailController ?? this.emailController,
+      passwordController: passwordController ?? this.passwordController,
+      confirmPasswordController: confirmPasswordController ?? this.confirmPasswordController,
+      codeController: codeController ?? this.codeController,
+      verificationCode: verificationCode ?? this.verificationCode,
+      emailError: emailError,
+      passwordError: passwordError ?? this.passwordError,
+      confirmPasswordError: confirmPasswordError,
+      verificationErrorMessage: verificationErrorMessage ?? this.verificationErrorMessage,
+      isLoading: isLoading ?? this.isLoading,
+      type: type ?? this.type,
+      user: user ?? this.user,
+      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+      isConfirmPasswordVisible: isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
+    );
   }
+}
 
-  // 이메일 필드를 검증하는 메서드입니다.
+// SignUpViewModel: 회원가입 로직을 처리하는 클래스
+class SignUpViewModel extends StateNotifier<SignUpState> {
+  final AuthService _authService; // 인증 서비스 의존성 주입
+
+  // 생성자
+  SignUpViewModel(this._authService)
+      : super(SignUpState(
+          nameController: TextEditingController(),
+          emailController: TextEditingController(),
+          passwordController: TextEditingController(),
+          confirmPasswordController: TextEditingController(),
+          codeController: TextEditingController(),
+        ));
+
+  // 이메일 유효성 검사
   void validateEmail(String email) {
-    const emailRegex = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // 이메일 형식을 검증하는 정규식
+    const emailRegex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+
+    // 이메일 형식이 올바른지 확인
     if (!RegExp(emailRegex).hasMatch(email)) {
-      _emailError = '正しいメールアドレスを入力してください。'; // 이메일이 올바른 형식인지 확인
+      state = state.copyWith(emailError: '正しいメールアドレスを入力してください。');
     } else {
-      _emailError = null;
+      state = state.copyWith(emailError: null); // 유효한 경우 에러 메시지 제거
     }
-    notifyListeners(); // 상태가 변경되었음을 알립니다.
   }
 
-  // 비밀번호 가시성을 토글하는 메서드입니다.
+  // 비밀번호 유효성 검사 (8자 이상)
+  void validatePassword(String password) {
+    if (password.length < 8) {
+      state = state.copyWith(passwordError: 'パスワードは8文字以上である必要があります。');
+    } else {
+      state = state.copyWith(passwordError: null); // 유효한 경우 에러 메시지 제거
+    }
+
+    // 비밀번호 확인도 다시 검사
+    if (state.confirmPasswordController.text.isNotEmpty) {
+      validateConfirmPassword(state.confirmPasswordController.text);
+    }
+  }
+
+  // 비밀번호 확인 유효성 검사 (비밀번호와 일치하는지 확인)
+  void validateConfirmPassword(String confirmPassword) {
+    if (confirmPassword != state.passwordController.text) {
+      state = state.copyWith(confirmPasswordError: 'パスワードが一致しません。');
+    } else {
+      state = state.copyWith(confirmPasswordError: null); // 유효한 경우 에러 메시지 제거
+    }
+  }
+
+  // 비밀번호 가시성 토글
   void togglePasswordVisibility() {
-    _isPasswordVisible = !_isPasswordVisible;
-    notifyListeners(); // 상태가 변경되었음을 알립니다.
+    state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
-  // 확인 비밀번호 가시성을 토글하는 메서드입니다.
+  // 비밀번호 확인 가시성 토글
   void toggleConfirmPasswordVisibility() {
-    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-    notifyListeners(); // 상태가 변경되었음을 알립니다.
+    state = state.copyWith(isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
-  // 회원가입 절차를 처리하는 메서드입니다.
+  // 사용자 유형 설정 (고객 또는 소유자)
+  void setType(bool isOwner) {
+    state = state.copyWith(type: isOwner ? 'owner' : 'customer');
+  }
+
+  // 사용자 스토어 업데이트
+  void updateUserStore(User user, String pubId) {
+    user.pubId = pubId;
+    state = state.copyWith(user: user);
+  }
+
+  // 회원가입 처리
   Future<void> signUp(BuildContext context) async {
-    if (isFormValid) {
-      final email = _emailController.text;
+    if (state.isFormValid) {
+      state = state.copyWith(isLoading: true); // 로딩 상태 업데이트
 
-      // Firestore에서 이메일 중복 확인
-      final existingUser = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: email)
-          .get();
+      try {
+        final email = state.emailController.text;
 
-      if (existingUser.docs.isNotEmpty) {
-        // 이메일이 이미 존재하는 경우
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('このメールアドレスは既に登録されています。')),
-        );
-        return;
-      }
+        // 이메일 중복 확인
+        if (await _authService.isEmailAlreadyRegistered(email)) {
+          state = state.copyWith(emailError: 'このメールアドレスは既に登録されています。');
+          return;
+        }
 
-      // 4자리 인증 코드 생성
-      _verificationCode = _generateVerificationCode();
-
-      // 인증 코드 이메일로 전송
-      bool emailSent = await _sendVerificationEmail(email, _verificationCode!);
-
-      if (emailSent) {
+        // 사용자 정보 생성
         final user = User(
-          name: _nameController.text,
-          email: email,
-          password: _passwordController.text,
+          uid: '',
+          name: state.nameController.text,
+          email: state.emailController.text,
+          points: 0,
+          type: state.type,
         );
 
-        Navigator.pushNamed(context, '/store-selection', arguments: user);
-      } else {
-        debugPrint('이메일 전송 실패');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('이메일 전송에 실패했습니다. 다시 시도해주세요.')),
-        );
+        // 인증 코드 생성 및 저장
+        final verificationCode = _generateVerificationCode();
+        state = state.copyWith(verificationCode: verificationCode);
+
+        // 인증 이메일 발송
+        bool emailSent = await _authService.sendVerificationEmail(user.email, verificationCode);
+
+        if (emailSent) {
+          Navigator.pushNamed(context, '/store-selection', arguments: user);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('認証コードを送信しました。メールを確認してください。')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('이메일 전송에 실패했습니다。')),
+          );
+        }
+      } catch (e) {
+        debugPrint('회원가입 오류: $e');
+      } finally {
+        state = state.copyWith(isLoading: false); // 로딩 상태 종료
       }
     } else {
       debugPrint('Form is not valid');
     }
   }
 
-  // 4자리 인증 코드를 생성하는 메서드입니다.
+  // 인증 코드 생성 (4자리 랜덤 숫자)
   String _generateVerificationCode() {
     final random = Random();
-    return (random.nextInt(9000) + 1000).toString(); // 1000부터 9999 사이의 난수를 생성
+    return (random.nextInt(9000) + 1000).toString();
   }
 
-  // 인증 코드를 이메일로 전송하는 메서드입니다.
-  Future<bool> _sendVerificationEmail(String email, String code) async {
-    // 실제 이메일과 비밀번호로 변경해야 합니다.
-    String username = 'bbg999123@gmail.com';
-    String password = 'xilw aglt tsgp jxch';
+  // 인증 코드 확인
+  Future<void> verifyCode(String inputCode, BuildContext context, User user) async {
+    if (state.verificationCode == inputCode) {
+      state = state.copyWith(verificationErrorMessage: null); // 오류 메시지 초기화
 
-    final smtpServer = gmail(username, password); // Gmail SMTP 서버 설정
-    final message = Message()
-      ..from = Address('qrr@qrr.com', 'QRR') // 보내는 사람 이메일과 이름
-      ..recipients.add(email) // 수신자 이메일
-      ..subject = 'Your Verification Code' // 이메일 제목
-      ..text = 'Your verification code is $code'; // 이메일 내용
+      try {
+        final firebaseAuth = firebase_auth.FirebaseAuth.instance;
 
-    try {
-      final sendReport = await send(message, smtpServer);
-      debugPrint('Message sent: ' + sendReport.toString());
-      return true; // 이메일 전송 성공
-    } on MailerException catch (e) {
-      debugPrint('Message not sent. \n' + e.toString());
-      for (var p in e.problems) {
-        debugPrint('Problem: ${p.code}: ${p.msg}');
+        // Firebase에서 계정 생성
+        firebase_auth.UserCredential userCredential = await firebaseAuth.createUserWithEmailAndPassword(
+          email: user.email,
+          password: state.passwordController.text,
+        );
+
+        // Firestore에 사용자 정보 저장
+        await _authService.saveUserToFirestore(
+          user.copyWith(uid: userCredential.user!.uid).toMap(),
+        );
+
+        // 인증 완료 후 첫 화면으로 돌아감
+        Navigator.popUntil(context, (route) => route.isFirst);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('アカウント登録が完了しました。')),
+        );
+      } catch (e) {
+        debugPrint('Error during authentication or Firestore saving: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ユーザー登録中にエラーが発生しました。')),
+        );
       }
-      return false; // 이메일 전송 실패
+    } else {
+      state = state.copyWith(verificationErrorMessage: '認証コードが正しくありません。');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('認証に失敗しました。')),
+      );
     }
   }
 
-  // 인증 코드를 재전송하는 메서드입니다.
+  // 인증 코드 재전송
   Future<void> resendVerificationCode() async {
-    // 새 인증 코드 생성
-    _verificationCode = _generateVerificationCode();
+    final newCode = _generateVerificationCode();
+    state = state.copyWith(verificationCode: newCode);
 
-    // 새 인증 코드 이메일로 전송
-    if (_emailController.text.isNotEmpty) {
-      bool emailSent = await _sendVerificationEmail(_emailController.text, _verificationCode!);
-      if (emailSent) {
-        debugPrint('Verification code resent to ${_emailController.text}');
-      } else {
-        debugPrint('이메일 재전송 실패');
+    if (state.emailController.text.isNotEmpty) {
+      try {
+        await _authService.sendVerificationEmail(state.emailController.text, newCode);
+      } catch (e) {
+        debugPrint('인증 코드 재전송 실패: $e');
       }
     }
-  }
-
-  // 사용자가 입력한 코드가 생성된 코드와 일치하는지 확인하는 메서드입니다.
-  bool verifyCode(String inputCode) {
-    return _verificationCode == inputCode;
-  }
-
-  // 사용자를 Firestore에 저장하는 메서드입니다.
-  Future<void> saveUserToFirestore(User user) async {
-    try {
-      await FirebaseFirestore.instance.collection('users').add({
-        'name': user.name,
-        'email': user.email,
-        'password': user.password, // 실제 애플리케이션에서는 비밀번호를 해싱하여 저장하세요.
-        'store': user.store,
-      });
-      debugPrint('User added to Firestore');
-    } catch (e) {
-      debugPrint('Error adding user to Firestore: $e');
-    }
-  }
-
-  // 사용자가 선택한 스토어를 업데이트하는 메서드입니다.
-  void updateUserStore(User user, String store) {
-    user.store = store;
-  }
-
-  // 이메일 인증이 완료된 후 사용자를 Firestore에 저장하는 메서드입니다.
-  void onEmailVerified(BuildContext context, User user) {
-    saveUserToFirestore(user).then((_) {
-      Navigator.popUntil(context, (route) => route.isFirst); // 초기 화면으로 돌아갑니다.
-    });
   }
 }
+
+// AuthService 의존성 주입
+final authServiceProvider = Provider((ref) => AuthService());
+
+// SignUpViewModel 제공
+final signUpViewModelProvider = StateNotifierProvider<SignUpViewModel, SignUpState>(
+  (ref) {
+    final authService = ref.watch(authServiceProvider);
+    return SignUpViewModel(authService);
+  },
+);
