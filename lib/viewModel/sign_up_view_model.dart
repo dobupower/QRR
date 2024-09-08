@@ -80,7 +80,7 @@ class SignUpState {
       codeController: codeController ?? this.codeController,
       verificationCode: verificationCode ?? this.verificationCode,
       emailError: emailError,
-      passwordError: passwordError ?? this.passwordError,
+      passwordError: passwordError,
       confirmPasswordError: confirmPasswordError,
       verificationErrorMessage: verificationErrorMessage ?? this.verificationErrorMessage,
       isLoading: isLoading ?? this.isLoading,
