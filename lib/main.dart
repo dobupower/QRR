@@ -7,6 +7,7 @@ import 'view/store_select_screen.dart'; // StoreSelectionScreen 가져오기
 import 'view/email_auth_screen.dart'; // EmailAuthScreen 가져오기
 import 'view/home_screen.dart'; // HomeScreen 가져오기
 import 'model/user_model.dart'; // User 모델 가져오기
+import 'view/login_screen.dart'; // HomeScreen 가져오기
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
         '/sign-up': (context) => SignUpScreen(), // '/sign-up' 경로에서 SignUpScreen 표시
         '/store-selection': (context) => StoreSelectionScreen(), // '/store-selection' 경로에서 StoreSelectionScreen 표시
+        '/login': (context) => LoginScreen(), // 로그인 화면 경로 추가
         '/home': (context) => HomeScreen(), // HomeScreen 추가
       },
       // 동적 경로 생성, 이메일 인증 화면

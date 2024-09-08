@@ -75,7 +75,7 @@ class FirstScreen extends ConsumerWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      // 로그인 버튼 클릭 시 처리 (구현 예정)
+                      Navigator.pushNamed(context, '/login'); // 로그인 페이지로 이동
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 13), // 버튼 안쪽 패딩
