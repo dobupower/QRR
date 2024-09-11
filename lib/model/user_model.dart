@@ -4,6 +4,7 @@ class User {
   final String email; // 사용자 이메일
   final int points; // 사용자 포인트 (기본 값은 0)
   final String type; // 사용자 유형 (예: 'customer' 또는 'owner')
+  final String authType; // 인증 방식 (예: 'email', 'google', 'facebook' 등)
   String? pubId; // 선택한 매장 ID (선택적)
   String? profilePicUrl; // 프로필 사진 URL (선택적)
 
@@ -14,6 +15,7 @@ class User {
     required this.email,
     required this.points,
     required this.type,
+    required this.authType, // authType 필드 추가
     this.pubId,
     this.profilePicUrl,
   });
@@ -26,6 +28,7 @@ class User {
       'email': email, // User의 이메일
       'points': points, // User의 포인트
       'type': type, // User의 유형
+      'authType': authType, // 인증 방식 추가
       'pubId': pubId, // 선택된 매장의 ID
       'profilePicUrl': profilePicUrl, // User의 프로필 사진 URL
     };
@@ -39,6 +42,7 @@ class User {
       email: map['email'] ?? '', // 이메일이 없으면 빈 문자열을 할당
       points: map['points'] ?? 0, // 포인트가 없으면 0을 할당
       type: map['type'] ?? 'customer', // 유형이 없으면 기본값 'customer'를 할당
+      authType: map['authType'] ?? 'email', // 인증 방식이 없으면 기본값 'email'을 할당
       pubId: map['pubId'], // 매장 ID는 선택적
       profilePicUrl: map['profilePicUrl'], // 프로필 사진 URL은 선택적
     );
@@ -51,6 +55,7 @@ class User {
     String? email, // 변경할 email (null이면 기존 값 유지)
     int? points, // 변경할 points (null이면 기존 값 유지)
     String? type, // 변경할 type (null이면 기존 값 유지)
+    String? authType, // 변경할 authType (null이면 기존 값 유지)
     String? pubId, // 변경할 pubId (null이면 기존 값 유지)
     String? profilePicUrl, // 변경할 profilePicUrl (null이면 기존 값 유지)
   }) {
@@ -60,6 +65,7 @@ class User {
       email: email ?? this.email, // email이 주어지면 변경, 아니면 기존 값 유지
       points: points ?? this.points, // points가 주어지면 변경, 아니면 기존 값 유지
       type: type ?? this.type, // type이 주어지면 변경, 아니면 기존 값 유지
+      authType: authType ?? this.authType, // authType이 주어지면 변경, 아니면 기존 값 유지
       pubId: pubId ?? this.pubId, // pubId가 주어지면 변경, 아니면 기존 값 유지
       profilePicUrl: profilePicUrl ?? this.profilePicUrl, // profilePicUrl이 주어지면 변경, 아니면 기존 값 유지
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication 사용
 import 'package:google_sign_in/google_sign_in.dart'; // Google Sign-In 사용
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore 사용
 import 'home_screen.dart'; // HomeScreen 가져오기
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
 
@@ -18,7 +19,6 @@ class LoginScreen extends ConsumerWidget {
     final passwordController = TextEditingController();
 
     return Scaffold(
-      // AppBar 정의 (상단바)
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.grey), // 뒤로 가기 버튼
@@ -27,8 +27,6 @@ class LoginScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent, // 배경색을 투명하게 설정
         elevation: 0, // 그림자 제거
       ),
-      
-      // 화면 전체 레이아웃 설정
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0), // 좌우 32.0 간격 패딩 적용
         child: Column(
@@ -179,31 +177,70 @@ class LoginScreen extends ConsumerWidget {
             Center(
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  // Google 로그인 처리
                   try {
                     final googleUser = await GoogleSignIn().signIn(); // Google 로그인 요청
                     if (googleUser == null) return; // 로그인 취소 시 처리 없음
 
                     final googleAuth = await googleUser.authentication; // Google 인증 정보 요청
-                    final credential = GoogleAuthProvider.credential(
-                      accessToken: googleAuth.accessToken,
-                      idToken: googleAuth.idToken,
-                    );
+                    final googleEmail = googleUser.email;
 
-                    // Firebase로 로그인
-                    await FirebaseAuth.instance.signInWithCredential(credential);
+                    // Firestore에서 사용자가 이메일로 등록되어 있는지 확인
+                    final querySnapshot = await FirebaseFirestore.instance
+                      .collection('users')
+                      .where('email', isEqualTo: googleEmail)
+                      .get();
 
-                    // 로그인 성공 시 HomeScreen으로 이동 (뒤로 가기 버튼 없이)
+                  if (querySnapshot.docs.isNotEmpty) {
+                    // 이미 존재할 경우 authType 체크
+                    final existingUser = querySnapshot.docs.first;
+                    final authType = existingUser['authType'];
+
+                    if (authType != 'google') {
+                      // Google이 아닌 로그인 방식일 경우 로그아웃 처리 및 로그인 취소
+                      await GoogleSignIn().signOut(); // Google 로그아웃
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('다른 로그인 방식으로 로그인해주세요.')),
+                      );
+                      return;
+                    }
+                  }
+
+                    // authType이 'google'인 경우나 처음 등록되는 경우만 Firebase로 로그인
+                  final credential = GoogleAuthProvider.credential(
+                    accessToken: googleAuth.accessToken,
+                    idToken: googleAuth.idToken,
+                  );
+
+                  // Firebase로 인증 정보 전달하여 로그인 처리
+                  final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+                  final user = userCredential.user;
+
+                  if (user != null) {
+                    if (querySnapshot.docs.isEmpty) {
+                      // Firestore에 사용자가 없으면 새로 생성
+                      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+                        'uid': user.uid,
+                        'email': user.email,
+                        'name': user.displayName ?? 'Anonymous',
+                        'points': 0,
+                        'profilePicUrl': user.photoURL,
+                        'pubId': null,
+                        'type': signUpState.type == 'owner' ? 'owner' : 'customer',
+                        'authType': 'google', // Google로 로그인했음을 저장
+                      });
+                    }
+
+                    // 로그인 성공 시 HomeScreen으로 이동
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen으로 이동
                     );
-                  } catch (e) {
-                    // Google 로그인 실패 시 에러 메시지 출력
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Google 로그인에 실패했습니다.')),
-                    );
                   }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Google 로그인에 실패했습니다.')),
+                  );
+                }
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 48), // 버튼 너비를 가득 채우고 높이 48px

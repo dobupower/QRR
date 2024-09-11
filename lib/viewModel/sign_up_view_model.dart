@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:google_sign_in/google_sign_in.dart'; // Google Sign-In 사용
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore 사용
 import 'dart:math';
 import '../model/user_model.dart';
 import '../services/auth_service.dart';
@@ -80,7 +82,7 @@ class SignUpState {
       codeController: codeController ?? this.codeController,
       verificationCode: verificationCode ?? this.verificationCode,
       emailError: emailError,
-      passwordError: passwordError ?? this.passwordError,
+      passwordError: passwordError,
       confirmPasswordError: confirmPasswordError,
       verificationErrorMessage: verificationErrorMessage ?? this.verificationErrorMessage,
       isLoading: isLoading ?? this.isLoading,
@@ -92,13 +94,19 @@ class SignUpState {
   }
 }
 
-// SignUpViewModel: 회원가입 로직을 처리하는 클래스
+// SignUpViewModel: 회원가입 및 로그인 로직을 처리하는 클래스
 class SignUpViewModel extends StateNotifier<SignUpState> {
   final AuthService _authService; // 인증 서비스 의존성 주입
+  final firebase_auth.FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firestore;
+  final GoogleSignIn _googleSignIn;
 
   // 생성자
   SignUpViewModel(this._authService)
-      : super(SignUpState(
+      : _firebaseAuth = firebase_auth.FirebaseAuth.instance,
+        _firestore = FirebaseFirestore.instance,
+        _googleSignIn = GoogleSignIn(),
+        super(SignUpState(
           nameController: TextEditingController(),
           emailController: TextEditingController(),
           passwordController: TextEditingController(),
@@ -176,13 +184,14 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
           return;
         }
 
-        // 사용자 정보 생성
+        // 사용자 정보 생성 (authType에 'email' 값을 설정)
         final user = User(
           uid: '',
           name: state.nameController.text,
           email: state.emailController.text,
           points: 0,
           type: state.type,
+          authType: 'email', // authType 필드에 'email' 값 설정
         );
 
         // 인증 코드 생성 및 저장
@@ -205,11 +214,17 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
         }
       } catch (e) {
         debugPrint('회원가입 오류: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('회원가입 중 오류가 발생했습니다。')),
+        );
       } finally {
         state = state.copyWith(isLoading: false); // 로딩 상태 종료
       }
     } else {
       debugPrint('Form is not valid');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('입력된 정보를 확인해주세요。')),
+      );
     }
   }
 
@@ -268,6 +283,74 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
       } catch (e) {
         debugPrint('인증 코드 재전송 실패: $e');
       }
+    }
+  }
+
+  // Google 로그인 처리
+  Future<void> signInWithGoogle(BuildContext context) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // 사용자가 Google 로그인 취소
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Firebase 인증 및 로그인
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser != null) {
+        final email = firebaseUser.email;
+        if (email == null) {
+          throw Exception('Google 계정에 이메일이 없습니다.');
+        }
+
+        final querySnapshot = await _firestore.collection('users').where('email', isEqualTo: email).get();
+
+        if (querySnapshot.docs.isEmpty) {
+          // Firestore에 사용자 정보가 없으면 새로운 사용자로 등록
+          final newUser = User(
+            uid: firebaseUser.uid,
+            name: firebaseUser.displayName ?? 'Anonymous',
+            email: firebaseUser.email!,
+            points: 0,
+            type: state.type,
+            authType: 'google', // Google로 로그인한 사용자
+            profilePicUrl: firebaseUser.photoURL,
+          );
+
+          await _authService.saveUserToFirestore(newUser.toMap());
+
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          // 이미 존재하는 사용자일 경우 authType 확인
+          final existingUser = querySnapshot.docs.first.data();
+          final authType = existingUser['authType'];
+
+          if (authType == 'google') {
+            Navigator.pushReplacementNamed(context, '/home');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('다른 방식으로 로그인해주세요。')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Google 로그인 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google 로그인에 실패했습니다。')),
+      );
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 }
