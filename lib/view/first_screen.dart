@@ -108,14 +108,43 @@ class FirstScreen extends ConsumerWidget {
                     idToken: googleAuth.idToken,
                   );
 
-                  // Firebase로 인증 정보 전달
-                  await FirebaseAuth.instance.signInWithCredential(credential);
+                  // Google 계정의 이메일로 이미 이메일/비밀번호 제공자가 있는지 확인
+                  User? user = FirebaseAuth.instance.currentUser;
 
-                  // 로그인 성공 시 HomeScreen으로 이동
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen으로 이동
-                  );
+                  if (user != null) {
+                    // 현재 로그인된 사용자의 인증 제공자 정보 가져오기
+                    for (UserInfo providerProfile in user.providerData) {
+                      // 인증 제공자 이름
+                      String providerId = providerProfile.providerId;
+                      // Google 계정인지 이메일/비밀번호 계정인지 확인
+                      if (providerId == 'google.com') {
+                        // 이메일/비밀번호 계정이 없으면 바로 Google 로그인
+                        await FirebaseAuth.instance.signInWithCredential(credential);
+
+                        // 로그인 성공 후 홈 화면으로 이동
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      } else if (providerId == 'password') {
+                        // 이메일/비밀번호로 이미 가입된 계정이 있는 경우 -> 연동 처리
+                        final password = await _promptForPassword(context); // 비밀번호를 입력받는 함수 호출
+
+                        // 이메일/비밀번호로 로그인
+                        final emailCredential = EmailAuthProvider.credential(email: user?.email ?? "", password: password);
+                        final UserCredential emailUserCredential = await FirebaseAuth.instance.signInWithCredential(emailCredential);
+
+                        // 2. 이메일 계정에 Google 자격 증명을 연동
+                        await emailUserCredential.user?.linkWithCredential(credential);
+
+                        // 연동 후 홈 화면으로 이동
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
+                      }
+                    }
+                  }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Google 로그인에 실패했습니다.')),
@@ -172,5 +201,33 @@ class FirstScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<String> _promptForPassword(BuildContext context) async {
+    String password = '';
+    // 비밀번호 입력 UI
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('비밀번호 입력'),
+          content: TextField(
+            obscureText: true,
+            onChanged: (value) {
+              password = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+    return password;
   }
 }
