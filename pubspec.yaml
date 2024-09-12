@@ -39,6 +39,8 @@ dependencies:
   google_sign_in: 6.2.1
   firebase_auth: 5.1.4
   mailer: ^5.0.0
+  qr_code_scanner: 1.0.1
+  camera: ^0.10.0+1
 
 dev_dependencies:
   flutter_test:
