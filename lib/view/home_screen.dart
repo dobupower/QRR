@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 // HomeScreen 클래스는 StatefulWidget을 상속받아 상태 관리를 가능하게 함
 class HomeScreen extends StatefulWidget {
@@ -97,50 +96,12 @@ class TransactionHistoryTab extends StatelessWidget {
   }
 }
 
-class ScanTab extends StatefulWidget {
-  @override
-  _ScanTabState createState() => _ScanTabState();
-}
-
-class _ScanTabState extends State<ScanTab> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
-
+class ScanTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Text('QR 코드를 스캔하세요'),
-            ),
-          )
-        ],
-      ),
+    return Center(
+      child: Icon(Icons.qr_code_scanner, size: 100, color: Colors.grey), // QR코드 스캔 아이콘을 표시
     );
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      print('QR 데이터: ${scanData.code}');
-      controller.pauseCamera(); // 카메라 멈춤
-    });
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
   }
 }
 

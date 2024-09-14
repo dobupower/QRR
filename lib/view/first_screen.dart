@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth 사용
-import 'package:google_sign_in/google_sign_in.dart'; // Google Sign-In 사용
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore 사용
-import 'home_screen.dart'; // HomeScreen 가져오기
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
+import '../viewModel/sign_in_view_model.dart';
 
 class FirstScreen extends ConsumerWidget {
   @override
@@ -12,6 +9,8 @@ class FirstScreen extends ConsumerWidget {
     // signUpViewModel과 signUpState를 각각 읽고, 상태 관리를 준비
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier); // SignUpViewModel에 접근
     final signUpState = ref.watch(signUpViewModelProvider); // 현재 상태를 감시
+    final signInViewModel = ref.read(signinViewModelProvider.notifier);
+    final signInState = ref.watch(signinViewModelProvider); // 상태를 감시
 
     return Scaffold(
       body: Padding(
@@ -96,92 +95,44 @@ class FirstScreen extends ConsumerWidget {
             SizedBox(height: 20), // 로그인 버튼 아래 빈 공간
 
             // 'Google'로 로그인 버튼
+            // Google 로그인 버튼
             ElevatedButton.icon(
-              onPressed: () async {
-                try {
-                  final googleUser = await GoogleSignIn().signIn(); // Google Sign-In
-                  if (googleUser == null) return; // 사용자가 로그인 취소할 경우
-
-                  final googleAuth = await googleUser.authentication; // 인증 정보 요청
-                  final googleEmail = googleUser.email; // Google에서 가져온 이메일
-
-                  // Firestore에서 해당 이메일로 사용자 존재 여부 확인
-                  final querySnapshot = await FirebaseFirestore.instance
-                      .collection('users')
-                      .where('email', isEqualTo: googleEmail)
-                      .get();
-
-                  if (querySnapshot.docs.isNotEmpty) {
-                    // 이미 존재할 경우 authType 체크
-                    final existingUser = querySnapshot.docs.first;
-                    final authType = existingUser['authType'];
-
-                    if (authType != 'google') {
-                      // Google이 아닌 로그인 방식일 경우 로그아웃 처리 및 로그인 취소
-                      await GoogleSignIn().signOut(); // Google 로그아웃
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('다른 로그인 방식으로 로그인해주세요.')),
-                      );
-                      return;
-                    }
-                  }
-
-                  // authType이 'google'인 경우나 처음 등록되는 경우만 Firebase로 로그인
-                  final credential = GoogleAuthProvider.credential(
-                    accessToken: googleAuth.accessToken,
-                    idToken: googleAuth.idToken,
-                  );
-
-                  // Firebase로 인증 정보 전달하여 로그인 처리
-                  final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-                  final user = userCredential.user;
-
-                  if (user != null) {
-                    if (querySnapshot.docs.isEmpty) {
-                      // Firestore에 사용자가 없으면 새로 생성
-                      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-                        'uid': user.uid,
-                        'email': user.email,
-                        'name': user.displayName ?? 'Anonymous',
-                        'points': 0,
-                        'profilePicUrl': user.photoURL,
-                        'pubId': null,
-                        'type': signUpState.type == 'owner' ? 'owner' : 'customer',
-                        'authType': 'google', // Google로 로그인했음을 저장
-                      });
-                    }
-
-                    // 로그인 성공 시 HomeScreen으로 이동
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()), // HomeScreen으로 이동
-                    );
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Google 로그인에 실패했습니다.')),
-                  );
-                }
-              },
+              onPressed: signInState.isLoading
+                  ? null // 로딩 중일 때 버튼 비활성화
+                  : () async {
+                      // 관리자인지 여부를 체크박스 상태로 판단
+                      final isOwner = signUpState.type == 'owner';
+                      await signInViewModel.signInWithGoogle(context, isOwner: isOwner); // ViewModel 인스턴스를 통해 메서드 호출
+                    },
               icon: Image.asset(
-                'lib/img/google_logo.png', // Google 로고 이미지
-                height: 24, // 아이콘 높이
-                width: 24, // 아이콘 너비
+                'lib/img/google_logo.png',
+                height: 24,
+                width: 24,
               ),
               label: Text(
-                'Googleを利用してログイン', // 버튼 텍스트 'Google을 이용해 로그인'
-                style: TextStyle(color: Colors.black), // 텍스트 스타일
+                'Googleを利用してログイン',
+                style: TextStyle(color: Colors.black),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white, // 버튼 배경색 흰색
-                foregroundColor: Colors.black, // 텍스트 및 아이콘 색상
-                padding: EdgeInsets.symmetric(horizontal: 87, vertical: 14), // 버튼 패딩
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                padding: EdgeInsets.symmetric(horizontal: 87, vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25), // 버튼 모서리 둥글게 설정
+                  borderRadius: BorderRadius.circular(25),
                 ),
-                side: BorderSide(color: Color.fromARGB(255, 220, 220, 220)), // 회색 테두리
+                side: BorderSide(color: Color.fromARGB(255, 220, 220, 220)),
               ),
             ),
+            if (signInState.isLoading)
+              CircularProgressIndicator(), // 로딩 중일 때 표시
+            if (signInState.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  signInState.errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
             SizedBox(height: 10), // Google 로그인 버튼 아래 빈 공간
 
             // 'LINE'으로 로그인 버튼 (구현 예정)
