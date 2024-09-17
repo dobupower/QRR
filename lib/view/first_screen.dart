@@ -6,6 +6,7 @@ import 'home_screen.dart'; // HomeScreen 가져오기
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
 
 class FirstScreen extends ConsumerWidget {
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // signUpViewModel과 signUpState를 각각 읽고, 상태 관리를 준비
