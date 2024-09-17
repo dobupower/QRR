@@ -6,6 +6,7 @@ class SignUpScreen extends ConsumerWidget {
   // FormState를 관리하기 위한 GlobalKey
   final _formKey = GlobalKey<FormState>();
 
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 현재 상태와 ViewModel 가져오기

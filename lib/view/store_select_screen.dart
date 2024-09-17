@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 가져오기
 import '../model/user_model.dart'; // User 모델 가져오기
 
+
 // StoreSelectionScreen 클래스 (ConsumerWidget을 상속받아 Riverpod의 상태 관리 기능 사용)
 class StoreSelectionScreen extends ConsumerWidget {
   @override

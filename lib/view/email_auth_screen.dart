@@ -12,6 +12,7 @@ class EmailAuthScreen extends ConsumerWidget {
   EmailAuthScreen({required this.user});
 
   @override
+  
   Widget build(BuildContext context, WidgetRef ref) {
     // SignUpState 및 SignUpViewModel 상태를 감시
     final signUpState = ref.watch(signUpViewModelProvider); 
