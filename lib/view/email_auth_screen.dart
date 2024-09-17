@@ -8,6 +8,7 @@ class EmailAuthScreen extends ConsumerWidget {
   final User user; // 이메일 인증 대상인 사용자
 
   // 생성자에서 필수적으로 User 객체를 받아옴
+  
   EmailAuthScreen({required this.user});
 
   @override
