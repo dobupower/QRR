@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:google_sign_in/google_sign_in.dart'; // Google Sign-In 사용
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore 사용
 import 'dart:math';
 import '../model/user_model.dart';
 import '../services/auth_service.dart';
@@ -23,6 +25,7 @@ class SignUpState {
   final User? user; // 사용자 정보
   final bool isPasswordVisible; // 비밀번호 가시성 상태
   final bool isConfirmPasswordVisible; // 비밀번호 확인 가시성 상태
+  final String? selectedStore; // 사용자가 선택한 매장 정보
 
   // 생성자
   SignUpState({
@@ -41,6 +44,7 @@ class SignUpState {
     this.user,
     this.isPasswordVisible = false,
     this.isConfirmPasswordVisible = false,
+    this.selectedStore,
   });
 
   // 폼의 유효성을 판단하는 getter
@@ -71,6 +75,7 @@ class SignUpState {
     User? user,
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
+    String? selectedStore, // 선택한 매장 추가
   }) {
     return SignUpState(
       nameController: nameController ?? this.nameController,
@@ -80,7 +85,7 @@ class SignUpState {
       codeController: codeController ?? this.codeController,
       verificationCode: verificationCode ?? this.verificationCode,
       emailError: emailError,
-      passwordError: passwordError ?? this.passwordError,
+      passwordError: passwordError,
       confirmPasswordError: confirmPasswordError,
       verificationErrorMessage: verificationErrorMessage ?? this.verificationErrorMessage,
       isLoading: isLoading ?? this.isLoading,
@@ -88,17 +93,24 @@ class SignUpState {
       user: user ?? this.user,
       isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
       isConfirmPasswordVisible: isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
+      selectedStore: selectedStore ?? this.selectedStore, // 선택한 매장 필드 추가
     );
   }
 }
 
-// SignUpViewModel: 회원가입 로직을 처리하는 클래스
+// SignUpViewModel: 회원가입 및 로그인 로직을 처리하는 클래스
 class SignUpViewModel extends StateNotifier<SignUpState> {
   final AuthService _authService; // 인증 서비스 의존성 주입
+  final firebase_auth.FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firestore;
+  final GoogleSignIn _googleSignIn;
 
   // 생성자
   SignUpViewModel(this._authService)
-      : super(SignUpState(
+      : _firebaseAuth = firebase_auth.FirebaseAuth.instance,
+        _firestore = FirebaseFirestore.instance,
+        _googleSignIn = GoogleSignIn(),
+        super(SignUpState(
           nameController: TextEditingController(),
           emailController: TextEditingController(),
           passwordController: TextEditingController(),
@@ -156,6 +168,10 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
     state = state.copyWith(type: isOwner ? 'owner' : 'customer');
   }
 
+  void updateSelectedStore(String storeName) {
+    state = state.copyWith(selectedStore: storeName); // selectedStore 업데이트
+  }
+
   // 사용자 스토어 업데이트
   void updateUserStore(User user, String pubId) {
     user.pubId = pubId;
@@ -176,13 +192,14 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
           return;
         }
 
-        // 사용자 정보 생성
+        // 사용자 정보 생성 (authType에 'email' 값을 설정)
         final user = User(
           uid: '',
           name: state.nameController.text,
           email: state.emailController.text,
           points: 0,
           type: state.type,
+          authType: 'email', // authType 필드에 'email' 값 설정
         );
 
         // 인증 코드 생성 및 저장
@@ -205,11 +222,17 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
         }
       } catch (e) {
         debugPrint('회원가입 오류: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('회원가입 중 오류가 발생했습니다。')),
+        );
       } finally {
         state = state.copyWith(isLoading: false); // 로딩 상태 종료
       }
     } else {
       debugPrint('Form is not valid');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('입력된 정보를 확인해주세요。')),
+      );
     }
   }
 
