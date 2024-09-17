@@ -13,6 +13,7 @@ class SignUpScreen extends ConsumerWidget {
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
 
     return Scaffold(
+      
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.grey),
