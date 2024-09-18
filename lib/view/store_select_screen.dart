@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 가져오기
 import '../model/user_model.dart'; // User 모델 가져오기
 
+
+// StoreSelectionScreen 클래스 (ConsumerWidget을 상속받아 Riverpod의 상태 관리 기능 사용)
+
 class StoreSelectionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -13,6 +16,7 @@ class StoreSelectionScreen extends ConsumerWidget {
     // Navigator로 전달된 User 객체를 가져옴
     final user = ModalRoute.of(context)?.settings.arguments as User?;
 
+    
     // User가 null이거나 이메일이 유효하지 않으면 에러 화면을 표시
     if (user == null || user.email.isEmpty) {
       return Scaffold(

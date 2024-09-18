@@ -4,6 +4,7 @@ import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
 import '../viewModel/sign_in_view_model.dart';
 
 class FirstScreen extends ConsumerWidget {
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // signUpViewModel과 signUpState를 각각 읽고, 상태 관리를 준비

@@ -6,6 +6,7 @@ class SignUpScreen extends ConsumerWidget {
   // FormState를 관리하기 위한 GlobalKey
   final _formKey = GlobalKey<FormState>();
 
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 화면 크기 정보 가져오기
@@ -17,6 +18,7 @@ class SignUpScreen extends ConsumerWidget {
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
 
     return Scaffold(
+      
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.grey),
