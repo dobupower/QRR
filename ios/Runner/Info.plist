@@ -34,6 +34,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- 카메라 권한 요청을 위한 설명 추가 -->
+	<key>NSCameraUsageDescription</key>
+	<string>이 앱은 QR 코드 스캔을 위해 카메라를 사용합니다.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
   		<dict>
