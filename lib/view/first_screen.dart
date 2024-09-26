@@ -4,7 +4,6 @@ import '../viewModel/sign_up_view_model.dart'; // SignUpViewModel 파일 import
 import '../viewModel/sign_in_view_model.dart';
 
 class FirstScreen extends ConsumerWidget {
-  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // signUpViewModel과 signUpState를 각각 읽고, 상태 관리를 준비
@@ -36,7 +35,7 @@ class FirstScreen extends ConsumerWidget {
                   value: signUpState.type == 'owner', // 'owner'일 때 체크됨
                   onChanged: (bool? value) {
                     if (value != null) {
-                      signUpViewModel.setType(value); // 선택에 따라 관리자 설정
+                      signUpViewModel.setType(value); // 선택에 따라 'owner' 또는 'customer' 설정
                     }
                   },
                 ),
@@ -57,8 +56,12 @@ class FirstScreen extends ConsumerWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      // '会員登録' 버튼 클릭 시 회원가입 페이지로 이동
-                      Navigator.pushNamed(context, '/sign-up');
+                      // 체크박스 상태에 따라 다른 화면으로 이동
+                      if (signUpState.type == 'owner') {
+                        Navigator.pushNamed(context, '/owner-sign-up');
+                      } else {
+                        Navigator.pushNamed(context, '/sign-up');
+                      }
                     },
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 13), // 버튼 안쪽 패딩
