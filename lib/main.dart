@@ -9,7 +9,6 @@ import 'view/home_screen.dart'; // HomeScreen 가져오기
 import 'model/user_model.dart'; // User 모델 가져오기
 import 'view/login_screen.dart'; // LoginScreen 가져오기
 import 'view/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
-import 'view/photo_upload_screen.dart';
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -38,7 +37,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(), // 로그인 화면 경로 추가
         '/home': (context) => HomeScreen(), // HomeScreen 추가
         '/owner-sign-up': (context) => OwnerSignUpScreen(), // OwnerSignUpScreen 추가
-        '/PhotoUploadScreen': (context) => PhotoUploadScreen(),
       },
       // 동적 경로 생성, 이메일 인증 화면
       onGenerateRoute: (settings) {

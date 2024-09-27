@@ -49,4 +49,9 @@ class AuthService {
     // 'users' 컬렉션에 새로운 사용자 데이터 추가
     await FirebaseFirestore.instance.collection('users').add(userData);
   }
+  
+  Future<void> saveownerToFirestore(Map<String, dynamic> userData) async {
+    // 'owners' 컬렉션에 새로운 사용자 데이터 추가
+    await FirebaseFirestore.instance.collection('owners').add(userData);
+  }
 }
