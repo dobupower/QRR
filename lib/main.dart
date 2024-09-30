@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart'; // Firebase Core 패키지 가져오기
 import 'view/first_screen.dart'; // FirstScreen 가져오기
-import 'view/sign_up_screen.dart'; // SignUpScreen 가져오기
-import 'view/store_select_screen.dart'; // StoreSelectionScreen 가져오기
-import 'view/email_auth_screen.dart'; // EmailAuthScreen 가져오기
-import 'view/home_screen.dart'; // HomeScreen 가져오기
+import 'view/sign-up/sign_up_screen.dart'; // SignUpScreen 가져오기
+import 'view/sign-up/store_select_screen.dart'; // StoreSelectionScreen 가져오기
+import 'view/sign-up/email_auth_screen.dart'; // EmailAuthScreen 가져오기
+import 'view/tab/owner_home_screen.dart'; // HomeScreen 가져오기
+import 'view/tab/user_home_screen.dart';
 import 'model/user_model.dart'; // User 모델 가져오기
-import 'view/login_screen.dart'; // LoginScreen 가져오기
-import 'view/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
+import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
+import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -35,8 +36,9 @@ class MyApp extends StatelessWidget {
         '/sign-up': (context) => SignUpScreen(), // '/sign-up' 경로에서 SignUpScreen 표시
         '/store-selection': (context) => StoreSelectionScreen(), // '/store-selection' 경로에서 StoreSelectionScreen 표시
         '/login': (context) => LoginScreen(), // 로그인 화면 경로 추가
-        '/home': (context) => HomeScreen(), // HomeScreen 추가
+        '/owner-home': (context) => OwnerHomeScreen(), // HomeScreen 추가
         '/owner-sign-up': (context) => OwnerSignUpScreen(), // OwnerSignUpScreen 추가
+        '/user-home': (context) => UserHomeScreen(),
       },
       // 동적 경로 생성, 이메일 인증 화면
       onGenerateRoute: (settings) {

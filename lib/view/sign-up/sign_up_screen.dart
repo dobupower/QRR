@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewModel/sign_up_view_model.dart'; // 회원가입 ViewModel 가져오기
+import '../../viewModel/sign_up_view_model.dart'; // 회원가입 ViewModel 가져오기
 
 class SignUpScreen extends ConsumerWidget {
   // FormState를 관리하기 위한 GlobalKey
