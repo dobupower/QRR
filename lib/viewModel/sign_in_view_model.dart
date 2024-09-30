@@ -117,6 +117,17 @@ class SignInViewModel extends StateNotifier<SignInState> {
           .where('email', isEqualTo: googleUser.email)
           .get();
 
+      final ownerDoc = await FirebaseFirestore.instance
+          .collection('owners')
+          .where('email', isEqualTo: googleUser.email)
+          .get();
+
+      // ownerDoc에 결과가 있을 경우, 로그인 중단 및 경고 메시지 표시
+      if (ownerDoc.docs.isNotEmpty) {
+        state = state.copyWith(isLoading: false, errorMessage: '해당 이메일은 구글 로그인을 지원하지 않습니다.'); // 오류 메시지 설정
+        return;
+      }
+
       if (userDoc.docs.isNotEmpty) {
         // Firestore에 이미 사용자 정보가 있는 경우
         final authType = userDoc.docs.first['authType']; // Firestore의 authType 필드 사용
@@ -143,7 +154,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
           }
 
           // 로그인 성공 후 홈 화면으로 이동
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/user-home');
           return;
         }
 
@@ -166,8 +177,9 @@ class SignInViewModel extends StateNotifier<SignInState> {
             await _updateAuthTypeInFirestore(emailUserCredential.user!, 'google');
 
             // 연동 성공 후 홈 화면으로 이동
-            Navigator.pushReplacementNamed(context, '/home');
+            Navigator.pushReplacementNamed(context, '/user-home');
           } catch (e) {
+            state = state.copyWith(isLoading: false, errorMessage: '로그인에 실패했습니다: $e');
           }
           return;
         }
@@ -178,7 +190,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
 
         if (newUser != null) {
           await _addUserToFirestore(newUser, isOwner); // Firestore에 사용자 정보 추가
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/user-home');
         }
       }
     } catch (e) {
@@ -224,105 +236,100 @@ class SignInViewModel extends StateNotifier<SignInState> {
 
   // 비밀번호 입력을 위한 다이얼로그
   Future<String> _promptForPassword(BuildContext context, String userEmail) async {
-  String password = '';
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 상단 텍스트
-              Text(
-                'アカウントが既に存在します',  // "Account exists"의 일본어 번역
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'すでにアカウントがあるようです。\nログインしてください。',  // "이미 계정이 존재합니다. 로그인 해주세요."의 일본어 번역
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              SizedBox(height: 20),
-
-              // 프로필 이미지 및 이메일 표시
-              CircleAvatar(
-                radius: 30,
-                child: Text(
-                  userEmail[0].toUpperCase(), // 첫 글자로 아바타 생성
-                  style: TextStyle(fontSize: 24),
+    String password = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 상단 텍스트
+                Text(
+                  'アカウントが既に存在します',  // "Account exists"의 일본어 번역
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                userEmail,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
+                SizedBox(height: 10),
+                Text(
+                  'すでにアカウントがあるようです。\nログインしてください。',  // "이미 계정이 존재합니다. 로그인 해주세요."의 일본어 번역
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 20),
 
-              // 비밀번호 입력 필드
-              TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.visibility),
-                    onPressed: () {
-                      // 비밀번호 표시/가리기 로직 추가 가능
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                // 프로필 이미지 및 이메일 표시
+                CircleAvatar(
+                  radius: 30,
+                  child: Text(
+                    userEmail[0].toUpperCase(), // 첫 글자로 아바타 생성
+                    style: TextStyle(fontSize: 24),
                   ),
                 ),
-                onChanged: (value) {
-                  password = value;
-                },
-              ),
-              SizedBox(height: 20),
+                SizedBox(height: 10),
+                Text(
+                  userEmail,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
 
-              // 하단 버튼
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(password);
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                // 비밀번호 입력 필드
+                TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.visibility),
+                      onPressed: () {
+                        // 비밀번호 표시/가리기 로직 추가 가능
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    password = value;
+                  },
+                ),
+                SizedBox(height: 20),
+
+                // 하단 버튼
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(password);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    '続行',  // "계속하기"의 일본어 번역
+                    style: TextStyle(fontSize: 18),
                   ),
                 ),
-                child: Text(
-                  '続行',  // "계속하기"의 일본어 번역
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
 
-              // 추가 링크들
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // 다른 계정으로 로그인
-                },
-                child: Text('別のアカウントでログイン'),  // "다른 계정으로 로그인"의 일본어 번역
-              ),
-            ],
+                // 추가 링크들
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 다른 계정으로 로그인
+                  },
+                  child: Text('別のアカウントでログイン'),  // "다른 계정으로 로그인"의 일본어 번역
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-  return password;
+        );
+      },
+    );
+    return password;
+  }
 }
-
-}
-
-
 // SignInViewModel Provider
 final signinViewModelProvider = StateNotifierProvider<SignInViewModel, SignInState>(
   (ref) => SignInViewModel(),
 );
-
-
