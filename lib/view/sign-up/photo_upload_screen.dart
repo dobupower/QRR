@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewModel/photo_upload_view_model.dart';
+import '../../viewModel/photo_upload_view_model.dart';
 import 'dart:io'; 
-import '../model/owner_model.dart';
+import '../../model/owner_model.dart';
 import 'owner_email_auth_screen.dart'; // 이메일 인증 페이지로 이동
 
 /// [PhotoUploadScreen]은 사용자가 이미지(가게 이미지 및 로고)를 업로드하고 메시지를 입력하는 화면입니다.

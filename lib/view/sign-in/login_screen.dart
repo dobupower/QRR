@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'home_screen.dart';
-import '../viewModel/sign_up_view_model.dart';
-import '../viewModel/sign_in_view_model.dart';
+import '../../viewModel/sign_up_view_model.dart';
+import '../../viewModel/sign_in_view_model.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   @override
@@ -131,23 +129,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               SizedBox(height: screenHeight * 0.02),
               Center(
                 child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      UserCredential userCredential = await FirebaseAuth.instance
-                          .signInWithEmailAndPassword(
-                        email: emailController.text.trim(),
-                        password: passwordController.text.trim(),
-                      );
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomeScreen()),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('로그인에 실패했습니다: ${e.toString()}')),
-                      );
-                    }
-                  },
+                  onPressed: signInState.isLoading
+                      ? null
+                      : () async {
+                          await signInViewModel.handleLogin(
+                            context,
+                            emailController.text,
+                            passwordController.text,
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, screenHeight * 0.06),
                     backgroundColor: Color(0xFF1D2538),
@@ -155,13 +145,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       borderRadius: BorderRadius.circular(screenHeight * 0.03),
                     ),
                   ),
-                  child: Text(
-                    'ログイン',
-                    style: TextStyle(
-                      fontSize: screenHeight * 0.022,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: signInState.isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'ログイン',
+                          style: TextStyle(
+                            fontSize: screenHeight * 0.022,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
               SizedBox(height: screenHeight * 0.15),
