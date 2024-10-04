@@ -44,6 +44,8 @@ class SignInViewModel extends StateNotifier<SignInState> {
     state = state.copyWith(isLoading: true); // 로딩 상태 시작
 
     try {
+
+      // type에 따라 owners 또는 users 컬렉션 선택
       final collectionName = state.type == 'owner' ? 'owners' : 'users';
 
       // Firestore에서 해당 이메일이 존재하는지 확인
@@ -178,7 +180,6 @@ class SignInViewModel extends StateNotifier<SignInState> {
 
             // 로그인 성공 시 SharedPreferences에 사용자 정보 저장
             await _saveLoginInfo(emailUserCredential.user!, 'user');
-
             Navigator.pushReplacementNamed(context, '/user-home');
           } catch (e) {
             state = state.copyWith(isLoading: false, errorMessage: '로그인에 실패했습니다: $e');
@@ -192,10 +193,8 @@ class SignInViewModel extends StateNotifier<SignInState> {
 
         if (newUser != null) {
           await _addUserToFirestore(newUser, isOwner); // Firestore에 사용자 정보 추가
-
           // 로그인 성공 시 SharedPreferences에 사용자 정보 저장
           await _saveLoginInfo(newUser, 'user');
-
           Navigator.pushReplacementNamed(context, '/user-home');
         }
       }
