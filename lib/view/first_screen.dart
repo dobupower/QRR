@@ -35,7 +35,9 @@ class FirstScreen extends ConsumerWidget {
                   value: signUpState.type == 'owner', // 'owner'일 때 체크됨
                   onChanged: (bool? value) {
                     if (value != null) {
+                      final type = value ? 'owner' : 'customer';
                       signUpViewModel.setType(value); // 선택에 따라 'owner' 또는 'customer' 설정
+                      signInViewModel.setType(type); // signInState에 설정
                     }
                   },
                 ),

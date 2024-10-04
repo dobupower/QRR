@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewModel/owner_sign_up_view_model.dart'; // ViewModel 가져오기
+import '../../viewModel/owner_sign_up_view_model.dart'; // ViewModel 가져오기
 
 class OwnerSignUpScreen extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();  // 폼의 상태를 관리하기 위한 글로벌 키

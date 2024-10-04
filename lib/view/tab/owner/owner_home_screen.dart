@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'owner_settings_tab.dart';
 
 // HomeScreen 클래스는 StatefulWidget을 상속받아 상태 관리를 가능하게 함
-class HomeScreen extends StatefulWidget {
+class OwnerHomeScreen extends StatefulWidget {
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _OwnerHomeScreenState createState() => _OwnerHomeScreenState();
 }
 
 // _HomeScreenState 클래스는 상태를 관리하는 곳으로, 현재 선택된 탭을 관리함
-class _HomeScreenState extends State<HomeScreen> {
+class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   // 현재 선택된 탭 인덱스 (0: 첫 번째 탭)
   int _currentIndex = 0;
 
@@ -18,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TransactionHistoryTab(), // 거래 내역 탭에 해당하는 화면
     ScanTab(), // 스캔 탭에 해당하는 화면 (QR코드 스캔 등)
     AccountTab(), // 계정 정보 탭에 해당하는 화면
-    SettingsTab(), // 설정 탭에 해당하는 화면
+    OwnerSettingsTab(), // 설정 탭에 해당하는 화면
   ];
 
   @override
@@ -149,15 +150,6 @@ class AccountTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text('アカウント'), // "계정" 탭의 내용
-    );
-  }
-}
-
-class SettingsTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('設定'), // "설정" 탭의 내용
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/owner_model.dart';
 import '../services/auth_service.dart';
 import 'dart:math';
-import '../view/photo_upload_screen.dart';
+import '../view/sign-up/photo_upload_screen.dart';
 import 'photo_upload_view_model.dart';
 
 /// [SignUpState]는 회원가입 화면의 상태를 관리하는 클래스입니다.

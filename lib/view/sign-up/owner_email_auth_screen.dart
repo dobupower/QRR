@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewModel/owner_sign_up_view_model.dart'; // SignUpViewModel 가져오기
-import '../model/owner_model.dart'; // User 모델 가져오기
+import '../../viewModel/owner_sign_up_view_model.dart'; // SignUpViewModel 가져오기
+import '../../model/owner_model.dart'; // User 모델 가져오기
 import 'dart:io'; // File 사용을 위한 패키지
 
 // 이메일 인증 화면 클래스 (ConsumerWidget을 사용하여 Riverpod 상태를 감시)

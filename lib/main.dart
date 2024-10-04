@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart'; // Firebase Core 패키지 가져오기
 import 'view/first_screen.dart'; // FirstScreen 가져오기
-import 'view/sign_up_screen.dart'; // SignUpScreen 가져오기
-import 'view/store_select_screen.dart'; // StoreSelectionScreen 가져오기
-import 'view/email_auth_screen.dart'; // EmailAuthScreen 가져오기
-import 'view/home_screen.dart'; // HomeScreen 가져오기
+import 'view/sign-up/sign_up_screen.dart'; // SignUpScreen 가져오기
+import 'view/sign-up/store_select_screen.dart'; // StoreSelectionScreen 가져오기
+import 'view/sign-up/email_auth_screen.dart'; // EmailAuthScreen 가져오기
+import 'view/tab/owner/owner_home_screen.dart'; // HomeScreen 가져오기
+import 'view/tab/user/user_home_screen.dart';
 import 'model/user_model.dart'; // User 모델 가져오기
-import 'view/login_screen.dart'; // LoginScreen 가져오기
-import 'view/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
+import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
+import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
+import 'package:shared_preferences/shared_preferences.dart';
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -24,6 +26,33 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      home: FutureBuilder(
+        future: _getLoginStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(child: Text('Error loading app')),
+            );
+          }
+
+          // 로그인 여부에 따라 초기 화면을 다르게 설정
+          if (snapshot.data == 'user') {
+            // 만약 email이 저장되어 있으면 owner-home으로 이동
+            return UserHomeScreen();
+          } else if(snapshot.data == 'owner') {
+            // 그렇지 않으면 FirstScreen으로 이동
+            return OwnerHomeScreen();
+          } else {
+            return FirstScreen();
+          }
+        },
+      ),
       title: 'Flutter Demo', // 앱의 제목
       theme: ThemeData(
         primarySwatch: Colors.blue, // 기본 색상 테마 설정
@@ -31,12 +60,13 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/', // 첫 화면을 루트('/')로 설정
       routes: {
-        '/': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
+        '/first': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
         '/sign-up': (context) => SignUpScreen(), // '/sign-up' 경로에서 SignUpScreen 표시
         '/store-selection': (context) => StoreSelectionScreen(), // '/store-selection' 경로에서 StoreSelectionScreen 표시
         '/login': (context) => LoginScreen(), // 로그인 화면 경로 추가
-        '/home': (context) => HomeScreen(), // HomeScreen 추가
+        '/owner-home': (context) => OwnerHomeScreen(), // HomeScreen 추가
         '/owner-sign-up': (context) => OwnerSignUpScreen(), // OwnerSignUpScreen 추가
+        '/user-home': (context) => UserHomeScreen(),
       },
       // 동적 경로 생성, 이메일 인증 화면
       onGenerateRoute: (settings) {
@@ -61,5 +91,12 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<String?> _getLoginStatus() async {
+    // SharedPreferences의 인스턴스를 비동기적으로 가져옵니다.
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    // 'email' 키를 사용하여 저장된 이메일 정보를 가져옵니다.
+    return prefs.getString('type'); // email이 있으면 반환, 없으면 null
   }
 }
