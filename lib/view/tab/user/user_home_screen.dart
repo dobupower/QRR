@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../qr_tab.dart'; // qr_tab.dart 파일에서 분리한 QR 코드 탭만 import
 import 'user_settings_tab.dart';
 
 // HomeScreen 클래스는 StatefulWidget을 상속받아 상태 관리를 가능하게 함
@@ -85,6 +84,15 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text('ホーム'), // "홈" 탭의 내용
+    );
+  }
+}
+
+class QrTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('유저 qr'),
     );
   }
 }
