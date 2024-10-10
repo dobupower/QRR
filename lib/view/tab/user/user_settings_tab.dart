@@ -1,7 +1,6 @@
-// settings_tab.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../services/preferences_manager.dart'; // PreferencesManager 클래스 import
 
 class UserSettingsTab extends StatelessWidget {
   const UserSettingsTab({Key? key}) : super(key: key);
@@ -12,10 +11,8 @@ class UserSettingsTab extends StatelessWidget {
       // FirebaseAuth 로그아웃
       await FirebaseAuth.instance.signOut();
 
-      // SharedPreferences 초기화
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('email');
-      await prefs.remove('type');
+      // PreferencesManager를 사용하여 SharedPreferences 초기화
+      await PreferencesManager.instance.logout();
 
       // 로그아웃 후 첫 화면으로 이동 (FirstScreen 또는 LoginScreen 등으로)
       Navigator.pushReplacementNamed(context, '/First');
