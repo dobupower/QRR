@@ -10,12 +10,13 @@ import 'view/tab/user/user_home_screen.dart';
 import 'model/user_model.dart'; // User 모델 가져오기
 import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
 import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
-import 'package:shared_preferences/shared_preferences.dart';
+import 'services/preferences_manager.dart'; // 싱글톤 PreferencesManager 가져오기
 
 // 메인 함수, Firebase 초기화
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 위젯 바인딩 초기화 (비동기 호출 전 필요)
   await Firebase.initializeApp(); // Firebase 앱 초기화
+  await PreferencesManager.instance.init(); // PreferencesManager 초기화
 
   // ProviderScope는 Riverpod 상태 관리를 위한 최상위 위젯
   runApp(ProviderScope(child: MyApp()));
@@ -45,10 +46,11 @@ class MyApp extends StatelessWidget {
           if (snapshot.data == 'user') {
             // 만약 email이 저장되어 있으면 owner-home으로 이동
             return UserHomeScreen();
-          } else if(snapshot.data == 'owner') {
-            // 그렇지 않으면 FirstScreen으로 이동
+          } else if (snapshot.data == 'owner') {
+            // 그렇지 않으면 owner-home으로 이동
             return OwnerHomeScreen();
           } else {
+            // 그렇지 않으면 FirstScreen으로 이동
             return FirstScreen();
           }
         },
@@ -93,10 +95,9 @@ class MyApp extends StatelessWidget {
     );
   }
 
+  // PreferencesManager를 통해 로그인 상태를 가져오는 함수
   Future<String?> _getLoginStatus() async {
-    // SharedPreferences의 인스턴스를 비동기적으로 가져옵니다.
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // 'email' 키를 사용하여 저장된 이메일 정보를 가져옵니다.
-    return prefs.getString('type'); // email이 있으면 반환, 없으면 null
+    // 'type' 정보를 가져옴
+    return PreferencesManager.instance.getType();
   }
 }
