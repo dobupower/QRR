@@ -5,16 +5,18 @@ import 'view/first_screen.dart'; // FirstScreen 가져오기
 import 'view/sign-up/sign_up_screen.dart'; // SignUpScreen 가져오기
 import 'view/sign-up/store_select_screen.dart'; // StoreSelectionScreen 가져오기
 import 'view/sign-up/email_auth_screen.dart'; // EmailAuthScreen 가져오기
-import 'view/tab/owner_home_screen.dart'; // HomeScreen 가져오기
-import 'view/tab/user_home_screen.dart';
+import 'view/tab/owner/owner_home_screen.dart'; // HomeScreen 가져오기
+import 'view/tab/user/user_home_screen.dart';
 import 'model/user_model.dart'; // User 모델 가져오기
 import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
 import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
+import 'services/preferences_manager.dart'; // 싱글톤 PreferencesManager 가져오기
 
 // 메인 함수, Firebase 초기화
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 위젯 바인딩 초기화 (비동기 호출 전 필요)
   await Firebase.initializeApp(); // Firebase 앱 초기화
+  await PreferencesManager.instance.init(); // PreferencesManager 초기화
 
   // ProviderScope는 Riverpod 상태 관리를 위한 최상위 위젯
   runApp(ProviderScope(child: MyApp()));
@@ -25,6 +27,34 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      home: FutureBuilder(
+        future: _getLoginStatus(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(child: Text('Error loading app')),
+            );
+          }
+
+          // 로그인 여부에 따라 초기 화면을 다르게 설정
+          if (snapshot.data == 'user') {
+            // 만약 email이 저장되어 있으면 owner-home으로 이동
+            return UserHomeScreen();
+          } else if (snapshot.data == 'owner') {
+            // 그렇지 않으면 owner-home으로 이동
+            return OwnerHomeScreen();
+          } else {
+            // 그렇지 않으면 FirstScreen으로 이동
+            return FirstScreen();
+          }
+        },
+      ),
       title: 'Flutter Demo', // 앱의 제목
       theme: ThemeData(
         primarySwatch: Colors.blue, // 기본 색상 테마 설정
@@ -32,7 +62,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/', // 첫 화면을 루트('/')로 설정
       routes: {
-        '/': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
+        '/first': (context) => FirstScreen(), // 루트 경로에서 FirstScreen 표시
         '/sign-up': (context) => SignUpScreen(), // '/sign-up' 경로에서 SignUpScreen 표시
         '/store-selection': (context) => StoreSelectionScreen(), // '/store-selection' 경로에서 StoreSelectionScreen 표시
         '/login': (context) => LoginScreen(), // 로그인 화면 경로 추가
@@ -63,5 +93,11 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+
+  // PreferencesManager를 통해 로그인 상태를 가져오는 함수
+  Future<String?> _getLoginStatus() async {
+    // 'type' 정보를 가져옴
+    return PreferencesManager.instance.getType();
   }
 }
