@@ -13,6 +13,9 @@ class QrTab extends ConsumerWidget {
     final qrCodeViewModel = ref.read(qrCodeProvider.notifier);
     final userPointsViewModel = ref.read(userPointsProvider.notifier);
 
+    // 화면 크기 가져오기
+    final screenSize = MediaQuery.of(context).size;
+
     // SharedPreferences에서 이메일(회원번호) 가져오기
     final userEmail = PreferencesManager.instance.getEmail();
 
@@ -28,28 +31,28 @@ class QrTab extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 타이틀
-          SizedBox(height: 50),
+          SizedBox(height: screenSize.height * 0.05), // 화면 높이의 5%만큼 간격
           Padding(
-            padding: const EdgeInsets.only(left: 20.0, top: 40.0),
+            padding: EdgeInsets.only(left: screenSize.width * 0.05, top: screenSize.height * 0.03),
             child: Text(
               '会員証',
               style: TextStyle(
                 color: Colors.black, // 텍스트 색상
-                fontSize: 24,
+                fontSize: screenSize.width * 0.06, // 화면 너비의 6% 크기
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          SizedBox(height: 30), // 타이틀과 카드 사이에 여백 추가
+          SizedBox(height: screenSize.height * 0.03), // 타이틀과 카드 사이에 여백 추가
           Expanded(
             child: Container(
-              padding: EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(screenSize.width * 0.05), // 전체 패딩을 화면 너비의 5%로 설정
               decoration: BoxDecoration(
                 color: Color(0xFFE3E8EF), // 상자 배경색 (227, 232, 239)
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ), // 상단 둥글게, 하단은 사각형
+                  topLeft: Radius.circular(screenSize.width * 0.1), // 화면 너비의 10%만큼 둥글게
+                  topRight: Radius.circular(screenSize.width * 0.1), // 상단 둥글게
+                ),
               ),
               width: double.infinity, // 좌우로 가득 채우기
               child: Column(
@@ -62,26 +65,26 @@ class QrTab extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 60), // 추가 높이 조정
+                          SizedBox(height: screenSize.height * 0.06), // 추가 높이 조정
                           Image.asset(
                             'lib/img/point_icon.png', // 아이콘 이미지
-                            width: 60,
-                            height: 60,
+                            width: screenSize.width * 0.15, // 화면 너비의 15% 크기
+                            height: screenSize.width * 0.15, // 화면 너비의 15% 크기
                           ),
-                          SizedBox(height: 30),
+                          SizedBox(height: screenSize.height * 0.03),
                           Text(
                             '会員番号',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: screenSize.width * 0.04, // 화면 너비의 4%
                               color: Color(0xFF4A6FA5), // 부드러운 파란색
                             ),
                           ),
-                          SizedBox(height: 5),
+                          SizedBox(height: screenSize.height * 0.005),
                           // PreferencesManager에서 가져온 이메일을 표시
                           Text(
                             userEmail ?? '0000-0000-0000-0000',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: screenSize.width * 0.04, // 화면 너비의 4%
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.5,
                               color: Colors.black, // 회원 번호 색상
@@ -102,7 +105,7 @@ class QrTab extends ConsumerWidget {
                               icon: Icon(
                                 Icons.refresh,
                                 color: Color.fromARGB(255, 107, 107, 107), // 아이콘 색상
-                                size: 30, // 아이콘 크기
+                                size: screenSize.width * 0.08, // 아이콘 크기 화면 너비의 8%
                               ),
                               onPressed: () {
                                 qrCodeViewModel.regenerateQrCode(); // QR 코드 재생성
@@ -110,21 +113,21 @@ class QrTab extends ConsumerWidget {
                               },
                             ),
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: screenSize.height * 0.01),
                           // QR 코드 부분
                           qrCodeState.when(
                             loading: () => CircularProgressIndicator(),
                             data: (qrCode) => qrCode != null
                                 ? Container(
-                                    padding: EdgeInsets.all(6.0),
+                                    padding: EdgeInsets.all(screenSize.width * 0.02),
                                     decoration: BoxDecoration(
                                       color: Colors.white, // QR 코드 배경을 흰색으로 설정
-                                      borderRadius: BorderRadius.circular(10), // 둥근 사각형
+                                      borderRadius: BorderRadius.circular(screenSize.width * 0.03), // 둥근 사각형
                                     ),
                                     child: QrImage(
                                       data: qrCode.token,
                                       version: QrVersions.auto,
-                                      size: 130.0,
+                                      size: screenSize.width * 0.3, // QR 코드 크기 설정
                                     ),
                                   )
                                 : Text('QRコードがありません'),
@@ -134,27 +137,27 @@ class QrTab extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 60),
+                  SizedBox(height: screenSize.height * 0.05),
                   // 포인트 섹션
                   Text(
                     '利用可能ポイント',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: screenSize.width * 0.04,
                       color: Color(0xFF4A6FA5), // 설명 텍스트 색상
                     ),
                   ),
-                  SizedBox(height: 5),
+                  SizedBox(height: screenSize.height * 0.005),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end, // 포인트를 오른쪽으로 정렬
                     children: [
                       Baseline(
-                        baseline: 40, // aligning both text baselines
+                        baseline: screenSize.height * 0.06, // 높이에 맞춘 baseline
                         baselineType: TextBaseline.alphabetic,
                         child: userPointsState.when(
                           data: (points) => Text(
                             formatPoints(points), // 천 단위 구분 기호 추가
                             style: TextStyle(
-                              fontSize: 40, // 포인트 크기
+                              fontSize: screenSize.width * 0.1, // 포인트 크기
                               fontWeight: FontWeight.bold,
                               color: Colors.black, // 포인트 색상
                             ),
@@ -162,7 +165,7 @@ class QrTab extends ConsumerWidget {
                           loading: () => Text(
                             '0',
                             style: TextStyle(
-                              fontSize: 40,
+                              fontSize: screenSize.width * 0.1,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
@@ -170,14 +173,14 @@ class QrTab extends ConsumerWidget {
                           error: (error, _) => Text('取得失敗'),
                         ),
                       ),
-                      SizedBox(width: 5), // 포인트와 'pt' 간격
+                      SizedBox(width: screenSize.width * 0.01), // 포인트와 'pt' 간격
                       Baseline(
-                        baseline: 20, // aligning both text baselines
+                        baseline: screenSize.height * 0.03,
                         baselineType: TextBaseline.alphabetic,
                         child: Text(
                           'pt',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: screenSize.width * 0.04,
                             color: Colors.grey, // 'pt' 텍스트 색상
                           ),
                         ),
@@ -193,17 +196,16 @@ class QrTab extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF1E1E2C), // 버튼 배경색 (어두운 네이비)
                       foregroundColor: Colors.white, // 텍스트 색상
-                      minimumSize: Size(double.infinity, 50), // 버튼 너비를 화면 전체로, 높이는 50
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12), // 패딩 조정
+                      minimumSize: Size(double.infinity, screenSize.height * 0.08), // 버튼 높이를 화면 높이의 8%로 설정
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30), // 둥근 모서리
+                        borderRadius: BorderRadius.circular(screenSize.width * 0.05), // 둥근 모서리
                       ),
                       textStyle: TextStyle(
-                        fontSize: 14, // 텍스트 크기
+                        fontSize: screenSize.width * 0.04, // 텍스트 크기
                       ),
                     ),
                   ),
-                  SizedBox(height: 20), // 하단 여백 추가
+                  SizedBox(height: screenSize.height * 0.02), // 하단 여백 추가
                 ],
               ),
             ),
