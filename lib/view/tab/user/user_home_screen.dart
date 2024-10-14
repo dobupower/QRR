@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/tab_view_model.dart';
 import 'user_settings_tab.dart';
+import 'qr_tab.dart';
 
 // UserHomeScreen 클래스는 ConsumerWidget을 사용하여 상태 관리
 class UserHomeScreen extends ConsumerWidget {
@@ -75,15 +76,6 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text('ホーム'),
-    );
-  }
-}
-
-class QrTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('유저 qr'),
     );
   }
 }
