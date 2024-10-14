@@ -21,16 +21,6 @@ class UserHomeScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          '炭火やきとり とりとん',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       // 현재 선택된 페이지를 표시
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
