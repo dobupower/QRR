@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
 
           // 로그인 여부에 따라 초기 화면을 다르게 설정
           if (snapshot.data == 'user') {
-            // 만약 email이 저장되어 있으면 owner-home으로 이동
+            // 만약 email이 저장되어 있으면 user-home으로 이동
             return UserHomeScreen();
           } else if (snapshot.data == 'owner') {
             // 그렇지 않으면 owner-home으로 이동

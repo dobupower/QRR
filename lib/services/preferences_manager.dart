@@ -44,7 +44,6 @@ class PreferencesManager {
 
   // 로그아웃 처리
   Future<void> logout() async {
-    await _preferences?.remove('email');
-    await _preferences?.remove('type');
+    await _preferences?.clear(); // 모든 SharedPreferences 데이터 삭제
   }
 }
