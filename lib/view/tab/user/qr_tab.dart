@@ -10,8 +10,6 @@ class QrTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final qrCodeState = ref.watch(qrCodeProvider); // QR 코드 상태
     final userPointsState = ref.watch(userPointsProvider); // 포인트 상태
-    final qrCodeViewModel = ref.read(qrCodeProvider.notifier);
-    final userPointsViewModel = ref.read(userPointsProvider.notifier);
 
     // 화면 크기 가져오기
     final screenSize = MediaQuery.of(context).size;
@@ -108,8 +106,8 @@ class QrTab extends ConsumerWidget {
                                 size: screenSize.width * 0.08, // 아이콘 크기 화면 너비의 8%
                               ),
                               onPressed: () {
-                                qrCodeViewModel.regenerateQrCode(); // QR 코드 재생성
-                                userPointsViewModel.monitorUserPoints(); // 포인트 로드
+                                ref.read(qrCodeProvider.notifier).regenerateQrCode();
+                                ref.read(userPointsProvider.notifier).monitorUserPoints();
                               },
                             ),
                           ),
