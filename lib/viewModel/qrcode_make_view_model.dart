@@ -8,6 +8,11 @@ import 'dart:convert';
 import '../model/qr_code_model.dart';
 import 'package:intl/intl.dart';
 
+// 포인트 상태 관리
+final userPointsProvider = StateNotifierProvider<UserPointsViewModel, AsyncValue<int>>((ref) {
+  return UserPointsViewModel();
+});
+
 // StateNotifierProvider로 상태 관리
 final qrCodeProvider = StateNotifierProvider<QrCodeViewModel, AsyncValue<QrCode?>>((ref) {
   return QrCodeViewModel();
@@ -158,6 +163,37 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
       return newKey;
     } else {
       return encrypt.Key.fromBase64(storedKey);
+    }
+  }
+}
+
+// 사용자 포인트 관리 ViewModel
+class UserPointsViewModel extends StateNotifier<AsyncValue<int>> {
+  UserPointsViewModel() : super(const AsyncValue.loading()) {
+    monitorUserPoints(); // 초기 포인트 로드
+  }
+
+  // Firestore에서 사용자 포인트를 실시간으로 감시
+  Future<void> monitorUserPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+
+    if (email != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .snapshots()
+          .listen((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          final userDoc = querySnapshot.docs.first;
+          final points = userDoc.data()['points'] ?? 0;
+          state = AsyncValue.data(points); // 포인트 상태 업데이트
+        } else {
+          state = AsyncValue.data(0); // 사용자가 없으면 0 포인트
+        }
+      });
+    } else {
+      state = AsyncValue.error('사용자 이메일이 없습니다.', StackTrace.current);
     }
   }
 }
