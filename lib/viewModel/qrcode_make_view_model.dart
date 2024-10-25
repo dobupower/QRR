@@ -2,8 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http; // HTTP 요청을 위해 추가
 import 'dart:convert';
 import '../model/qr_code_model.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +22,6 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
     loadUserEmailAndQrCode();  // 초기 QR 코드 로드
   }
 
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   bool isGenerating = false; // QR 코드 중복 생성을 방지하는 플래그
 
   // 사용자 이메일 및 QR 코드 불러오기
@@ -55,15 +53,32 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
         DateTime expiryDate = DateTime.parse(qrCode.expiryDate);
 
         if (isUsed || DateTime.now().isAfter(expiryDate)) {
-          // QR코드가 사용되었거나 만료된 경우 새 QR코드 생성 및 상태 업데이트
-          await _generateAndMonitorQrCode(email);
+          // QR 코드가 사용되었거나 만료된 경우 새 QR 코드 생성 및 상태 업데이트
+          await generateAndMonitorQrCode(email);
         } else {
-          // 유효한 QR코드가 있을 경우 상태 업데이트
-          state = AsyncValue.data(qrCode); 
+          // 유효한 QR 코드가 있을 경우 상태 업데이트
+          // Firestore에서 가져온 평문 데이터를 암호화하여 QR 코드 상태로 설정
+          String encryptedQrCode = await _callEncryptApi({
+            'token': qrCode.token,
+            'createdAt': qrCode.createdAt,
+            'expiryDate': qrCode.expiryDate,
+            'email': qrCode.userId,
+          });
+
+          // 암호화된 QR 코드 데이터를 상태로 업데이트
+          final encryptedQrCodeModel = QrCode(
+            token: encryptedQrCode,
+            createdAt: qrCode.createdAt,
+            expiryDate: qrCode.expiryDate,
+            isUsed: qrCode.isUsed,
+            userId: qrCode.userId,
+          );
+
+          state = AsyncValue.data(encryptedQrCodeModel);
         }
       } else {
-        // QR코드가 없을 때 새로 생성
-        await _generateAndMonitorQrCode(email);
+        // QR 코드가 없을 때 새로 생성
+        await generateAndMonitorQrCode(email);
       }
     });
   }
@@ -75,32 +90,33 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
     String? email = prefs.getString('email');
 
     if (email != null) {
-      await _generateAndMonitorQrCode(email);  // QR 코드 재생성
+      await generateAndMonitorQrCode(email);  // QR 코드 재생성
     } else {
       state = AsyncValue.error('사용자 이메일이 없습니다.', StackTrace.current);
     }
   }
 
-  // QR 코드 생성 및 Firestore에 저장
-  Future<void> _generateAndMonitorQrCode(String email) async {
+  // QR 코드 생성 및 Firestore에 저장 (암호화하지 않은 데이터를 저장)
+  Future<void> generateAndMonitorQrCode(String email) async {
     if (isGenerating) return; // 이미 QR 코드가 생성 중이면 중단
     isGenerating = true;
 
     try {
+      // UUID 생성
       String newToken = await _generateUniqueUuid();
       String createdAt = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
       String expiryDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now().add(Duration(hours: 1)));
 
+      // Firestore에 저장할 평문 데이터 생성
       Map<String, dynamic> qrPayload = {
         'token': newToken,
         'createdAt': createdAt,
         'expiryDate': expiryDate,
         'email': email,
       };
+      print('qrPayload: $qrPayload');
 
-      String encryptedData = await _encryptData(jsonEncode(qrPayload));
-
-      // Firestore에 새로운 QR코드 추가
+       // **Firestore에 평문 데이터를 저장** (암호화된 데이터는 저장하지 않음)
       await FirebaseFirestore.instance.collection('qrcodes').add({
         'token': newToken,
         'createdAt': createdAt,
@@ -109,19 +125,48 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
         'userId': email,
       });
 
-      // QR 코드 모델 업데이트
+      // **API를 호출하여 QR 코드로 사용할 암호화된 데이터를 생성**
+      String encryptedData = await _callEncryptApi(qrPayload); 
+      
+
+      // **암호화된 데이터를 QR 코드로 표시하도록 상태 업데이트**
       final newQrCode = QrCode(
-        token: newToken,
-        createdAt: createdAt,
-        expiryDate: expiryDate,
+        token: encryptedData,  // 암호화된 데이터 사용
+        createdAt: createdAt,  // 생성 시간
+        expiryDate: expiryDate, // 만료 시간
         isUsed: false,
         userId: email,
       );
-
-      // 상태 업데이트
-      state = AsyncValue.data(newQrCode);
     } finally {
       isGenerating = false;  // QR 코드 생성 플래그 해제
+    }
+  }
+
+  Future<String> _callEncryptApi(Map<String, dynamic> qrPayload) async {
+    final url = Uri.parse('https://us-central1-qrr-project-9fb5a.cloudfunctions.net/encryptData');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'data': qrPayload}),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final encryptedData = responseData['encryptedData'];
+      final iv = responseData['iv'];
+
+      print('encryptedData: $encryptedData');
+      print('iv: $iv');
+
+      // 필요에 따라 encryptedData와 iv를 함께 사용할 수 있도록 처리
+      return jsonEncode({
+        'encryptedData': encryptedData,
+        'iv': iv,
+      });
+    } else {
+      print('응답 코드: ${response.statusCode}');
+      print('응답 본문: ${response.body}');
+      throw Exception('암호화에 실패했습니다.');
     }
   }
 
@@ -143,27 +188,6 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
       }
     }
     return uuid;
-  }
-
-  // 데이터 암호화 메서드
-  Future<String> _encryptData(String data) async {
-    final key = await _getEncryptionKey();
-    final iv = encrypt.IV.fromLength(16);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    final encrypted = encrypter.encrypt(data, iv: iv);
-    return encrypted.base64;
-  }
-
-  // AES 암호화 키 가져오기
-  Future<encrypt.Key> _getEncryptionKey() async {
-    String? storedKey = await _secureStorage.read(key: 'aes_key');
-    if (storedKey == null) {
-      final newKey = encrypt.Key.fromSecureRandom(32);
-      await _secureStorage.write(key: 'aes_key', value: newKey.base64);
-      return newKey;
-    } else {
-      return encrypt.Key.fromBase64(storedKey);
-    }
   }
 }
 

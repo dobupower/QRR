@@ -80,7 +80,9 @@ class QrTab extends ConsumerWidget {
                           SizedBox(height: screenSize.height * 0.005),
                           // PreferencesManager에서 가져온 이메일을 표시
                           Text(
-                            userEmail ?? '0000-0000-0000-0000',
+                            userEmail != null && userEmail.length > 20 
+                            ? userEmail.replaceAllMapped(RegExp(r".{20}"), (match) => "${match.group(0)}\n") // 20글자마다 줄바꿈 추가
+                            : userEmail ?? '0000-0000-0000-0000',
                             style: TextStyle(
                               fontSize: screenSize.width * 0.04, // 화면 너비의 4%
                               fontWeight: FontWeight.bold,
