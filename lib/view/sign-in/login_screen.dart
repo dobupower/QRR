@@ -11,7 +11,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   late TextEditingController emailController;
   late TextEditingController passwordController;
-
+  
   @override
   void initState() {
     super.initState();
@@ -32,12 +32,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final signInViewModel = ref.read(signinViewModelProvider.notifier);
     final signInState = ref.watch(signinViewModelProvider);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     final signUpState = ref.watch(signUpViewModelProvider);
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
-
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -197,31 +199,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 10), // Google 로그인 버튼 아래 빈 공간
+              SizedBox(height: screenHeight * 0.02), // Google 로그인 버튼 아래 빈 공간
               
-              // 'LINE'으로 로그인 버튼 (구현 예정)
+              // 'LINE'으로 로그인 버튼
               Center(
                 child: ElevatedButton.icon(
                   onPressed: () {
                     // Line 로그인 로직 추가 예정
                   },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, screenHeight * 0.06), // Google 로그인 버튼과 동일한 크기로 설정
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(screenHeight * 0.03),
+                      side: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
                   icon: Image.asset(
                     'lib/img/line_logo.png', // Line 로고 이미지
-                    height: 24, // 아이콘 높이
-                    width: 24, // 아이콘 너비
+                    height: screenHeight * 0.03, // Google 버튼과 동일한 크기
+                    width: screenHeight * 0.03,
                   ),
                   label: Text(
                     'LINEを利用してログイン', // 버튼 텍스트 'LINE을 이용해 로그인'
-                    style: TextStyle(color: Colors.black), // 텍스트 스타일
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 버튼 배경색 흰색
-                    foregroundColor: Colors.black, // 텍스트 및 아이콘 색상
-                    padding: EdgeInsets.symmetric(horizontal: 92, vertical: 14), // 버튼 패딩
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25), // 버튼 모서리 둥글게 설정
-                    ),
-                    side: BorderSide(color: const Color.fromARGB(255, 220, 220, 220)), // 회색 테두리
+                    style: TextStyle(color: Colors.black, fontSize: screenHeight * 0.02),
                   ),
                 ),
               ),

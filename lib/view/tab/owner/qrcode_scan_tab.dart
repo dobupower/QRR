@@ -9,8 +9,9 @@ class ScanTab extends ConsumerWidget {
     final qrViewModel = ref.watch(qrViewModelProvider.notifier); // watch로 상태 구독
 
     // 화면 크기 값을 변수에 저장
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     return PopScope<Object?>(
       canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
