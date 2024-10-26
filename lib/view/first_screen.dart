@@ -124,9 +124,12 @@ class FirstScreen extends ConsumerWidget {
                 height: screenHeight * 0.025, // 아이콘 높이 화면 높이의 2.5%
                 width: screenHeight * 0.025, // 아이콘 너비 화면 높이의 2.5%
               ),
-              label: Text(
-                'Googleを利用してログイン',
-                style: TextStyle(color: Colors.black),
+              label: FittedBox( // 자동으로 텍스트 크기를 조정
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Googleを利用してログイン',
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
