@@ -3,21 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // For number formatting
 import '../../../viewModel/point_management_view_model.dart';
 
-class PointManagementScreen extends ConsumerWidget {
+class PointManagementScreen extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _PointManagementScreenState createState() => _PointManagementScreenState();
+}
+
+class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 초기 상태에서 fetchUserNameandEmail 호출 사용자의 이름과 정보 가져오기
+    ref.read(transactionProvider.notifier).fetchUserNameandEmail(ref);
+  }
+  @override
+  Widget build(BuildContext context) {
     // 화면 크기를 가져오기 위한 MediaQuery
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     // 유저 정보 및 유저 포인트, 거래타입 선택 화면 크기를 동일하게 맞추기 위한 변수
     final double reducedHeight = screenHeight * 0.05;
 
     // transactionProvider의 상태를 구독
     final transaction = ref.watch(transactionProvider);
-
-    // 사용자 이름과 이메일 정보를 가져오는 Future를 실행
-    ref.read(transactionProvider.notifier).fetchUserNameandEmail(ref);
 
     // 사용자 프로필 URL 가져오기
     final profilePicUrl = transaction?.profilePicUrl;

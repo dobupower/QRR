@@ -20,6 +20,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
         final querySnapshot = await FirebaseFirestore.instance
             .collection('users')
             .where('email', isEqualTo: email)
+            .limit(1) 
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {

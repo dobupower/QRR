@@ -1,10 +1,7 @@
-// functions/index.js
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const crypto = require("crypto"); // AES 키를 생성하기 위해 필요
 admin.initializeApp();
-
-const db = admin.firestore();
 
 // AES 암호화 함수
 const encrypt = (text, aesKey) => {
@@ -22,12 +19,12 @@ const encrypt = (text, aesKey) => {
   };
 };
 
+// 환경 변수에서 AES 키 가져오기
+const aesKey = functions.config().security.aes_key;
+
 // /encrypt 엔드포인트 - 데이터를 암호화
 exports.encryptData = functions.https.onRequest(async (req, res) => {
   try {
-    const aesDoc = await db.collection("aeskey").doc("aesKey").get();
-    const aesKey = aesDoc.data().key; // Firestore에서 AES 키 가져오기
-
     // 클라이언트에서 전송한 데이터
     const data = req.body.data;
 
@@ -79,9 +76,6 @@ const decrypt = (encryptedData, iv, aesKey) => {
 // /decrypt 엔드포인트 - 데이터를 복호화
 exports.decryptData = functions.https.onRequest(async (req, res) => {
   try {
-    const aesDoc = await db.collection("aeskey").doc("aesKey").get();
-    const aesKey = aesDoc.data().key; // Firestore에서 AES 키 가져오기
-
     // 클라이언트에서 전송된 암호화된 데이터와 IV
     const {encryptedData, iv} = req.body;
 
