@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/tab_view_model.dart';
-import '../../../viewModel/qrcode_scan_view_model.dart';
 import 'qrcode_scan_tab.dart';
 import 'owner_settings_tab.dart';
+import 'point_management_screen.dart';  // 포인트 관리 스크린 임포트
 
-// HomeScreen 클래스는 Riverpod의 ConsumerWidget을 사용하여 상태 관리
 class OwnerHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,23 +15,23 @@ class OwnerHomeScreen extends ConsumerWidget {
     final List<Widget> pages = [
       HomeTab(),
       TransactionHistoryTab(),
-      ScanTab(),
+      Navigator(
+        onGenerateRoute: (settings) {
+          if (settings.name == '/pointManagement') {
+            return MaterialPageRoute(
+              builder: (context) => PointManagementScreen(),  // 스캔 성공 후 포인트 관리 화면으로 이동
+            );
+          }
+          return MaterialPageRoute(
+            builder: (context) => ScanTab(),  // 기본 ScanTab
+          );
+        },
+      ), // QR 코드 스캔 탭을 Navigator로 관리
       AccountTab(),
       OwnerSettingsTab(),
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          '炭火やきとり とりとん',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      // 현재 선택된 페이지를 표시
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex, // 현재 선택된 탭의 인덱스를 설정
