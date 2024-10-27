@@ -7,15 +7,19 @@ const {SecretManagerServiceClient} = require("@google-cloud/secret-manager");
 admin.initializeApp();
 const client = new SecretManagerServiceClient();
 
+let cachedAesKey = null;
 /**
  * Secret Manager에서 AES 키를 가져오는 함수
  * @return {Promise<string>} AES 키를 반환합니다.
  */
 async function getAesKey() {
+  if (cachedAesKey) return cachedAesKey;
+
   const [accessResponse] = await client.accessSecretVersion({
-    name: process.env.SECRET_MANAGER_PATH, // .env 파일에서 Secret Manager 경로 불러오기
+    name: process.env.SECRET_MANAGER_PATH,
   });
-  return accessResponse.payload.data.toString("utf8");
+  cachedAesKey = accessResponse.payload.data.toString("utf8");
+  return cachedAesKey;
 }
 
 // AES 암호화 함수
