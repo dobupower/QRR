@@ -16,8 +16,6 @@ class SignInState {
     this.errorMessage,
     this.type, // 타입을 초기화할 수 있음
   });
-
-  // 상태 복사본을 생성하여 특정 필드를 변경하는 메서드
   SignInState copyWith({
     bool? isLoading,
     String? errorMessage,
@@ -35,7 +33,6 @@ class SignInState {
 class SignInViewModel extends StateNotifier<SignInState> {
   // 초기 상태를 설정하며 생성
   SignInViewModel() : super(SignInState());
-
   // 사용자가 선택한 타입 ('owner' 또는 'customer')을 저장
   void setType(String type) {
     state = state.copyWith(type: type);
@@ -99,7 +96,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
     }
   }
 
-  // Google 로그인을 처리하는 함수
+  // Google 로그인 처리 및 Firestore에 사용자 정보 추가 또는 연동 처리
   Future<void> signInWithGoogle(BuildContext context, {required bool isOwner}) async {
     state = state.copyWith(isLoading: true); // 로딩 상태로 전환
 
@@ -165,7 +162,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
             print('Firestore에 사용자 정보가 이미 존재합니다.');
           }
 
-          // 사용자 홈 화면으로 이동
+          // 로그인 성공 후 홈 화면으로 이동
           Navigator.pushReplacementNamed(context, '/user-home');
           return;
         } else if (authType == 'email') {
@@ -261,21 +258,24 @@ class SignInViewModel extends StateNotifier<SignInState> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // 상단 텍스트
                 Text(
-                  'アカウントが既に存在します',
+                  'アカウントが既に存在します',  // "Account exists"의 일본어 번역
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'すでにアカウントがあるようです。\nログインしてください。',
+                  'すでにアカウントがあるようです。\nログインしてください。',  // "이미 계정이 존재합니다. 로그인 해주세요."의 일본어 번역
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
                 SizedBox(height: 20),
+
+                // 프로필 이미지 및 이메일 표시
                 CircleAvatar(
                   radius: 30,
                   child: Text(
-                    userEmail[0].toUpperCase(),
+                    userEmail[0].toUpperCase(), // 첫 글자로 아바타 생성
                     style: TextStyle(fontSize: 24),
                   ),
                 ),
@@ -293,6 +293,8 @@ class SignInViewModel extends StateNotifier<SignInState> {
                   },
                 ),
                 SizedBox(height: 20),
+
+                // 하단 버튼
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop(password);
