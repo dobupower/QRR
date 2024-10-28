@@ -83,7 +83,7 @@ class OwnerEmailAuthScreen extends ConsumerWidget {
                 decoration: InputDecoration(
                   hintText: '4桁コードを入力', // '4桁コードを入力' = 4자리 코드를 입력
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenHeight * 0.03), // 필드 테두리를 상대적으로 설정
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03), // 필드 테두리를 상대적으로 설정
                     borderSide: BorderSide(color: Colors.grey),
                   ),
                 ),

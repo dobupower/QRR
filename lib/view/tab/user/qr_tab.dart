@@ -86,15 +86,14 @@ class QrTab extends ConsumerWidget {
                             // PreferencesManager에서 가져온 이메일을 표시
                             Text(
                               userEmail != null && userEmail.length > 20 
-                                ? userEmail.replaceAllMapped(RegExp(r".{20}"), (match) => "${match.group(0)}\n") // 20글자마다 줄바꿈 추가
-                                : userEmail ?? '0000-0000-0000-0000',
+                              ? userEmail.replaceAllMapped(RegExp(r".{20}"), (match) => "${match.group(0)}\n") // 20글자마다 줄바꿈 추가
+                              : userEmail ?? '0000-0000-0000-0000',
                               style: TextStyle(
                                 fontSize: screenSize.width * 0.04, // 화면 너비의 4%
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.5,
                                 color: Colors.black, // 회원 번호 색상
                               ),
-                              softWrap: true, // 텍스트가 길 경우 줄바꿈 허용
                             ),
                           ],
                         ),
@@ -114,8 +113,8 @@ class QrTab extends ConsumerWidget {
                                   size: screenSize.width * 0.08, // 아이콘 크기 화면 너비의 8%
                                 ),
                                 onPressed: () {
-                                  ref.read(qrCodeProvider.notifier).regenerateQrCode(); // QR 코드 재생성
-                                ref.read(userPointsProvider.notifier).monitorUserPoints(); // 포인트 로드
+                                  ref.read(qrCodeProvider.notifier).regenerateQrCode();
+                                  ref.read(userPointsProvider.notifier).monitorUserPoints();
                                 },
                               ),
                             ),

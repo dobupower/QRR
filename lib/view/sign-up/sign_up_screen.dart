@@ -6,6 +6,7 @@ class SignUpScreen extends ConsumerWidget {
   // FormState를 관리하기 위한 GlobalKey
   final _formKey = GlobalKey<FormState>();
 
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 화면 크기 정보 가져오기
@@ -126,7 +127,7 @@ class SignUpScreen extends ConsumerWidget {
           controller: controller, // 입력 컨트롤러
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02), // 모서리 둥글게
+              borderRadius: BorderRadius.circular(15.0), // 모서리 둥글게
               borderSide: BorderSide(color: Colors.grey),
             ),
             hintText: hint, // 힌트 텍스트
@@ -159,7 +160,7 @@ class SignUpScreen extends ConsumerWidget {
           controller: controller, // 이메일 입력 컨트롤러
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02), // 모서리 둥글게
+              borderRadius: BorderRadius.circular(15.0),
               borderSide: BorderSide(
                 color: signUpState.emailError != null ? Colors.red : Colors.grey, // 에러가 있으면 빨간 테두리
               ),
@@ -205,7 +206,7 @@ class SignUpScreen extends ConsumerWidget {
           },
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02), // 모서리 둥글게
+              borderRadius: BorderRadius.circular(15.0),
               borderSide: BorderSide(color: Colors.grey),
             ),
             hintText: '*********', // 비밀번호 입력 힌트
@@ -252,7 +253,7 @@ class SignUpScreen extends ConsumerWidget {
           },
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02), // 모서리 둥글게
+              borderRadius: BorderRadius.circular(15.0),
               borderSide: BorderSide(color: Colors.grey),
             ),
             hintText: '*********', // 비밀번호 확인 입력 힌트
@@ -295,7 +296,7 @@ class SignUpScreen extends ConsumerWidget {
             vertical: screenHeight * 0.01, // 화면 높이의 1%로 패딩 설정
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(screenHeight * 0.05), // 상대값으로 둥근 버튼 설정
+            borderRadius: BorderRadius.circular(50),
           ),
         ),
         child: Text(
