@@ -31,40 +31,46 @@ class OwnerHomeScreen extends ConsumerWidget {
       OwnerSettingsTab(),
     ];
 
-    return Scaffold(
-      body: pages[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex, // 현재 선택된 탭의 인덱스를 설정
-        onTap: (index) {
-          // 탭을 선택할 때 ViewModel을 통해 탭 인덱스 변경
-          ref.read(tabViewModelProvider.notifier).setTabIndex(index);
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'ホーム',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: '取引履歴',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'アカウント',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '設定',
-          ),
-        ],
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
+    return PopScope<Object?>(
+      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
+      },
+      child: Scaffold(
+        body: pages[currentIndex],
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentIndex, // 현재 선택된 탭의 인덱스를 설정
+          onTap: (index) {
+            // 탭을 선택할 때 ViewModel을 통해 탭 인덱스 변경
+            ref.read(tabViewModelProvider.notifier).setTabIndex(index);
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'ホーム',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: '取引履歴',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_scanner),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: 'アカウント',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: '設定',
+            ),
+          ],
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.grey,
+          showUnselectedLabels: true,
+        ),
       ),
     );
   }

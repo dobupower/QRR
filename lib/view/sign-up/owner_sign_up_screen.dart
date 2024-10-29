@@ -53,7 +53,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   '店舗名を入力してください',
                   signUpState.storeNameController,
                   screenWidth,
-                  screenHeight,
                   signUpViewModel,
                 ),
                 SizedBox(height: screenHeight * 0.02),  // 여백
@@ -63,7 +62,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   'メールアドレス',
                   signUpState.emailController,
                   screenWidth,
-                  screenHeight,
                   signUpState,
                   signUpViewModel,
                 ),
@@ -74,7 +72,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   'パスワード',
                   signUpState.passwordController,
                   screenWidth,
-                  screenHeight,
                   signUpState,
                   signUpViewModel,
                 ),
@@ -85,7 +82,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   'パスワード確認',
                   signUpState.confirmPasswordController,
                   screenWidth,
-                  screenHeight,
                   signUpState,
                   signUpViewModel,
                 ),
@@ -100,7 +96,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                         '郵便番号を入力してください',
                         signUpState.zipCodeController,
                         screenWidth,
-                        screenHeight,
                         signUpViewModel,
                       ),
                     ),
@@ -111,7 +106,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                         '都道府県を入力してください',
                         signUpState.stateController,
                         screenWidth,
-                        screenHeight,
                         signUpViewModel,
                       ),
                     ),
@@ -126,7 +120,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   '市区町村を入力してください',
                   signUpState.cityController,
                   screenWidth,
-                  screenHeight,
                   signUpViewModel,
                 ),
                 SizedBox(height: screenHeight * 0.02),  // 여백
@@ -137,7 +130,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   '住所を入力してください',
                   signUpState.addressController,
                   screenWidth,
-                  screenHeight,
                   signUpViewModel,
                 ),
                 SizedBox(height: screenHeight * 0.02),  // 여백
@@ -148,7 +140,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
                   '建物名、部屋番号などを入力してください',
                   signUpState.buildingController,
                   screenWidth,
-                  screenHeight,
                   signUpViewModel,
                   isOptional: true,  // 선택 필드로 설정
                 ),
@@ -176,7 +167,7 @@ class OwnerSignUpScreen extends ConsumerWidget {
                         vertical: screenHeight * 0.01,  // 버튼 세로 패딩
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(screenHeight * 0.05),  // 버튼의 모서리를 화면 높이의 5%로 설정
+                        borderRadius: BorderRadius.circular(50),  // 버튼의 모서리 둥글게 설정
                       ),
                     ),
                     child: Text(
@@ -232,7 +223,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
     String hint,  // 힌트 텍스트
     TextEditingController controller,  // 텍스트 입력을 제어하는 컨트롤러
     double screenWidth,  // 화면 너비
-    double screenHeight,  // 화면 높이
     OwnerSignUpViewModel signUpViewModel,  // ViewModel
     {bool isOptional = false} // 필수 필드인지 선택 필드인지 구분하는 플래그
   ) {
@@ -240,12 +230,12 @@ class OwnerSignUpScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: screenWidth * 0.05)),  // 라벨 표시
-        SizedBox(height: screenHeight * 0.01),  // 라벨과 입력 필드 사이 여백
+        SizedBox(height: 10),  // 라벨과 입력 필드 사이 여백
         TextFormField(
           controller: controller,  // 입력 필드에 연결된 컨트롤러
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02),  // 입력 필드 테두리 모서리를 화면 높이의 2%로 설정
+              borderRadius: BorderRadius.circular(15.0),  // 입력 필드 테두리 모서리 둥글게 설정
               borderSide: BorderSide(color: Colors.grey),  // 테두리 색상 설정
             ),
             hintText: hint,  // 힌트 텍스트 설정
@@ -265,7 +255,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
     String label,
     TextEditingController controller,
     double screenWidth,
-    double screenHeight,
     SignUpState signUpState,
     OwnerSignUpViewModel signUpViewModel,
   ) {
@@ -273,12 +262,12 @@ class OwnerSignUpScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: screenWidth * 0.05)),  // 라벨 표시
-        SizedBox(height: screenHeight * 0.01),  // 라벨과 입력 필드 사이 여백
+        SizedBox(height: 10),  // 라벨과 입력 필드 사이 여백
         TextFormField(
           controller: controller,  // 이메일 입력 필드에 연결된 컨트롤러
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02),  // 입력 필드 테두리 둥글게 설정
+              borderRadius: BorderRadius.circular(15.0),  // 입력 필드 테두리 둥글게 설정
               borderSide: BorderSide(
                 color: signUpState.emailError != null ? Colors.red : Colors.grey,  // 에러가 있을 경우 빨간색 테두리
               ),
@@ -300,7 +289,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
     String label,
     TextEditingController controller,
     double screenWidth,
-    double screenHeight,
     SignUpState signUpState,
     OwnerSignUpViewModel signUpViewModel,
   ) {
@@ -310,13 +298,13 @@ class OwnerSignUpScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: screenWidth * 0.05)),  // 라벨 표시
-        SizedBox(height: screenHeight * 0.01),  // 라벨과 입력 필드 사이 여백
+        SizedBox(height: 10),  // 라벨과 입력 필드 사이 여백
         TextFormField(
           controller: controller,  // 비밀번호 입력 필드에 연결된 컨트롤러
           obscureText: !isVisible,  // 비밀번호 가리기 설정
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02),  // 입력 필드 테두리 둥글게 설정
+              borderRadius: BorderRadius.circular(15.0),  // 입력 필드 테두리 둥글게 설정
               borderSide: BorderSide(color: Colors.grey),  // 테두리 색상 설정
             ),
             hintText: '*********',  // 비밀번호 입력 필드의 힌트
@@ -339,7 +327,6 @@ class OwnerSignUpScreen extends ConsumerWidget {
     String label,
     TextEditingController controller,
     double screenWidth,
-    double screenHeight,
     SignUpState signUpState,
     OwnerSignUpViewModel signUpViewModel,
   ) {
@@ -349,13 +336,13 @@ class OwnerSignUpScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: screenWidth * 0.05)),  // 라벨 표시
-        SizedBox(height: screenHeight * 0.01),  // 라벨과 입력 필드 사이 여백
+        SizedBox(height: 10),  // 라벨과 입력 필드 사이 여백
         TextFormField(
           controller: controller,  // 비밀번호 확인 입력 필드에 연결된 컨트롤러
           obscureText: !isVisible,  // 비밀번호 가리기 설정
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(screenHeight * 0.02),  // 입력 필드 테두리 둥글게 설정
+              borderRadius: BorderRadius.circular(15.0),  // 입력 필드 테두리 둥글게 설정
               borderSide: BorderSide(color: Colors.grey),  // 테두리 색상 설정
             ),
             hintText: '*********',  // 비밀번호 확인 필드의 힌트

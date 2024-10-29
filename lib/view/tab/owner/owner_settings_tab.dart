@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/preferences_manager.dart'; // PreferencesManager 클래스 import
-import '../../../viewModel/tab_view_model.dart';
 
 class OwnerSettingsTab extends StatelessWidget {
   const OwnerSettingsTab({Key? key}) : super(key: key);
 
   // 로그아웃 및 SharedPreferences 초기화 함수
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+  Future<void> _logout(BuildContext context) async {
     try {
       // FirebaseAuth 로그아웃
       await FirebaseAuth.instance.signOut();
 
       // PreferencesManager를 사용하여 SharedPreferences 초기화
       await PreferencesManager.instance.logout();
-
-      ref.invalidate(tabViewModelProvider); // 유저의 탭 이동 현 상태 초기화
 
       // 로그아웃 후 첫 화면으로 이동 (FirstScreen 또는 LoginScreen 등으로)
       Navigator.pushReplacementNamed(context, '/First');
@@ -41,13 +37,9 @@ class OwnerSettingsTab extends StatelessWidget {
           children: [
             Text('設定'), // "설정" 텍스트
             SizedBox(height: 20),
-            Consumer(
-              builder: (context, ref, child) {
-                return ElevatedButton(
-                  onPressed: () => _logout(context, ref), // 로그아웃 버튼 클릭 시 로그아웃 처리
-                  child: Text('ログアウト'), // "로그아웃" 텍스트 (일본어로 표시)
-                );
-              },
+            ElevatedButton(
+              onPressed: () => _logout(context), // 로그아웃 버튼 클릭 시 로그아웃 처리
+              child: Text('ログアウト'), // "로그아웃" 텍스트 (일본어로 표시)
             ),
           ],
         ),
