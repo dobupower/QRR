@@ -16,12 +16,9 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   // email과 uid 조건을 모두 처리하여 사용자 데이터를 가져오는 메서드
   Future<void> fetchUserData(WidgetRef ref) async {
     try {
-      // QR 코드 스캔된 사용자 이메일 가져오기
       String? email = ref.read(qrViewModelProvider)?.userId;
-      // 현재 Transaction 상태의 uid 가져오기
       String? uid = state?.uid;
 
-      // email 또는 uid가 존재하는 경우에만 사용자 데이터 조회 수행
       if (email != null || uid != null) {
         await _fetchAndUpdateUserData(email: email, uid: uid);
       }
@@ -32,11 +29,9 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
 
   // email 또는 uid로 사용자 정보 조회하여 상태 업데이트
   Future<void> _fetchAndUpdateUserData({String? email, String? uid}) async {
-    // Firestore에서 'users' 컬렉션 참조
     final query = FirebaseFirestore.instance.collection('users');
     QuerySnapshot querySnapshot;
 
-    // email 또는 uid 조건으로 Firestore 쿼리 실행
     if (email != null) {
       querySnapshot = await query.where('email', isEqualTo: email).limit(1).get();
     } else if (uid != null) {
@@ -46,12 +41,10 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
       return;
     }
 
-    // 쿼리 결과가 비어 있지 않으면 사용자 정보 업데이트
     if (querySnapshot.docs.isNotEmpty) {
       final userIdDoc = querySnapshot.docs.first;
       final data = userIdDoc.data() as Map<String, dynamic>;
 
-      // 사용자의 'name'과 'points' 정보가 있는 경우 Transaction 상태 업데이트
       if (data.containsKey('name') && data.containsKey('points')) {
         _updateTransactionState(data);
       } else {
@@ -64,15 +57,15 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   void _updateTransactionState(Map<String, dynamic> data) {
     state = CustomTransaction.Transaction(
       transactionId: '',
-      uid: data['uid'] ?? '', // 사용자의 uid
-      type: state?.type ?? 'チャージ', // 트랜잭션 타입 (기본값: 'チャージ')
-      amount: state?.amount ?? 0, // 트랜잭션 금액 (기본값: 0)
-      timestamp: DateTime.now(), // 트랜잭션 생성 시간
-      pubId: data['name'] ?? '', // 사용자 이름
-      name: data['name'] ?? '', // 사용자 이름
-      point: data['points'] ?? 0, // 사용자의 현재 포인트
-      profilePicUrl: data['profilePicUrl'] ?? '', // 사용자 프로필 사진 URL
-      email: data['email'] ?? '', // 사용자 이메일
+      uid: data['uid'] ?? '',
+      type: state?.type ?? 'チャージ',
+      amount: state?.amount ?? 0,
+      timestamp: DateTime.now(),
+      pubId: data['name'] ?? '',
+      name: data['name'] ?? '',
+      point: data['points'] ?? 0,
+      profilePicUrl: data['profilePicUrl'] ?? '',
+      email: data['email'] ?? '',
     );
   }
 
