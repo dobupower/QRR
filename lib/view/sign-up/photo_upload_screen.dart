@@ -16,94 +16,101 @@ class PhotoUploadScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(photoUploadViewModelProvider);
     final viewModel = ref.read(photoUploadViewModelProvider.notifier);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () => Navigator.pop(context),
+    return PopScope<Object?>(
+      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.grey),
+            onPressed: () => Navigator.pop(context),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(screenWidth * 0.04),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                '店舗詳細情報',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.06,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗イメージ登録', screenWidth),
-            _buildImageUploadRow(screenWidth, screenHeight, viewModel),
-            SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗ロゴ登録', screenWidth),
-            _buildLogoUpload(screenWidth, screenHeight, viewModel),
-            SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗からのメッセージ', screenWidth),
-            _buildMessageField(screenWidth, viewModel),
-            SizedBox(height: screenHeight * 0.04),
-            Center(
-              child: ElevatedButton(
-                onPressed: state.isLoading || !viewModel.isFormValid // 폼 유효성 검사
-                    ? null // 유효하지 않으면 버튼 비활성화
-                    : () async {
-                        // XFile을 File로 변환
-                        List<File?> convertedImages = state.storeImages
-                            .map((xfile) =>
-                                xfile != null ? File(xfile.path) : null)
-                            .toList();
-                        File? convertedLogo = state.storeLogo != null
-                            ? File(state.storeLogo!.path)
-                            : null;
-
-                        // owner.email을 ownerId로 사용
-                        await viewModel.submitDetails(owner.email);
-
-                        // 데이터를 owner_email_auth.dart로 넘기기
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OwnerEmailAuthScreen(
-                              owner: owner, // Owner 객체 전달
-                              images: convertedImages, // 변환된 이미지 리스트 전달
-                              logo: convertedLogo, // 변환된 로고 이미지 전달
-                              message: state.message, // 메시지 전달
-                            ),
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: viewModel.isFormValid
-                      ? Color(0xFF1D2538)
-                      : Colors.grey, // 폼이 유효할 때만 색상 활성화
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.3,
-                    vertical: screenHeight * 0.015,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
                 child: Text(
-                  '詳細情報登録',
+                  '店舗詳細情報',
                   style: TextStyle(
-                    fontSize: screenWidth * 0.045,
-                    color: Colors.white,
+                    fontSize: screenWidth * 0.06,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: screenHeight * 0.02),
+              _buildSectionTitle('店舗イメージ登録', screenWidth),
+              _buildImageUploadRow(screenWidth, screenHeight, viewModel),
+              SizedBox(height: screenHeight * 0.02),
+              _buildSectionTitle('店舗ロゴ登録', screenWidth),
+              _buildLogoUpload(screenWidth, screenHeight, viewModel),
+              SizedBox(height: screenHeight * 0.02),
+              _buildSectionTitle('店舗からのメッセージ', screenWidth),
+              _buildMessageField(screenWidth, viewModel),
+              SizedBox(height: screenHeight * 0.04),
+              Center(
+                child: ElevatedButton(
+                  onPressed: state.isLoading || !viewModel.isFormValid // 폼 유효성 검사
+                      ? null // 유효하지 않으면 버튼 비활성화
+                      : () async {
+                          // XFile을 File로 변환
+                          List<File?> convertedImages = state.storeImages
+                              .map((xfile) =>
+                                  xfile != null ? File(xfile.path) : null)
+                              .toList();
+                          File? convertedLogo = state.storeLogo != null
+                              ? File(state.storeLogo!.path)
+                              : null;
+
+                          // owner.email을 ownerId로 사용
+                          await viewModel.submitDetails(owner.email);
+
+                          // 데이터를 owner_email_auth.dart로 넘기기
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OwnerEmailAuthScreen(
+                                owner: owner, // Owner 객체 전달
+                                images: convertedImages, // 변환된 이미지 리스트 전달
+                                logo: convertedLogo, // 변환된 로고 이미지 전달
+                                message: state.message, // 메시지 전달
+                              ),
+                            ),
+                          );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: viewModel.isFormValid
+                        ? Color(0xFF1D2538)
+                        : Colors.grey, // 폼이 유효할 때만 색상 활성화
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.3,
+                      vertical: screenHeight * 0.015,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                  ),
+                  child: Text(
+                    '詳細情報登録',
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.045,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -10,77 +10,83 @@ class SignUpScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 화면 크기 정보 가져오기
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     // 현재 상태와 ViewModel 가져오기
     final signUpState = ref.watch(signUpViewModelProvider);
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
 
-    return Scaffold(
-      
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
+    return PopScope<Object?>(
+      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.grey),
+            onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0, // 투명 배경과 그림자 제거
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0, // 투명 배경과 그림자 제거
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(screenWidth * 0.04), // 화면의 4%를 패딩으로 설정
-        child: Form(
-          key: _formKey, // FormState를 사용하여 유효성 검사
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context, screenWidth), // 회원가입 화면의 제목
-              SizedBox(height: screenHeight * 0.02),
-              _buildTextField(
-                '表示名', // 표시명 (이름)
-                'あかばね', // 힌트 텍스트
-                signUpState.nameController, // 이름 입력 필드의 컨트롤러
-                context,
-                screenWidth, // 화면 너비 전달
-                screenHeight, // 화면 높이 전달
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              _buildEmailField(
-                'メールアドレス', // 이메일 레이블
-                'Enter your email', // 이메일 입력 필드 힌트
-                signUpState.emailController,
-                context,
-                signUpState, // 상태 전달
-                signUpViewModel, // ViewModel 전달
-                screenWidth,
-                screenHeight,
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              _buildPasswordField(
-                'パスワード', // 비밀번호 레이블
-                signUpState.passwordController,
-                true, // 비밀번호 필드임을 알림
-                context,
-                signUpViewModel,
-                signUpState,
-                screenWidth,
-                screenHeight,
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              _buildConfirmPasswordField(
-                'パスワード確認', // 비밀번호 확인 레이블
-                signUpState.confirmPasswordController,
-                context,
-                signUpViewModel,
-                signUpState,
-                screenWidth,
-                screenHeight,
-              ),
-              SizedBox(height: screenHeight * 0.1),
-              _buildSubmitButton(context, signUpState, signUpViewModel, screenWidth, screenHeight), // 제출 버튼
-              SizedBox(height: screenHeight * 0.02),
-              _buildFooterText(context, screenWidth), // 하단 안내문구
-            ],
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(screenWidth * 0.04), // 화면의 4%를 패딩으로 설정
+          child: Form(
+            key: _formKey, // FormState를 사용하여 유효성 검사
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, screenWidth), // 회원가입 화면의 제목
+                SizedBox(height: screenHeight * 0.02),
+                _buildTextField(
+                  '表示名', // 표시명 (이름)
+                  'あかばね', // 힌트 텍스트
+                  signUpState.nameController, // 이름 입력 필드의 컨트롤러
+                  context,
+                  screenWidth, // 화면 너비 전달
+                  screenHeight, // 화면 높이 전달
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                _buildEmailField(
+                  'メールアドレス', // 이메일 레이블
+                  'Enter your email', // 이메일 입력 필드 힌트
+                  signUpState.emailController,
+                  context,
+                  signUpState, // 상태 전달
+                  signUpViewModel, // ViewModel 전달
+                  screenWidth,
+                  screenHeight,
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                _buildPasswordField(
+                  'パスワード', // 비밀번호 레이블
+                  signUpState.passwordController,
+                  true, // 비밀번호 필드임을 알림
+                  context,
+                  signUpViewModel,
+                  signUpState,
+                  screenWidth,
+                  screenHeight,
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                _buildConfirmPasswordField(
+                  'パスワード確認', // 비밀번호 확인 레이블
+                  signUpState.confirmPasswordController,
+                  context,
+                  signUpViewModel,
+                  signUpState,
+                  screenWidth,
+                  screenHeight,
+                ),
+                SizedBox(height: screenHeight * 0.1),
+                _buildSubmitButton(context, signUpState, signUpViewModel, screenWidth, screenHeight), // 제출 버튼
+                SizedBox(height: screenHeight * 0.02),
+                _buildFooterText(context, screenWidth), // 하단 안내문구
+              ],
+            ),
           ),
         ),
       ),

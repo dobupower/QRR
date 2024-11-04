@@ -15,14 +15,16 @@ class UserHomeScreen extends ConsumerWidget {
     final List<Widget> pages = [
       HomeTab(),
       TransactionHistoryTab(),
-      QrTab(),
+      QrTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       AccountTab(),
       UserSettingsTab(),
     ];
 
     return Scaffold(
-      // 현재 선택된 페이지를 표시
-      body: pages[currentIndex],
+      body: IndexedStack(
+        index: currentIndex, // 현재 선택된 탭의 인덱스 설정
+        children: pages, // 탭별로 저장된 페이지
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex, // 현재 선택된 탭의 인덱스를 설정
         onTap: (index) {
@@ -60,7 +62,24 @@ class UserHomeScreen extends ConsumerWidget {
   }
 }
 
-// 각 탭에 해당하는 화면들
+// QR 코드 스캔 및 포인트 관리 페이지를 위한 Navigator
+class QrTabNavigator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          default:
+            return MaterialPageRoute(
+              builder: (context) => QrTab(),
+            );
+        }
+      },
+    );
+  }
+}
+
+// 각 탭에 해당하는 더미 화면들
 class HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
