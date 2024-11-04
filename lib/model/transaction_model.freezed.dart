@@ -21,7 +21,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Transaction {
   String get transactionId => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError; // 이메일
+  String get uid => throw _privateConstructorUsedError; // 이메일
   String get type =>
       throw _privateConstructorUsedError; // 거래 타입 (ex. 'charge', 'deduct')
   int get amount => throw _privateConstructorUsedError; // 거래된 포인트
@@ -30,6 +30,7 @@ mixin _$Transaction {
   String get name => throw _privateConstructorUsedError;
   int get point => throw _privateConstructorUsedError;
   String get profilePicUrl => throw _privateConstructorUsedError;
+  String get email => throw _privateConstructorUsedError;
 
   /// Serializes this Transaction to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,14 +50,15 @@ abstract class $TransactionCopyWith<$Res> {
   @useResult
   $Res call(
       {String transactionId,
-      String email,
+      String uid,
       String type,
       int amount,
       DateTime timestamp,
       String pubId,
       String name,
       int point,
-      String profilePicUrl});
+      String profilePicUrl,
+      String email});
 }
 
 /// @nodoc
@@ -75,7 +77,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
   @override
   $Res call({
     Object? transactionId = null,
-    Object? email = null,
+    Object? uid = null,
     Object? type = null,
     Object? amount = null,
     Object? timestamp = null,
@@ -83,15 +85,16 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? name = null,
     Object? point = null,
     Object? profilePicUrl = null,
+    Object? email = null,
   }) {
     return _then(_value.copyWith(
       transactionId: null == transactionId
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      uid: null == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
               as String,
       type: null == type
           ? _value.type
@@ -121,6 +124,10 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
           ? _value.profilePicUrl
           : profilePicUrl // ignore: cast_nullable_to_non_nullable
               as String,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -135,14 +142,15 @@ abstract class _$$TransactionImplCopyWith<$Res>
   @useResult
   $Res call(
       {String transactionId,
-      String email,
+      String uid,
       String type,
       int amount,
       DateTime timestamp,
       String pubId,
       String name,
       int point,
-      String profilePicUrl});
+      String profilePicUrl,
+      String email});
 }
 
 /// @nodoc
@@ -159,7 +167,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? transactionId = null,
-    Object? email = null,
+    Object? uid = null,
     Object? type = null,
     Object? amount = null,
     Object? timestamp = null,
@@ -167,15 +175,16 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? name = null,
     Object? point = null,
     Object? profilePicUrl = null,
+    Object? email = null,
   }) {
     return _then(_$TransactionImpl(
       transactionId: null == transactionId
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      uid: null == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
               as String,
       type: null == type
           ? _value.type
@@ -205,6 +214,10 @@ class __$$TransactionImplCopyWithImpl<$Res>
           ? _value.profilePicUrl
           : profilePicUrl // ignore: cast_nullable_to_non_nullable
               as String,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -214,14 +227,15 @@ class __$$TransactionImplCopyWithImpl<$Res>
 class _$TransactionImpl implements _Transaction {
   const _$TransactionImpl(
       {required this.transactionId,
-      required this.email,
+      required this.uid,
       required this.type,
       required this.amount,
       required this.timestamp,
       required this.pubId,
       required this.name,
       required this.point,
-      required this.profilePicUrl});
+      required this.profilePicUrl,
+      required this.email});
 
   factory _$TransactionImpl.fromJson(Map<String, dynamic> json) =>
       _$$TransactionImplFromJson(json);
@@ -229,7 +243,7 @@ class _$TransactionImpl implements _Transaction {
   @override
   final String transactionId;
   @override
-  final String email;
+  final String uid;
 // 이메일
   @override
   final String type;
@@ -248,10 +262,12 @@ class _$TransactionImpl implements _Transaction {
   final int point;
   @override
   final String profilePicUrl;
+  @override
+  final String email;
 
   @override
   String toString() {
-    return 'Transaction(transactionId: $transactionId, email: $email, type: $type, amount: $amount, timestamp: $timestamp, pubId: $pubId, name: $name, point: $point, profilePicUrl: $profilePicUrl)';
+    return 'Transaction(transactionId: $transactionId, uid: $uid, type: $type, amount: $amount, timestamp: $timestamp, pubId: $pubId, name: $name, point: $point, profilePicUrl: $profilePicUrl, email: $email)';
   }
 
   @override
@@ -261,7 +277,7 @@ class _$TransactionImpl implements _Transaction {
             other is _$TransactionImpl &&
             (identical(other.transactionId, transactionId) ||
                 other.transactionId == transactionId) &&
-            (identical(other.email, email) || other.email == email) &&
+            (identical(other.uid, uid) || other.uid == uid) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.timestamp, timestamp) ||
@@ -270,13 +286,14 @@ class _$TransactionImpl implements _Transaction {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.point, point) || other.point == point) &&
             (identical(other.profilePicUrl, profilePicUrl) ||
-                other.profilePicUrl == profilePicUrl));
+                other.profilePicUrl == profilePicUrl) &&
+            (identical(other.email, email) || other.email == email));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, transactionId, email, type,
-      amount, timestamp, pubId, name, point, profilePicUrl);
+  int get hashCode => Object.hash(runtimeType, transactionId, uid, type, amount,
+      timestamp, pubId, name, point, profilePicUrl, email);
 
   /// Create a copy of Transaction
   /// with the given fields replaced by the non-null parameter values.
@@ -297,14 +314,15 @@ class _$TransactionImpl implements _Transaction {
 abstract class _Transaction implements Transaction {
   const factory _Transaction(
       {required final String transactionId,
-      required final String email,
+      required final String uid,
       required final String type,
       required final int amount,
       required final DateTime timestamp,
       required final String pubId,
       required final String name,
       required final int point,
-      required final String profilePicUrl}) = _$TransactionImpl;
+      required final String profilePicUrl,
+      required final String email}) = _$TransactionImpl;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
       _$TransactionImpl.fromJson;
@@ -312,7 +330,7 @@ abstract class _Transaction implements Transaction {
   @override
   String get transactionId;
   @override
-  String get email; // 이메일
+  String get uid; // 이메일
   @override
   String get type; // 거래 타입 (ex. 'charge', 'deduct')
   @override
@@ -327,6 +345,8 @@ abstract class _Transaction implements Transaction {
   int get point;
   @override
   String get profilePicUrl;
+  @override
+  String get email;
 
   /// Create a copy of Transaction
   /// with the given fields replaced by the non-null parameter values.

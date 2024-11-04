@@ -9,7 +9,7 @@ part of 'transaction_model.dart';
 _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
     _$TransactionImpl(
       transactionId: json['transactionId'] as String,
-      email: json['email'] as String,
+      uid: json['uid'] as String,
       type: json['type'] as String,
       amount: (json['amount'] as num).toInt(),
       timestamp: DateTime.parse(json['timestamp'] as String),
@@ -17,12 +17,13 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       point: (json['point'] as num).toInt(),
       profilePicUrl: json['profilePicUrl'] as String,
+      email: json['email'] as String,
     );
 
 Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
     <String, dynamic>{
       'transactionId': instance.transactionId,
-      'email': instance.email,
+      'uid': instance.uid,
       'type': instance.type,
       'amount': instance.amount,
       'timestamp': instance.timestamp.toIso8601String(),
@@ -30,4 +31,5 @@ Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
       'name': instance.name,
       'point': instance.point,
       'profilePicUrl': instance.profilePicUrl,
+      'email': instance.email,
     };
