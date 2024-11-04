@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/tab_view_model.dart';
 import 'qrcode_scan_tab.dart';
 import 'owner_settings_tab.dart';
-import 'point_management_screen.dart';  // 포인트 관리 스크린 임포트
+import 'point_management_screen.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
@@ -15,24 +15,16 @@ class OwnerHomeScreen extends ConsumerWidget {
     final List<Widget> pages = [
       HomeTab(),
       TransactionHistoryTab(),
-      Navigator(
-        onGenerateRoute: (settings) {
-          if (settings.name == '/pointManagement') {
-            return MaterialPageRoute(
-              builder: (context) => PointManagementScreen(),  // 스캔 성공 후 포인트 관리 화면으로 이동
-            );
-          }
-          return MaterialPageRoute(
-            builder: (context) => ScanTab(),  // 기본 ScanTab
-          );
-        },
-      ), // QR 코드 스캔 탭을 Navigator로 관리
+      ScanTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       AccountTab(),
       OwnerSettingsTab(),
     ];
 
     return Scaffold(
-      body: pages[currentIndex],
+      body: IndexedStack(
+        index: currentIndex, // 현재 선택된 탭의 인덱스 설정
+        children: pages, // 탭별로 저장된 페이지
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex, // 현재 선택된 탭의 인덱스를 설정
         onTap: (index) {
@@ -66,6 +58,27 @@ class OwnerHomeScreen extends ConsumerWidget {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
       ),
+    );
+  }
+}
+
+// QR 코드 스캔 및 포인트 관리 페이지를 위한 Navigator
+class ScanTabNavigator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/pointManagement':
+            return MaterialPageRoute(
+              builder: (context) => PointManagementScreen(),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => ScanTab(),
+            );
+        }
+      },
     );
   }
 }

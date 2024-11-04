@@ -9,8 +9,9 @@ class ScanTab extends ConsumerWidget {
     final qrViewModel = ref.watch(qrViewModelProvider.notifier); // watch로 상태 구독
 
     // 화면 크기 값을 변수에 저장
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     return PopScope<Object?>(
       canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
@@ -66,7 +67,7 @@ class ScanTab extends ConsumerWidget {
                 ),
                 child: TextButton.icon(
                   onPressed: () {
-                    // Implement your action for manual member number entry
+                    Navigator.pushNamed(context, '/memberInput');
                   },
                   icon: Padding(
                     padding: EdgeInsets.only(left: screenWidth * 0.05), // 아이콘을 왼쪽에 붙이기 위한 패딩
