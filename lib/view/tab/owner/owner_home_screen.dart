@@ -4,6 +4,8 @@ import '../../../viewModel/tab_view_model.dart';
 import 'qrcode_scan_tab.dart';
 import 'owner_settings_tab.dart';
 import 'point_management_screen.dart';
+import 'point_management_confirm_screen.dart';
+import 'meber_input_screen.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
@@ -72,6 +74,14 @@ class ScanTabNavigator extends StatelessWidget {
           case '/pointManagement':
             return MaterialPageRoute(
               builder: (context) => PointManagementScreen(),
+            );
+          case '/pointManagementConfirm':
+            return MaterialPageRoute(
+              builder: (context) => PointManagementConfirmScreen(),
+            );
+          case '/memberInput':
+            return MaterialPageRoute(
+              builder: (context) => MemberInputScreen(),
             );
           default:
             return MaterialPageRoute(

@@ -7,7 +7,7 @@ part 'transaction_model.g.dart'; // json serialization support
 class Transaction with _$Transaction {
   const factory Transaction({
     required String transactionId,
-    required String email,              // 이메일
+    required String uid,              // 이메일
     required String type,               // 거래 타입 (ex. 'charge', 'deduct')
     required int amount,                 // 거래된 포인트
     required DateTime timestamp,  // 거래 시간
@@ -15,6 +15,7 @@ class Transaction with _$Transaction {
     required String name,
     required int point,
     required String profilePicUrl,
+    required String email,
   }) = _Transaction;
 
   // JSON 직렬화 지원
