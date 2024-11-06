@@ -3,8 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // For number formatting
 import '../../../viewModel/point_management_view_model.dart';
 
-class PointManagementConfirmScreen extends ConsumerWidget {
-  Widget build(BuildContext context, WidgetRef ref) {
+class PointManagementConfirmScreen extends ConsumerStatefulWidget {
+  @override
+  _PointManagementConfirmScreenState createState() => _PointManagementConfirmScreenState();
+}
+
+class _PointManagementConfirmScreenState extends ConsumerState<PointManagementConfirmScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 초기화 시 한 번만 fetchUserData 호출
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(transactionProvider.notifier).fetchUserData(ref);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // 화면 크기를 가져오기 위한 MediaQuery
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
@@ -12,9 +27,6 @@ class PointManagementConfirmScreen extends ConsumerWidget {
 
     // transactionProvider의 상태를 구독
     final transaction = ref.watch(transactionProvider);
-
-    // 사용자 이름과 이메일 정보를 가져오는 Future를 실행
-    ref.read(transactionProvider.notifier).fetchUserData(ref);
 
     // 사용자 프로필 URL 가져오기
     final profilePicUrl = transaction?.profilePicUrl;
