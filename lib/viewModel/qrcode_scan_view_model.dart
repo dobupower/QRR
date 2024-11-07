@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../model/qr_code_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class QRViewModel extends StateNotifier<QrCode?> {
   QRViewController? controller;
@@ -68,7 +69,7 @@ class QRViewModel extends StateNotifier<QrCode?> {
 
   // 서버로 복호화 API 요청을 보내는 함수
   Future<String> _callDecryptApi(String encryptedData, String iv) async {
-    final url = Uri.parse('https://us-central1-qrr-project-9fb5a.cloudfunctions.net/decryptData');
+    final url = Uri.parse(dotenv.env['DECRYPT_API_URL']!);
     
     // JSON 객체로 암호화된 데이터 (iv와 encryptedData 포함) 전송
     final response = await http.post(

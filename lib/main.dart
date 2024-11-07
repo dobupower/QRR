@@ -11,13 +11,15 @@ import 'model/user_model.dart'; // User 모델 가져오기
 import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
 import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
 import 'services/preferences_manager.dart'; // 싱글톤 PreferencesManager 가져오기
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // 메인 함수, Firebase 초기화
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 위젯 바인딩 초기화 (비동기 호출 전 필요)
   await Firebase.initializeApp(); // Firebase 앱 초기화
   await PreferencesManager.instance.init(); // PreferencesManager 초기화
-
+  await dotenv.load(fileName: ".env"); // dotenv 초기화
+  
   // ProviderScope는 Riverpod 상태 관리를 위한 최상위 위젯
   runApp(ProviderScope(child: MyApp()));
 }

@@ -32,97 +32,95 @@ class EmailAuthScreen extends ConsumerWidget {
             icon: Icon(Icons.arrow_back, color: Colors.grey),
             onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
           ),
-          backgroundColor: Colors.transparent, // AppBar의 배경색 투명
-          elevation: 0, // 그림자 제거
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
         // 본문 내용
         body: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.05), // 화면 여백을 상대적으로 설정
+          padding: EdgeInsets.all(screenWidth * 0.05),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 중앙에 위치한 타이틀 텍스트
               Center(
                 child: Text(
                   'アカウント認証', // 'アカウント認証' = 계정 인증
                   style: TextStyle(
-                    fontSize: screenWidth * 0.07, // 폰트 크기를 상대적으로 설정
+                    fontSize: screenWidth * 0.07,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02), // 간격을 상대적으로 설정
-              // 사용자 이메일 정보와 안내 메시지
+              SizedBox(height: screenHeight * 0.02),
               Center(
                 child: Text(
-                  '${user.email}に認証コードを送りました。\n認証コードを入力してください。', 
-                  // '認証コードを送りました。' = 인증 코드를 보냈습니다.
-                  textAlign: TextAlign.center, // 텍스트 가운데 정렬
-                  style: TextStyle(fontSize: screenWidth * 0.038, color: Colors.black), // 텍스트 크기를 상대적으로 설정
+                  '${user.email}に認証コードを送りました。\n認証コードを入力してください。',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: screenWidth * 0.038, color: Colors.black),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.04), // 간격을 상대적으로 설정
-              // 인증 코드 입력 필드 라벨
+              SizedBox(height: screenHeight * 0.04),
               Text(
                 '認証コード', // '認証コード' = 인증 코드
-                style: TextStyle(fontSize: screenWidth * 0.045), // 폰트 크기를 상대적으로 설정
+                style: TextStyle(fontSize: screenWidth * 0.045),
               ),
-              SizedBox(height: screenHeight * 0.01), // 간격을 상대적으로 설정
-              // 인증 코드 입력 필드
+              SizedBox(height: screenHeight * 0.01),
               TextField(
-                controller: signUpState.codeController, // 인증 코드 입력을 위한 컨트롤러
+                controller: signUpState.codeController ?? TextEditingController(), // null일 경우 빈 컨트롤러 생성
                 decoration: InputDecoration(
                   hintText: '4桁コードを入力', // '4桁コードを入力' = 4자리 코드를 입력
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenWidth * 0.03), // 필드 테두리를 상대적으로 설정
+                    borderRadius: BorderRadius.circular(screenWidth * 0.03),
                     borderSide: BorderSide(color: Colors.grey),
                   ),
                 ),
-                keyboardType: TextInputType.number, // 숫자 입력만 가능하도록 설정
-                maxLength: 4, // 최대 입력 길이 4자리로 설정
+                keyboardType: TextInputType.number,
+                maxLength: 4,
               ),
-              Spacer(), // 화면 남은 공간 채우기 (필드와 버튼 사이 간격 유지)
-              // 코드 재전송 버튼
+              Spacer(),
               Center(
                 child: TextButton(
                   onPressed: () {
-                    signUpViewModel.resendVerificationCode(); // 코드 재전송 함수 호출
+                    signUpViewModel.resendVerificationCode();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('新しいコードが送信されました。')), 
-                      // '新しいコードが送信されました' = 새로운 코드가 전송되었습니다.
+                      SnackBar(content: Text('新しいコードが送信されました。')),
                     );
                   },
                   child: Text(
                     'コード再送する', // 'コード再送する' = 코드 재전송
-                    style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.04), // 텍스트 크기를 상대적으로 설정
+                    style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.04),
                   ),
                 ),
               ),
-              // 인증 확인 버튼
               Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    // 입력된 코드를 기반으로 인증 처리
-                    await signUpViewModel.verifyCode(
-                      signUpState.codeController.text, 
-                      context, 
-                      user
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1D2538), // 버튼 배경색 설정
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3, vertical: screenHeight * 0.015), // 버튼 크기를 상대적으로 설정
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.07), // 버튼 모서리를 둥글게 상대적으로 설정
+                child: SizedBox(
+                  width: screenWidth * 0.8, // 버튼 너비를 화면 너비의 80%로 고정
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      // 입력된 코드를 기반으로 인증 처리
+                      final code = signUpState.codeController?.text ?? ''; // null 체크
+                      if (code.isNotEmpty) {
+                        await signUpViewModel.verifyCode(code, context, user);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('認証コードを入力してください。')),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF1D2538),
+                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015), // 수직 패딩만 설정
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(screenWidth * 0.07),
+                      ),
+                    ),
+                    child: Text(
+                      'アカウント認証', // 'アカウント認証' = 계정 인증
+                      style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white),
                     ),
                   ),
-                  child: Text(
-                    'アカウント認証', // 'アカウント認証' = 계정 인증
-                    style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white), // 텍스트 크기를 상대적으로 설정
-                  ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.05), // 마지막 간격을 상대적으로 설정
+              SizedBox(height: screenHeight * 0.05),
             ],
           ),
         ),

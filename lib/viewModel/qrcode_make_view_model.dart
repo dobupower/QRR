@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http; // HTTP 요청을 위해 추가
 import 'dart:convert';
 import '../model/qr_code_model.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // 포인트 상태 관리
 final userPointsProvider = StateNotifierProvider<UserPointsViewModel, AsyncValue<int>>((ref) {
@@ -143,7 +144,7 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
   }
 
   Future<String> _callEncryptApi(Map<String, dynamic> qrPayload) async {
-    final url = Uri.parse('https://us-central1-qrr-project-9fb5a.cloudfunctions.net/encryptData');
+    final url = Uri.parse(dotenv.env['ENCRYPT_API_URL']!);
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
