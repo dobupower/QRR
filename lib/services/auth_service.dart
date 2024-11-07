@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
   
@@ -17,8 +18,8 @@ class AuthService {
 
   // 인증 이메일 발송 함수
   Future<bool> sendVerificationEmail(String email, String code) async {
-    String username = 'jeonju-univ@hoboakabane.jp'; 
-    String password = 'trug mgxn qmxo zkdi';
+    String username = dotenv.env['EMAIL']!;
+    String password = dotenv.env['PASSWORD']!;
 
     final smtpServer = gmail(username, password);
     
