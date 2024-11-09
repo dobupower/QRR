@@ -12,7 +12,7 @@ let cachedAesKey = null;
 // 환경 변수로 설정된 엔드포인트 가져오기
 const encryptEndpoint = process.env.ENCRYPT_ENDPOINT;
 const decryptEndpoint = process.env.DECRYPT_ENDPOINT;
-
+const region = process.env.REGION;
 /**
  * Secret Manager에서 AES 키를 가져오는 함수
  * @return {Promise<string>} AES 키를 반환합니다.
@@ -53,7 +53,7 @@ const encrypt = async (text) => {
 // /encrypt 엔드포인트 - 데이터를 암호화
 exports[encryptEndpoint] = functions.https.onRequest(
     {
-      region: "asia-northeast1", // 지역 설정
+      region: region, // 지역 설정
     },
     async (req, res) => {
       try {
@@ -101,7 +101,7 @@ const decrypt = async (encryptedData, iv) => {
 // /decrypt 엔드포인트 - 데이터를 복호화
 exports[decryptEndpoint] = functions.https.onRequest(
     {
-      region: "asia-northeast1", // 지역 설정
+      region: region, // 지역 설정
     },
     async (req, res) => {
       try {
