@@ -25,6 +25,7 @@ mixin _$User {
   String get email => throw _privateConstructorUsedError;
   int get points => throw _privateConstructorUsedError;
   String get authType => throw _privateConstructorUsedError;
+  String? get profilePicUrl => throw _privateConstructorUsedError;
   String? get pubId => throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
@@ -47,6 +48,7 @@ abstract class $UserCopyWith<$Res> {
       String email,
       int points,
       String authType,
+      String? profilePicUrl,
       String? pubId});
 }
 
@@ -70,6 +72,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? email = null,
     Object? points = null,
     Object? authType = null,
+    Object? profilePicUrl = freezed,
     Object? pubId = freezed,
   }) {
     return _then(_value.copyWith(
@@ -93,6 +96,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.authType
           : authType // ignore: cast_nullable_to_non_nullable
               as String,
+      profilePicUrl: freezed == profilePicUrl
+          ? _value.profilePicUrl
+          : profilePicUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       pubId: freezed == pubId
           ? _value.pubId
           : pubId // ignore: cast_nullable_to_non_nullable
@@ -114,6 +121,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String email,
       int points,
       String authType,
+      String? profilePicUrl,
       String? pubId});
 }
 
@@ -134,6 +142,7 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? email = null,
     Object? points = null,
     Object? authType = null,
+    Object? profilePicUrl = freezed,
     Object? pubId = freezed,
   }) {
     return _then(_$UserImpl(
@@ -157,6 +166,10 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.authType
           : authType // ignore: cast_nullable_to_non_nullable
               as String,
+      profilePicUrl: freezed == profilePicUrl
+          ? _value.profilePicUrl
+          : profilePicUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       pubId: freezed == pubId
           ? _value.pubId
           : pubId // ignore: cast_nullable_to_non_nullable
@@ -174,6 +187,7 @@ class _$UserImpl implements _User {
       required this.email,
       required this.points,
       required this.authType,
+      this.profilePicUrl,
       this.pubId});
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
@@ -190,11 +204,13 @@ class _$UserImpl implements _User {
   @override
   final String authType;
   @override
+  final String? profilePicUrl;
+  @override
   final String? pubId;
 
   @override
   String toString() {
-    return 'User(uid: $uid, name: $name, email: $email, points: $points, authType: $authType, pubId: $pubId)';
+    return 'User(uid: $uid, name: $name, email: $email, points: $points, authType: $authType, profilePicUrl: $profilePicUrl, pubId: $pubId)';
   }
 
   @override
@@ -208,13 +224,15 @@ class _$UserImpl implements _User {
             (identical(other.points, points) || other.points == points) &&
             (identical(other.authType, authType) ||
                 other.authType == authType) &&
+            (identical(other.profilePicUrl, profilePicUrl) ||
+                other.profilePicUrl == profilePicUrl) &&
             (identical(other.pubId, pubId) || other.pubId == pubId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, uid, name, email, points, authType, pubId);
+  int get hashCode => Object.hash(
+      runtimeType, uid, name, email, points, authType, profilePicUrl, pubId);
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.
@@ -239,6 +257,7 @@ abstract class _User implements User {
       required final String email,
       required final int points,
       required final String authType,
+      final String? profilePicUrl,
       final String? pubId}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
@@ -253,6 +272,8 @@ abstract class _User implements User {
   int get points;
   @override
   String get authType;
+  @override
+  String? get profilePicUrl;
   @override
   String? get pubId;
 

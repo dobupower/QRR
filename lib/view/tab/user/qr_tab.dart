@@ -195,7 +195,7 @@ class QrTab extends ConsumerWidget {
                     Spacer(), // 남은 공간을 채워 버튼이 하단에 위치하게 함
                     ElevatedButton(
                       onPressed: () {
-                        // 포인트를 보내는 기능
+                        Navigator.pushNamed(context, '/userSearch');// 포인트를 보내는 기능
                       },
                       child: Text('ポイントを送る'),
                       style: ElevatedButton.styleFrom(
