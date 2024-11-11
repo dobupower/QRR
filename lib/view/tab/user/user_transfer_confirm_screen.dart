@@ -2,20 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/user_point_uid_view_model.dart';
+import '../../../model/user_model.dart';
+import '../../../model/user_transaction_model.dart';
 
-class UserTransferConfirmScreen extends ConsumerWidget {
+class UserTransferConfirmScreen extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 화면 크기와 포맷터 정의
+  _UserTransferConfirmScreenState createState() => _UserTransferConfirmScreenState();
+}
+
+class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmScreen> {
+  final numberFormat = NumberFormat("#,###");
+  AsyncValue<UserTransaction>? transaction;
+  AsyncValue<List<User>>? userState;
+
+  @override
+  void initState() {
+    super.initState();
+    // transaction과 userState를 한 번만 가져오도록 초기화
+    transaction = ref.read(userPointsUidProvider).transactionState;
+    userState = ref.read(userPointsUidProvider).userState;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
-    final numberFormat = NumberFormat("#,###");
 
-    // transactionProvider 상태 구독
-    final transaction = ref.watch(userPointsUidProvider).transactionState.value;
-    final userState = ref.watch(userPointsUidProvider).userState;
-    final user = userState.when(
+    final user = userState?.when(
       data: (users) => users.isNotEmpty ? users.first : null,
       loading: () => null,
       error: (error, _) => null,
@@ -103,7 +117,7 @@ class UserTransferConfirmScreen extends ConsumerWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    '${numberFormat.format(transaction?.amount ?? 0)}',
+                    '${numberFormat.format(transaction?.value?.amount ?? 0)}',
                     style: TextStyle(
                       fontSize: screenWidth * 0.12,
                       fontWeight: FontWeight.bold,
