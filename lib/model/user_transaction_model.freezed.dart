@@ -21,8 +21,8 @@ UserTransaction _$UserTransactionFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$UserTransaction {
   String get transactionId => throw _privateConstructorUsedError; // 트랜잭션 고유 ID
-  String get senderEmail => throw _privateConstructorUsedError; // 보내는 사람 이메일
-  String get receiverEmail => throw _privateConstructorUsedError; // 받는 사람 이메일
+  String get senderUid => throw _privateConstructorUsedError; // 보내는 사람 이메일
+  String get receiverUid => throw _privateConstructorUsedError; // 받는 사람 이메일
   int get amount => throw _privateConstructorUsedError; // 거래 금액
   DateTime get timestamp => throw _privateConstructorUsedError;
 
@@ -44,8 +44,8 @@ abstract class $UserTransactionCopyWith<$Res> {
   @useResult
   $Res call(
       {String transactionId,
-      String senderEmail,
-      String receiverEmail,
+      String senderUid,
+      String receiverUid,
       int amount,
       DateTime timestamp});
 }
@@ -66,8 +66,8 @@ class _$UserTransactionCopyWithImpl<$Res, $Val extends UserTransaction>
   @override
   $Res call({
     Object? transactionId = null,
-    Object? senderEmail = null,
-    Object? receiverEmail = null,
+    Object? senderUid = null,
+    Object? receiverUid = null,
     Object? amount = null,
     Object? timestamp = null,
   }) {
@@ -76,13 +76,13 @@ class _$UserTransactionCopyWithImpl<$Res, $Val extends UserTransaction>
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      senderEmail: null == senderEmail
-          ? _value.senderEmail
-          : senderEmail // ignore: cast_nullable_to_non_nullable
+      senderUid: null == senderUid
+          ? _value.senderUid
+          : senderUid // ignore: cast_nullable_to_non_nullable
               as String,
-      receiverEmail: null == receiverEmail
-          ? _value.receiverEmail
-          : receiverEmail // ignore: cast_nullable_to_non_nullable
+      receiverUid: null == receiverUid
+          ? _value.receiverUid
+          : receiverUid // ignore: cast_nullable_to_non_nullable
               as String,
       amount: null == amount
           ? _value.amount
@@ -106,8 +106,8 @@ abstract class _$$UserTransactionImplCopyWith<$Res>
   @useResult
   $Res call(
       {String transactionId,
-      String senderEmail,
-      String receiverEmail,
+      String senderUid,
+      String receiverUid,
       int amount,
       DateTime timestamp});
 }
@@ -126,8 +126,8 @@ class __$$UserTransactionImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? transactionId = null,
-    Object? senderEmail = null,
-    Object? receiverEmail = null,
+    Object? senderUid = null,
+    Object? receiverUid = null,
     Object? amount = null,
     Object? timestamp = null,
   }) {
@@ -136,13 +136,13 @@ class __$$UserTransactionImplCopyWithImpl<$Res>
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      senderEmail: null == senderEmail
-          ? _value.senderEmail
-          : senderEmail // ignore: cast_nullable_to_non_nullable
+      senderUid: null == senderUid
+          ? _value.senderUid
+          : senderUid // ignore: cast_nullable_to_non_nullable
               as String,
-      receiverEmail: null == receiverEmail
-          ? _value.receiverEmail
-          : receiverEmail // ignore: cast_nullable_to_non_nullable
+      receiverUid: null == receiverUid
+          ? _value.receiverUid
+          : receiverUid // ignore: cast_nullable_to_non_nullable
               as String,
       amount: null == amount
           ? _value.amount
@@ -161,8 +161,8 @@ class __$$UserTransactionImplCopyWithImpl<$Res>
 class _$UserTransactionImpl implements _UserTransaction {
   const _$UserTransactionImpl(
       {required this.transactionId,
-      required this.senderEmail,
-      required this.receiverEmail,
+      required this.senderUid,
+      required this.receiverUid,
       required this.amount,
       required this.timestamp});
 
@@ -173,10 +173,10 @@ class _$UserTransactionImpl implements _UserTransaction {
   final String transactionId;
 // 트랜잭션 고유 ID
   @override
-  final String senderEmail;
+  final String senderUid;
 // 보내는 사람 이메일
   @override
-  final String receiverEmail;
+  final String receiverUid;
 // 받는 사람 이메일
   @override
   final int amount;
@@ -186,7 +186,7 @@ class _$UserTransactionImpl implements _UserTransaction {
 
   @override
   String toString() {
-    return 'UserTransaction(transactionId: $transactionId, senderEmail: $senderEmail, receiverEmail: $receiverEmail, amount: $amount, timestamp: $timestamp)';
+    return 'UserTransaction(transactionId: $transactionId, senderUid: $senderUid, receiverUid: $receiverUid, amount: $amount, timestamp: $timestamp)';
   }
 
   @override
@@ -196,10 +196,10 @@ class _$UserTransactionImpl implements _UserTransaction {
             other is _$UserTransactionImpl &&
             (identical(other.transactionId, transactionId) ||
                 other.transactionId == transactionId) &&
-            (identical(other.senderEmail, senderEmail) ||
-                other.senderEmail == senderEmail) &&
-            (identical(other.receiverEmail, receiverEmail) ||
-                other.receiverEmail == receiverEmail) &&
+            (identical(other.senderUid, senderUid) ||
+                other.senderUid == senderUid) &&
+            (identical(other.receiverUid, receiverUid) ||
+                other.receiverUid == receiverUid) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.timestamp, timestamp) ||
                 other.timestamp == timestamp));
@@ -207,8 +207,8 @@ class _$UserTransactionImpl implements _UserTransaction {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, transactionId, senderEmail,
-      receiverEmail, amount, timestamp);
+  int get hashCode => Object.hash(
+      runtimeType, transactionId, senderUid, receiverUid, amount, timestamp);
 
   /// Create a copy of UserTransaction
   /// with the given fields replaced by the non-null parameter values.
@@ -230,8 +230,8 @@ class _$UserTransactionImpl implements _UserTransaction {
 abstract class _UserTransaction implements UserTransaction {
   const factory _UserTransaction(
       {required final String transactionId,
-      required final String senderEmail,
-      required final String receiverEmail,
+      required final String senderUid,
+      required final String receiverUid,
       required final int amount,
       required final DateTime timestamp}) = _$UserTransactionImpl;
 
@@ -241,9 +241,9 @@ abstract class _UserTransaction implements UserTransaction {
   @override
   String get transactionId; // 트랜잭션 고유 ID
   @override
-  String get senderEmail; // 보내는 사람 이메일
+  String get senderUid; // 보내는 사람 이메일
   @override
-  String get receiverEmail; // 받는 사람 이메일
+  String get receiverUid; // 받는 사람 이메일
   @override
   int get amount; // 거래 금액
   @override

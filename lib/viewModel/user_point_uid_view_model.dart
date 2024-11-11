@@ -107,7 +107,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
     }
 
     try {
-      // Firestore에서 sender의 points를 가져와 검증
+      // Firestore에서 sender의 uid를 가져와 검증
       final senderDoc = await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: senderEmail).get();
       if (senderDoc.docs.isEmpty) {
         print("Sender not found.");
@@ -115,6 +115,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
       }
 
       final senderData = senderDoc.docs.first.data();
+      final senderUid = senderDoc.docs.first.id; // sender의 uid
       final senderPoints = senderData['points'] ?? 0;
 
       if (transactionAmount > senderPoints) {
@@ -123,7 +124,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
       }
 
       // sender와 receiver의 포인트 업데이트
-      final senderDocRef = FirebaseFirestore.instance.collection('users').doc(senderDoc.docs.first.id);
+      final senderDocRef = FirebaseFirestore.instance.collection('users').doc(senderUid);
       final receiverDocRef = FirebaseFirestore.instance.collection('users').doc(receiverUser.uid);
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {
@@ -133,8 +134,8 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
 
       // Transactions 컬렉션에 거래 정보 추가
       final transactionRef = await FirebaseFirestore.instance.collection('Transactions').add({
-        'senderEmail': senderEmail,
-        'receiverEmail': receiverUser.email,
+        'uid': senderUid,                 // senderUid를 저장
+        'receiverUid': receiverUser.uid,        // receiverUid를 저장
         'amount': transactionAmount,
         'timestamp': DateTime.now(),
       });
@@ -156,8 +157,8 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
       userState: const AsyncValue.data([]),
       transactionState: AsyncValue.data(UserTransaction(
         transactionId: '',
-        senderEmail: '',
-        receiverEmail: '',
+        senderUid: '',
+        receiverUid: '',
         amount: 0,
         timestamp: DateTime.now(),
       )),
@@ -175,8 +176,8 @@ class UserPointsUidState {
     AsyncValue<UserTransaction>? transactionState,
   }) : transactionState = transactionState ?? AsyncValue.data(UserTransaction(
           transactionId: '',
-          senderEmail: '',
-          receiverEmail: '',
+          senderUid: '',
+          receiverUid: '',
           amount: 0,
           timestamp: DateTime.now(),
         ));
