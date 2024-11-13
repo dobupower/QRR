@@ -10,17 +10,14 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
   // Firestore에서 name 또는 uid로 사용자 검색
   Future<void> searchUserByNameOrUid(String query) async {
     if (query.isEmpty) {
-      state = state.copyWith(userState: const AsyncValue.data([])); // 검색어가 비어있으면 빈 리스트로 초기화
+      state = state.copyWith(userState: const AsyncValue.data([]));
       return;
     }
 
     try {
       final users = <User>[];
-
-      // 현재 사용자의 이메일 가져오기
       final currentUserEmail = await PreferencesManager.instance.getEmail();
 
-      // 이름으로 검색
       final nameSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('name', isGreaterThanOrEqualTo: query)
@@ -33,7 +30,6 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
         }));
       }
 
-      // UID로 검색
       final uidSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('uid', isEqualTo: query)
@@ -45,16 +41,13 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
         }));
       }
 
-      // 중복 사용자 제거 및 자신을 제외한 유저 리스트 생성
       final uniqueUsers = {
         for (var user in users)
           if (user.email != currentUserEmail) user.uid: user
       }.values.toList();
 
-      // 사용자 상태 업데이트
       state = state.copyWith(userState: AsyncValue.data(uniqueUsers));
     } catch (e) {
-      print('Error searching user by name or UID: $e');
       state = state.copyWith(userState: AsyncValue.error('사용자 검색 중 오류가 발생했습니다.', StackTrace.current));
     }
   }
@@ -80,11 +73,9 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
           state = state.copyWith(userState: AsyncValue.data([updatedUser]));
         }
       } else {
-        print("User not found in Firestore.");
         state = state.copyWith(userState: const AsyncValue.data([]));
       }
     } catch (e) {
-      print('Error updating user data by UID: $e');
       state = state.copyWith(userState: AsyncValue.error('사용자 정보 업데이트 중 오류가 발생했습니다.', StackTrace.current));
     }
   }
@@ -102,56 +93,54 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
     final transactionAmount = state.transactionState.value?.amount ?? 0;
 
     if (senderEmail == null) {
-      print("Sender email not found.");
-      return false; // 실패 시 false 반환
+      return false;
     }
 
     try {
-      // Firestore에서 sender의 uid를 가져와 검증
       final senderDoc = await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: senderEmail).get();
       if (senderDoc.docs.isEmpty) {
-        print("Sender not found.");
-        return false; // 실패 시 false 반환
+        return false;
       }
 
-      final senderData = senderDoc.docs.first.data();
-      final senderUid = senderDoc.docs.first.id; // sender의 uid
-      final senderPoints = senderData['points'] ?? 0;
-
-      if (transactionAmount > senderPoints) {
-        print("포인트가 부족합니다.");
-        return false; // 실패 시 false 반환
-      }
-
-      // sender와 receiver의 포인트 업데이트
+      final senderUid = senderDoc.docs.first.id;
       final senderDocRef = FirebaseFirestore.instance.collection('users').doc(senderUid);
       final receiverDocRef = FirebaseFirestore.instance.collection('users').doc(receiverUser.uid);
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        transaction.update(senderDocRef, {'points': senderPoints - transactionAmount});
-        transaction.update(receiverDocRef, {'points': receiverUser.points + transactionAmount});
+        final senderSnapshot = await transaction.get(senderDocRef);
+        final senderPoints = senderSnapshot.data()?['points'] ?? 0;
+
+        final receiverSnapshot = await transaction.get(receiverDocRef);
+        final receiverPoints = receiverSnapshot.data()?['points'] ?? 0;
+
+        if (transactionAmount > senderPoints) {
+          throw Exception("포인트가 부족합니다.");
+        }
+
+        transaction.update(senderDocRef, {
+          'points': senderPoints - transactionAmount,
+        });
+
+        transaction.update(receiverDocRef, {
+          'points': receiverPoints + transactionAmount,
+        });
       });
 
-      // Transactions 컬렉션에 거래 정보 추가
       final transactionRef = await FirebaseFirestore.instance.collection('Transactions').add({
-        'uid': senderUid,                 // senderUid를 저장
-        'receiverUid': receiverUser.uid,        // receiverUid를 저장
+        'relatedUserId': senderUid,
+        'userId': receiverUser.uid,
         'amount': transactionAmount,
         'timestamp': DateTime.now(),
       });
 
-      // 트랜잭션 문서 ID를 transactionId 필드에 업데이트
       await transactionRef.update({'transactionId': transactionRef.id});
 
-      print("거래가 성공적으로 완료되었습니다.");
-      return true; // 성공 시 true 반환
+      return true;
     } catch (e) {
-      print("거래 중 오류 발생: $e");
-      return false; // 오류 발생 시 false 반환
+      return false;
     }
   }
 
-  // userState와 transactionState를 초기화하는 함수
   void clearUserAndTransactionState() {
     state = UserPointsUidState(
       userState: const AsyncValue.data([]),

@@ -2,11 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/user_point_uid_view_model.dart';
 
-class UserSearchScreen extends ConsumerWidget {
+class UserSearchScreen extends ConsumerStatefulWidget {
+  @override
+  _UserSearchScreenState createState() => _UserSearchScreenState();
+}
+
+class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _searchController.dispose(); // 메모리 누수 방지
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userState = ref.watch(userPointsUidProvider).userState;
 
     final screenSize = MediaQuery.of(context).size;
