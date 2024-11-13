@@ -134,8 +134,8 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
 
       // Transactions 컬렉션에 거래 정보 추가
       final transactionRef = await FirebaseFirestore.instance.collection('Transactions').add({
-        'userId': senderUid,                 // senderUid를 저장
-        'receiverUid': receiverUser.uid,        // receiverUid를 저장
+        'relatedUserId': senderUid,                 // senderUid를 저장
+        'userId': receiverUser.uid,        // receiverUid를 저장
         'amount': transactionAmount,
         'timestamp': DateTime.now(),
       });
