@@ -3,17 +3,61 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class AuthService {
-  
   // 이메일이 이미 등록되었는지 확인하는 함수
   Future<bool> isEmailAlreadyRegistered(String email) async {
-    final existingUser = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .get();
-    
-    return existingUser.docs.isNotEmpty;
+    try {
+      // 지역을 지정하여 FirebaseFunctions 인스턴스 생성
+      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+
+      // Cloud Function 호출 준비
+      final HttpsCallable callable = functions.httpsCallable('EmailExists');
+      // Cloud Function 호출 및 응답 받기
+      final response = await callable.call({'email': email});
+
+      // 응답 데이터 처리
+      final data = response.data;
+      if (data != null && data['exists'] != null) {
+        return data['exists'] as bool;
+      } else {
+        // 예상치 못한 응답 처리
+        print('예상치 못한 응답 형식입니다: $data');
+        return false;
+      }
+    } catch (e) {
+      // 에러 처리
+      print('이메일 중복 확인 중 오류 발생: $e');
+      return false;
+    }
+  }
+
+  // 이메일이 이미 등록되었는지 확인하는 함수
+  Future<bool> OwnerisEmailAlreadyRegistered(String email) async {
+    try {
+      // 지역을 지정하여 FirebaseFunctions 인스턴스 생성
+      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+
+      // Cloud Function 호출 준비
+      final HttpsCallable callable = functions.httpsCallable('OwnerEmailExists');
+      // Cloud Function 호출 및 응답 받기
+      final response = await callable.call({'email': email});
+
+      // 응답 데이터 처리
+      final data = response.data;
+      if (data != null && data['exists'] != null) {
+        return data['exists'] as bool;
+      } else {
+        // 예상치 못한 응답 처리
+        print('예상치 못한 응답 형식입니다: $data');
+        return false;
+      }
+    } catch (e) {
+      // 에러 처리
+      print('이메일 중복 확인 중 오류 발생: $e');
+      return false;
+    }
   }
 
   // 인증 이메일 발송 함수
@@ -22,7 +66,7 @@ class AuthService {
     String password = dotenv.env['PASSWORD']!;
 
     final smtpServer = gmail(username, password);
-    
+
     final message = Message()
       ..from = Address(username, 'QRR')
       ..recipients.add(email)
@@ -76,12 +120,30 @@ class AuthService {
     return '${fourDigit()}-${fourDigit()}-${fourDigit()}';
   }
 
-  // Firestore에서 UID 중복 검사 함수
   Future<bool> _checkUIDExists(String uid) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('uid', isEqualTo: uid)
-        .get();
-    return snapshot.docs.isNotEmpty;
+    try {
+      // Cloud Function 호출을 위해 FirebaseFunctions 인스턴스 생성
+      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+
+      // Cloud Function 호출 준비
+      final HttpsCallable callable = functions.httpsCallable('UidExists');
+
+      // Cloud Function 호출 및 응답 받기
+      final response = await callable.call({'uid': uid});
+
+      // 응답 데이터 처리
+      final data = response.data;
+      if (data != null && data['exists'] != null) {
+        return data['exists'] as bool;
+      } else {
+        // 예상치 못한 응답 처리
+        print('예상치 못한 응답 형식입니다: $data');
+        return false;
+      }
+    } catch (e) {
+      // 에러 처리
+      print('UID 중복 확인 중 오류 발생: $e');
+      return false;
+    }
   }
 }

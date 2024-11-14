@@ -200,7 +200,7 @@ class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
       try {
         final email = state.emailController.text;
 
-        if (await _authService.isEmailAlreadyRegistered(email)) {
+        if (await _authService.OwnerisEmailAlreadyRegistered(email)) {
           state = state.copyWith(emailError: 'このメールアドレスは既に登録されています。');
           return;
         }
@@ -215,7 +215,6 @@ class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
           address: state.addressController.text,
           building: state.buildingController.text.isNotEmpty ? state.buildingController.text : null,
           authType: 'email',
-          type: 'owner',
         );
 
         final verificationCode = _generateVerificationCode();

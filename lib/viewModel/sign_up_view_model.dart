@@ -104,7 +104,7 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
           email: email,
           points: 0,
           authType: 'email',
-          pubId: state.selectedStore,
+          pubId: '',
         );
         final verificationCode = _generateVerificationCode();
         state = state.copyWith(verificationCode: verificationCode);

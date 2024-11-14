@@ -12,7 +12,11 @@ let cachedAesKey = null;
 // 환경 변수로 설정된 엔드포인트 가져오기
 const encryptEndpoint = process.env.ENCRYPT_ENDPOINT;
 const decryptEndpoint = process.env.DECRYPT_ENDPOINT;
+const EmailEndpoint = process.env.EMAIL_ENDPOINT; // 새로운 엔드포인트 추가
+const OwnerEmailEndpoint = process.env.OWNER_EMAIL_ENDPOINT; // 새로운 엔드포인트 추가
+const UidEndpoint = process.env.UID_ENDPOINT; // 새로운 엔드포인트 추가
 const region = process.env.REGION;
+
 /**
  * Secret Manager에서 AES 키를 가져오는 함수
  * @return {Promise<string>} AES 키를 반환합니다.
@@ -58,8 +62,8 @@ exports[encryptEndpoint] = functions.https.onRequest(
     async (req, res) => {
       try {
         const data = req.body.data;
-        const jsonString = typeof data === "string" ?
-         data : JSON.stringify(data);
+        const jsonString =
+            typeof data === "string" ? data : JSON.stringify(data);
 
         const encrypted = await encrypt(jsonString);
         res.status(200).send({
@@ -73,7 +77,8 @@ exports[encryptEndpoint] = functions.https.onRequest(
           details: error.message,
         });
       }
-    });
+    },
+);
 
 /**
  * AES 복호화 함수
@@ -111,7 +116,9 @@ exports[decryptEndpoint] = functions.https.onRequest(
         }
 
         const decrypted = await decrypt(encryptedData, iv);
-        res.status(200).send({decrypted});
+        res.status(200).send({
+          decrypted,
+        });
       } catch (error) {
         console.error("복호화 오류:", error);
         res.status(500).send({
@@ -119,4 +126,127 @@ exports[decryptEndpoint] = functions.https.onRequest(
           details: error.message,
         });
       }
-    });
+    },
+);
+
+// email을 통해 유저 정보 검색
+exports[EmailEndpoint] = functions.https.onCall(
+    {
+      region: region, // 지역 설정
+    },
+    async (request) => {
+      try {
+        const email = request.data.email;
+        if (!email) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "이메일이 제공되지 않았습니다.",
+          );
+        }
+
+        const usersRef = admin.firestore().collection("users");
+        const snapshot = await usersRef.where("email", "==",
+            email).limit(1).get();
+
+        if (snapshot.empty) {
+          // 이메일이 존재하지 않을 경우 exists만 false로 반환
+          return {exists: false};
+        }
+
+        // 이메일이 존재할 경우, 해당 유저의 데이터를 JSON 형식으로 반환
+        const userData = snapshot.docs[0].data();
+        return {
+          exists: true,
+          userData: userData,
+        };
+      } catch (error) {
+        console.error("이메일 존재 여부 확인 오류:", error);
+        throw new functions.https.HttpsError(
+            "internal",
+            "이메일 존재 여부 확인에 실패했습니다.",
+            error.message,
+        );
+      }
+    },
+);
+
+exports[OwnerEmailEndpoint] = functions.https.onCall(
+    {
+      region: region, // 지역 설정
+    },
+    async (request) => {
+      try {
+        const email = request.data.email;
+        if (!email) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "이메일이 제공되지 않았습니다.",
+          );
+        }
+
+        const usersRef = admin.firestore().collection("owners");
+        const snapshot = await usersRef.where("email", "==",
+            email).limit(1).get();
+
+        if (snapshot.empty) {
+          // 이메일이 존재하지 않을 경우 exists만 false로 반환
+          return {exists: false};
+        }
+
+        // 이메일이 존재할 경우, 해당 유저의 데이터를 JSON 형식으로 반환
+        const userData = snapshot.docs[0].data();
+        return {
+          exists: true,
+          userData: userData,
+        };
+      } catch (error) {
+        console.error("이메일 존재 여부 확인 오류:", error);
+        throw new functions.https.HttpsError(
+            "internal",
+            "이메일 존재 여부 확인에 실패했습니다.",
+            error.message,
+        );
+      }
+    },
+);
+
+// uid을 통해 유저 정보 검색
+exports[UidEndpoint] = functions.https.onCall(
+    {
+      region: region, // 지역 설정
+    },
+    async (request) => {
+      try {
+        const uid = request.data.uid;
+        if (!uid) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "이메일이 제공되지 않았습니다.",
+          );
+        }
+
+        const usersRef = admin.firestore().collection("users");
+        const snapshot = await usersRef.where("uid", "==", uid).limit(1).get();
+
+        if (snapshot.empty) {
+          // 이메일이 존재하지 않을 경우 exists만 false로 반환
+          return {exists: false};
+        }
+
+        // 이메일이 존재할 경우, 해당 유저의 데이터를 JSON 형식으로 반환
+        const userData = snapshot.docs[0].data();
+        return {
+          exists: true,
+          userData: userData,
+        };
+      } catch (error) {
+        console.error("이메일 존재 여부 확인 오류:", error);
+        throw new functions.https.HttpsError(
+            "internal",
+            "이메일 존재 여부 확인에 실패했습니다.",
+            error.message,
+        );
+      }
+    },
+);
+

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/preferences_manager.dart'; // PreferencesManager import
+import 'package:cloud_functions/cloud_functions.dart';
 
 // 로그인 상태를 관리하는 SignInState 클래스
 class SignInState {
@@ -43,10 +44,18 @@ class SignInViewModel extends StateNotifier<SignInState> {
     state = state.copyWith(isLoading: true); // 로딩 상태로 전환
 
     try {
+      // FirebaseAuth로 먼저 로그인 시도
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+
       // Firestore에서 'owners' 또는 'users' 컬렉션을 선택
       final collectionName = state.type == 'owner' ? 'owners' : 'users';
+      state = state.copyWith(type: collectionName);
 
-      // 선택된 컬렉션에서 이메일이 존재하는지 Firestore에서 확인
+      // 인증이 완료된 후, Firestore에서 이메일이 존재하는지 확인
       final userDoc = await FirebaseFirestore.instance
           .collection(collectionName)
           .where('email', isEqualTo: email)
@@ -58,18 +67,10 @@ class SignInViewModel extends StateNotifier<SignInState> {
           isLoading: false,
           errorMessage: '해당 이메일이 ${collectionName == "owners" ? "owners" : "users"} 컬렉션에 없습니다.',
         );
-        // 에러 메시지를 스낵바로 표시
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('해당 이메일이 ${collectionName == "owners" ? "owners" : "users"} 컬렉션에 없습니다.')),
         );
       } else {
-        // 이메일이 있으면 FirebaseAuth로 로그인 시도
-        UserCredential userCredential = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-          email: email.trim(), // 이메일과 비밀번호의 공백 제거 후 로그인
-          password: password.trim(),
-        );
-
         // 로그인 성공 시 PreferencesManager에 로그인 정보 저장
         await PreferencesManager.instance.setEmail(email);
         await PreferencesManager.instance.setType(state.type!);
@@ -97,7 +98,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
   }
 
   // Google 로그인 처리 및 Firestore에 사용자 정보 추가 또는 연동 처리
-  Future<void> signInWithGoogle(BuildContext context, {required bool isOwner}) async {
+  Future<void> signInWithGoogle(BuildContext context) async {
     state = state.copyWith(isLoading: true); // 로딩 상태로 전환
 
     try {
@@ -119,26 +120,26 @@ class SignInViewModel extends StateNotifier<SignInState> {
         idToken: googleAuth.idToken,
       );
 
-      // Firestore에서 해당 이메일의 사용자 정보를 가져옴
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: googleUser.email)
-          .get();
+      // Firestore Cloud Function으로 이메일 존재 여부 확인
+      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
 
-      final ownerDoc = await FirebaseFirestore.instance
-          .collection('owners')
-          .where('email', isEqualTo: googleUser.email)
-          .get();
+      // OwnerEmailEndpoint로 요청해 owners 컬렉션에 이메일이 있는지 확인
+      final ownerResponse = await functions.httpsCallable('OwnerEmailExists').call({'email': googleUser.email});
+      final ownerData = ownerResponse.data;
 
-      // OwnerDoc에 이미 이메일이 있으면 구글 로그인을 중단
-      if (ownerDoc.docs.isNotEmpty) {
+      if (ownerData['exists'] == true) {
+        // owner 컬렉션에 이메일이 존재하는 경우
         state = state.copyWith(isLoading: false, errorMessage: '해당 이메일은 구글 로그인을 지원하지 않습니다.');
         return;
       }
 
-      if (userDoc.docs.isNotEmpty) {
+      // EmailEndpoint로 요청해 users 컬렉션에 이메일이 있는지 확인
+      final userResponse = await functions.httpsCallable('EmailExists').call({'email': googleUser.email});
+      final userData = userResponse.data;
+
+      if (userData['exists'] == true) {
         // Firestore에서 사용자 정보가 이미 있는 경우
-        final authType = userDoc.docs.first['authType']; // 인증 방식 가져오기
+        final authType = userData['userData']['authType']; // 인증 방식 가져오기
         print('Firestore authType: $authType');
 
         if (authType == 'google') {
@@ -147,20 +148,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
           final currentUser = userCredential.user;
 
           // 로그인 성공 시 PreferencesManager에 사용자 정보 저장
-          await _saveLoginInfo(currentUser!, 'user');
-
-          // 사용자 정보를 Firestore에 업데이트 또는 새로 저장
-          final querySnapshot = await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: currentUser.email)
-              .get();
-
-          if (querySnapshot.docs.isEmpty) {
-            await _addUserToFirestore(currentUser, isOwner);
-            print('Firestore에 사용자 정보 추가 완료');
-          } else {
-            print('Firestore에 사용자 정보가 이미 존재합니다.');
-          }
+          await _saveLoginInfo(currentUser!, 'users');
 
           // 로그인 성공 후 홈 화면으로 이동
           Navigator.pushReplacementNamed(context, '/user-home');
@@ -179,7 +167,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
             await _updateAuthTypeInFirestore(emailUserCredential.user!, 'google');
 
             // 로그인 성공 시 PreferencesManager에 사용자 정보 저장
-            await _saveLoginInfo(emailUserCredential.user!, 'user');
+            await _saveLoginInfo(emailUserCredential.user!, 'users');
             Navigator.pushReplacementNamed(context, '/user-home');
           } catch (e) {
             // 에러 처리
@@ -193,19 +181,21 @@ class SignInViewModel extends StateNotifier<SignInState> {
         final newUser = userCredential.user;
 
         if (newUser != null) {
-          await _addUserToFirestore(newUser, isOwner); // Firestore에 사용자 정보 추가
-          await _saveLoginInfo(newUser, 'user'); // 사용자 정보 저장
+          await _addUserToFirestore(newUser); // Firestore에 사용자 정보 추가
+          await _saveLoginInfo(newUser, 'users'); // 사용자 정보 저장
           Navigator.pushReplacementNamed(context, '/user-home');
         }
       }
     } catch (e) {
       // Google 로그인 실패 처리
       state = state.copyWith(isLoading: false, errorMessage: 'Google 로그인에 실패했습니다: $e');
+      print('로그인 실패: $e');
     } finally {
       // 로딩 상태 종료
       state = state.copyWith(isLoading: false);
     }
   }
+
 
   // 사용자 로그인 정보를 PreferencesManager에 저장하는 함수
   Future<void> _saveLoginInfo(User user, String type) async {
@@ -214,7 +204,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
   }
 
   // Firestore에 사용자 정보를 추가하는 함수
-  Future<void> _addUserToFirestore(User user, bool isOwner) async {
+  Future<void> _addUserToFirestore(User user) async {
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
       'email': user.email,
       'name': user.displayName ?? 'null',
@@ -222,7 +212,6 @@ class SignInViewModel extends StateNotifier<SignInState> {
       'profilePicUrl': user.photoURL,
       'pubId': null,
       'authType': 'google',
-      'type': isOwner ? 'owner' : 'customer',
       'uid': user.uid,
     });
   }

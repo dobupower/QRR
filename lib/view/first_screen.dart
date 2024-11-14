@@ -116,8 +116,7 @@ class FirstScreen extends ConsumerWidget {
               onPressed: signInState.isLoading
                   ? null // 로딩 중일 때 버튼 비활성화
                   : () async {
-                      final isOwner = signUpState.type == 'owner';
-                      await signInViewModel.signInWithGoogle(context, isOwner: isOwner); // ViewModel 인스턴스를 통해 메서드 호출
+                      await signInViewModel.signInWithGoogle(context); // ViewModel 인스턴스를 통해 메서드 호출
                     },
               icon: Image.asset(
                 'lib/img/google_logo.png',
