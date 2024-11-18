@@ -6,14 +6,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 class AuthService {
+
+  final String region = dotenv.env['REGION'] ?? '';
+  final String user_email = dotenv.env['USEREMAIL'] ?? '';
+  final String owner_email = dotenv.env['OWNEREMAIL'] ?? '';
+  final String user_uid = dotenv.env['USERUID'] ?? '';
   // 이메일이 이미 등록되었는지 확인하는 함수
   Future<bool> isEmailAlreadyRegistered(String email) async {
     try {
       // 지역을 지정하여 FirebaseFunctions 인스턴스 생성
-      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+      final functions = FirebaseFunctions.instanceFor(region: region);
 
       // Cloud Function 호출 준비
-      final HttpsCallable callable = functions.httpsCallable('EmailExists');
+      final HttpsCallable callable = functions.httpsCallable(user_email);
       // Cloud Function 호출 및 응답 받기
       final response = await callable.call({'email': email});
 
@@ -37,10 +42,10 @@ class AuthService {
   Future<bool> OwnerisEmailAlreadyRegistered(String email) async {
     try {
       // 지역을 지정하여 FirebaseFunctions 인스턴스 생성
-      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+      final functions = FirebaseFunctions.instanceFor(region: region);
 
       // Cloud Function 호출 준비
-      final HttpsCallable callable = functions.httpsCallable('OwnerEmailExists');
+      final HttpsCallable callable = functions.httpsCallable(owner_email);
       // Cloud Function 호출 및 응답 받기
       final response = await callable.call({'email': email});
 
@@ -123,10 +128,10 @@ class AuthService {
   Future<bool> _checkUIDExists(String uid) async {
     try {
       // Cloud Function 호출을 위해 FirebaseFunctions 인스턴스 생성
-      final functions = FirebaseFunctions.instanceFor(region: 'asia-northeast1');
+      final functions = FirebaseFunctions.instanceFor(region: region);
 
       // Cloud Function 호출 준비
-      final HttpsCallable callable = functions.httpsCallable('UidExists');
+      final HttpsCallable callable = functions.httpsCallable(region);
 
       // Cloud Function 호출 및 응답 받기
       final response = await callable.call({'uid': uid});

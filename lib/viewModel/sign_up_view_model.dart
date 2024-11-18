@@ -76,7 +76,7 @@ class SignUpViewModel extends StateNotifier<SignUpState> {
   }
 
   void setType(bool isOwner) {
-    state = state.copyWith(type: isOwner ? 'owner' : 'customer');
+    state = state.copyWith(type: isOwner ? 'owners' : 'customer');
   }
 
   void updateSelectedStore(String storeName) {

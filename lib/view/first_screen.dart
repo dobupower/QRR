@@ -36,11 +36,11 @@ class FirstScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center, // 수평 중앙 정렬
               children: [
                 Checkbox(
-                  value: signUpState.type == 'owners', // 'owners'일 때 체크됨
+                  value: signUpState.type == 'owners', // 'owner'일 때 체크됨
                   onChanged: (bool? value) {
                     if (value != null) {
                       final type = value ? 'owners' : 'customer';
-                      signUpViewModel.setType(value); // 선택에 따라 'owners' 또는 'customer' 설정
+                      signUpViewModel.setType(value); // 선택에 따라 'owner' 또는 'customer' 설정
                       signInViewModel.setType(type); // signInState에 설정
                     }
                   },
@@ -63,7 +63,7 @@ class FirstScreen extends ConsumerWidget {
                   child: OutlinedButton(
                     onPressed: () {
                       // 체크박스 상태에 따라 다른 화면으로 이동
-                      if (signUpState.type == 'owner') {
+                      if (signUpState.type == 'owners') {
                         Navigator.pushNamed(context, '/owner-sign-up');
                       } else {
                         Navigator.pushNamed(context, '/sign-up');
