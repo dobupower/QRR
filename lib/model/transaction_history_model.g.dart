@@ -13,6 +13,7 @@ _$TransactionHistoryImpl _$$TransactionHistoryImplFromJson(
       transactionType: json['transactionType'] as String,
       points: (json['points'] as num).toInt(),
       timestamp: DateTime.parse(json['timestamp'] as String),
+      message: json['message'] as String,
     );
 
 Map<String, dynamic> _$$TransactionHistoryImplToJson(
@@ -22,4 +23,5 @@ Map<String, dynamic> _$$TransactionHistoryImplToJson(
       'transactionType': instance.transactionType,
       'points': instance.points,
       'timestamp': instance.timestamp.toIso8601String(),
+      'message': instance.message,
     };

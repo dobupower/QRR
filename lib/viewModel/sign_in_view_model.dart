@@ -52,7 +52,7 @@ class SignInViewModel extends StateNotifier<SignInState> {
       );
 
       // Firestore에서 'owners' 또는 'users' 컬렉션을 선택
-      final collectionName = state.type == 'owner' ? 'owners' : 'users';
+      final collectionName = state.type == 'owners' ? 'owners' : 'users';
       state = state.copyWith(type: collectionName);
 
       // 인증이 완료된 후, Firestore에서 이메일이 존재하는지 확인

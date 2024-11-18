@@ -24,7 +24,8 @@ mixin _$TransactionHistory {
   String get transactionType =>
       throw _privateConstructorUsedError; // 거래 유형 (예: '송금', '수신' 등)
   int get points => throw _privateConstructorUsedError; // 거래된 포인트 양
-  DateTime get timestamp => throw _privateConstructorUsedError;
+  DateTime get timestamp => throw _privateConstructorUsedError; // 거래 시간
+  String get message => throw _privateConstructorUsedError;
 
   /// Serializes this TransactionHistory to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -43,7 +44,11 @@ abstract class $TransactionHistoryCopyWith<$Res> {
       _$TransactionHistoryCopyWithImpl<$Res, TransactionHistory>;
   @useResult
   $Res call(
-      {String name, String transactionType, int points, DateTime timestamp});
+      {String name,
+      String transactionType,
+      int points,
+      DateTime timestamp,
+      String message});
 }
 
 /// @nodoc
@@ -65,6 +70,7 @@ class _$TransactionHistoryCopyWithImpl<$Res, $Val extends TransactionHistory>
     Object? transactionType = null,
     Object? points = null,
     Object? timestamp = null,
+    Object? message = null,
   }) {
     return _then(_value.copyWith(
       name: null == name
@@ -83,6 +89,10 @@ class _$TransactionHistoryCopyWithImpl<$Res, $Val extends TransactionHistory>
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -96,7 +106,11 @@ abstract class _$$TransactionHistoryImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String name, String transactionType, int points, DateTime timestamp});
+      {String name,
+      String transactionType,
+      int points,
+      DateTime timestamp,
+      String message});
 }
 
 /// @nodoc
@@ -116,6 +130,7 @@ class __$$TransactionHistoryImplCopyWithImpl<$Res>
     Object? transactionType = null,
     Object? points = null,
     Object? timestamp = null,
+    Object? message = null,
   }) {
     return _then(_$TransactionHistoryImpl(
       name: null == name
@@ -134,6 +149,10 @@ class __$$TransactionHistoryImplCopyWithImpl<$Res>
           ? _value.timestamp
           : timestamp // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -145,7 +164,8 @@ class _$TransactionHistoryImpl implements _TransactionHistory {
       {required this.name,
       required this.transactionType,
       required this.points,
-      required this.timestamp});
+      required this.timestamp,
+      required this.message});
 
   factory _$TransactionHistoryImpl.fromJson(Map<String, dynamic> json) =>
       _$$TransactionHistoryImplFromJson(json);
@@ -161,10 +181,13 @@ class _$TransactionHistoryImpl implements _TransactionHistory {
 // 거래된 포인트 양
   @override
   final DateTime timestamp;
+// 거래 시간
+  @override
+  final String message;
 
   @override
   String toString() {
-    return 'TransactionHistory(name: $name, transactionType: $transactionType, points: $points, timestamp: $timestamp)';
+    return 'TransactionHistory(name: $name, transactionType: $transactionType, points: $points, timestamp: $timestamp, message: $message)';
   }
 
   @override
@@ -177,13 +200,14 @@ class _$TransactionHistoryImpl implements _TransactionHistory {
                 other.transactionType == transactionType) &&
             (identical(other.points, points) || other.points == points) &&
             (identical(other.timestamp, timestamp) ||
-                other.timestamp == timestamp));
+                other.timestamp == timestamp) &&
+            (identical(other.message, message) || other.message == message));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, transactionType, points, timestamp);
+  int get hashCode => Object.hash(
+      runtimeType, name, transactionType, points, timestamp, message);
 
   /// Create a copy of TransactionHistory
   /// with the given fields replaced by the non-null parameter values.
@@ -207,7 +231,8 @@ abstract class _TransactionHistory implements TransactionHistory {
       {required final String name,
       required final String transactionType,
       required final int points,
-      required final DateTime timestamp}) = _$TransactionHistoryImpl;
+      required final DateTime timestamp,
+      required final String message}) = _$TransactionHistoryImpl;
 
   factory _TransactionHistory.fromJson(Map<String, dynamic> json) =
       _$TransactionHistoryImpl.fromJson;
@@ -219,7 +244,9 @@ abstract class _TransactionHistory implements TransactionHistory {
   @override
   int get points; // 거래된 포인트 양
   @override
-  DateTime get timestamp;
+  DateTime get timestamp; // 거래 시간
+  @override
+  String get message;
 
   /// Create a copy of TransactionHistory
   /// with the given fields replaced by the non-null parameter values.
