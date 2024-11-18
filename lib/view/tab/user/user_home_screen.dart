@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/tab_view_model.dart';
 import 'user_settings_tab.dart';
 import 'qr_tab.dart';
-import 'user_transfer_screen.dart'; // 추가: 유저 포인트 거래 화면
+import 'user_search_screen.dart'; // 유저 검색 화면
+import 'user_transfer_screen.dart'; // 유저 포인트 거래 화면
+import 'user_transfer_confirm_screen.dart'; // 유저 포인트 거래 확인 화면
 
 // UserHomeScreen 클래스는 ConsumerWidget을 사용하여 상태 관리
 class UserHomeScreen extends ConsumerWidget {
@@ -70,9 +72,17 @@ class QrTabNavigator extends StatelessWidget {
     return Navigator(
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/userSearch': // 새 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => UserSearchScreen(), // user_transfer_screen.dart에 있는 화면으로 연결
+            );
           case '/userTransfer': // 새 경로 추가
             return MaterialPageRoute(
               builder: (context) => UserTransferScreen(), // user_transfer_screen.dart에 있는 화면으로 연결
+            );
+          case '/userTransferConfirm': // 새 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => UserTransferConfirmScreen(), // user_transfer_screen.dart에 있는 화면으로 연결
             );
           default:
             return MaterialPageRoute(

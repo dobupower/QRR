@@ -11,6 +11,7 @@ class User with _$User {
     required String email,
     required int points,
     required String authType,
+    String? profilePicUrl,
     String? pubId,
   }) = _User;
 

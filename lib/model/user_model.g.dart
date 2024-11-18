@@ -12,6 +12,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       email: json['email'] as String,
       points: (json['points'] as num).toInt(),
       authType: json['authType'] as String,
+      profilePicUrl: json['profilePicUrl'] as String?,
       pubId: json['pubId'] as String?,
     );
 
@@ -22,5 +23,6 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'email': instance.email,
       'points': instance.points,
       'authType': instance.authType,
+      'profilePicUrl': instance.profilePicUrl,
       'pubId': instance.pubId,
     };
