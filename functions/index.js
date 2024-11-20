@@ -40,9 +40,9 @@ async function encrypt(text) {
   const aesKey = await getAesKey();
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(
-    "aes-256-cbc",
-    Buffer.from(aesKey, "base64"),
-    iv
+      "aes-256-cbc",
+      Buffer.from(aesKey, "base64"),
+      iv,
   );
 
   let encrypted = cipher.update(text, "utf-8", "base64");
@@ -63,15 +63,15 @@ async function encrypt(text) {
 async function decrypt(encryptedData, iv) {
   const aesKey = await getAesKey();
   const decipher = crypto.createDecipheriv(
-    "aes-256-cbc",
-    Buffer.from(aesKey, "base64"),
-    Buffer.from(iv, "base64")
+      "aes-256-cbc",
+      Buffer.from(aesKey, "base64"),
+      Buffer.from(iv, "base64"),
   );
 
   let decrypted = decipher.update(
-    Buffer.from(encryptedData, "base64"),
-    "base64",
-    "utf-8"
+      Buffer.from(encryptedData, "base64"),
+      "base64",
+      "utf-8",
   );
   decrypted += decipher.final("utf-8");
   return decrypted;
@@ -101,9 +101,9 @@ function handleError(res, error, message) {
 async function getUserData(collection, field, value) {
   const usersRef = admin.firestore().collection(collection);
   const snapshot = await usersRef
-    .where(field, "==", value)
-    .limit(1)
-    .get();
+      .where(field, "==", value)
+      .limit(1)
+      .get();
 
   if (snapshot.empty) {
     return {exists: false};
@@ -118,127 +118,127 @@ async function getUserData(collection, field, value) {
 
 // /encrypt 엔드포인트 - 데이터를 암호화
 exports[encryptEndpoint] = functions.https.onRequest(
-  {
-    region:region,
-  },
-  async (req, res) => {
-    try {
-      const data = req.body.data;
-      const jsonString =
-        typeof data === "string" ? data : JSON.stringify(data);
+    {
+      region: region,
+    },
+    async (req, res) => {
+      try {
+        const data = req.body.data;
+        const jsonString =
+          typeof data === "string" ? data : JSON.stringify(data);
 
-      const encrypted = await encrypt(jsonString);
-      res.status(200).send({
-        encryptedData: encrypted.encryptedData,
-        iv: encrypted.iv,
-      });
-    } catch (error) {
-      handleError(res, error, "암호화에 실패했습니다.");
-    }
-  }
+        const encrypted = await encrypt(jsonString);
+        res.status(200).send({
+          encryptedData: encrypted.encryptedData,
+          iv: encrypted.iv,
+        });
+      } catch (error) {
+        handleError(res, error, "암호화에 실패했습니다.");
+      }
+    },
 );
 
 // /decrypt 엔드포인트 - 데이터를 복호화
 exports[decryptEndpoint] = functions.https.onRequest(
-  {
-    region:region,
-  },
-  async (req, res) => {
-    try {
-      const {encryptedData, iv} = req.body;
-      if (!encryptedData || !iv) {
-        throw new Error(
-          "암호화된 데이터 또는 IV가 제공되지 않았습니다."
-        );
-      }
+    {
+      region: region,
+    },
+    async (req, res) => {
+      try {
+        const {encryptedData, iv} = req.body;
+        if (!encryptedData || !iv) {
+          throw new Error(
+              "암호화된 데이터 또는 IV가 제공되지 않았습니다.",
+          );
+        }
 
-      const decrypted = await decrypt(encryptedData, iv);
-      res.status(200).send({
-        decrypted,
-      });
-    } catch (error) {
-      handleError(res, error, "복호화에 실패했습니다.");
-    }
-  }
+        const decrypted = await decrypt(encryptedData, iv);
+        res.status(200).send({
+          decrypted,
+        });
+      } catch (error) {
+        handleError(res, error, "복호화에 실패했습니다.");
+      }
+    },
 );
 
 // email을 통해 유저 정보 검색
 exports[EmailEndpoint] = functions.https.onCall(
-  {
-    region:region,
-  },
-  async (request) => {
-    try {
-      const email = request.data.email;
-      if (!email) {
+    {
+      region: region,
+    },
+    async (request) => {
+      try {
+        const email = request.data.email;
+        if (!email) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "이메일이 제공되지 않았습니다.",
+          );
+        }
+
+        return await getUserData("users", "email", email);
+      } catch (error) {
+        console.error("이메일 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
-          "invalid-argument",
-          "이메일이 제공되지 않았습니다."
+            "internal",
+            "이메일 존재 여부 확인에 실패했습니다.",
+            error.message,
         );
       }
-
-      return await getUserData("users", "email", email);
-    } catch (error) {
-      console.error("이메일 존재 여부 확인 오류:", error);
-      throw new functions.https.HttpsError(
-        "internal",
-        "이메일 존재 여부 확인에 실패했습니다.",
-        error.message
-      );
-    }
-  }
+    },
 );
 
 // email을 통해 오너 정보 검색
 exports[OwnerEmailEndpoint] = functions.https.onCall(
-  {
-    region:region,
-  },
-  async (request) => {
-    try {
-      const email = request.data.email;
-      if (!email) {
+    {
+      region: region,
+    },
+    async (request) => {
+      try {
+        const email = request.data.email;
+        if (!email) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "이메일이 제공되지 않았습니다.",
+          );
+        }
+
+        return await getUserData("owners", "email", email);
+      } catch (error) {
+        console.error("오너 이메일 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
-          "invalid-argument",
-          "이메일이 제공되지 않았습니다."
+            "internal",
+            "오너 이메일 존재 여부 확인에 실패했습니다.",
+            error.message,
         );
       }
-
-      return await getUserData("owners", "email", email);
-    } catch (error) {
-      console.error("오너 이메일 존재 여부 확인 오류:", error);
-      throw new functions.https.HttpsError(
-        "internal",
-        "오너 이메일 존재 여부 확인에 실패했습니다.",
-        error.message
-      );
-    }
-  }
+    },
 );
 
 // uid를 통해 유저 정보 검색
 exports[UidEndpoint] = functions.https.onCall(
-  {
-    region:region,
-  },
-  async (request) => {
-    try {
-      const uid = request.data.uid;
-      if (!uid) {
+    {
+      region: region,
+    },
+    async (request) => {
+      try {
+        const uid = request.data.uid;
+        if (!uid) {
+          throw new functions.https.HttpsError(
+              "invalid-argument",
+              "UID가 제공되지 않았습니다.",
+          );
+        }
+
+        return await getUserData("users", "uid", uid);
+      } catch (error) {
+        console.error("UID 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
-          "invalid-argument",
-          "UID가 제공되지 않았습니다."
+            "internal",
+            "UID 존재 여부 확인에 실패했습니다.",
+            error.message,
         );
       }
-
-      return await getUserData("users", "uid", uid);
-    } catch (error) {
-      console.error("UID 존재 여부 확인 오류:", error);
-      throw new functions.https.HttpsError(
-        "internal",
-        "UID 존재 여부 확인에 실패했습니다.",
-        error.message
-      );
-    }
-  }
+    },
 );
