@@ -52,6 +52,7 @@ dependencies:
   json_annotation: 4.9.0
   flutter_dotenv: ^5.0.2
   cloud_functions: ^5.0.4
+  cached_network_image: ^3.4.0
 
 dev_dependencies:
   freezed: 2.5.7

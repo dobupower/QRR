@@ -6,6 +6,8 @@ import 'qr_tab.dart';
 import 'user_search_screen.dart'; // 유저 검색 화면
 import 'user_transfer_screen.dart'; // 유저 포인트 거래 화면
 import 'user_transfer_confirm_screen.dart'; // 유저 포인트 거래 확인 화면
+import 'user_transaction_history_screen.dart';
+import '../event_home.dart';
 
 // UserHomeScreen 클래스는 ConsumerWidget을 사용하여 상태 관리
 class UserHomeScreen extends ConsumerWidget {
@@ -16,8 +18,8 @@ class UserHomeScreen extends ConsumerWidget {
 
     // 각 탭에 해당하는 화면을 저장하는 리스트
     final List<Widget> pages = [
-      HomeTab(),
-      TransactionHistoryTab(),
+      EventPageView(),
+      UserTransactionHistoryScreen(),
       QrTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       AccountTab(),
       UserSettingsTab(),
@@ -90,25 +92,6 @@ class QrTabNavigator extends StatelessWidget {
             );
         }
       },
-    );
-  }
-}
-
-// 각 탭에 해당하는 더미 화면들
-class HomeTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('ホーム'),
-    );
-  }
-}
-
-class TransactionHistoryTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('取引履歴'),
     );
   }
 }
