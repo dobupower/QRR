@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           if (snapshot.data == 'users') {
             // 만약 email이 저장되어 있으면 user-home으로 이동
             return UserHomeScreen();
-          } else if (snapshot.data == 'owner') {
+          } else if (snapshot.data == 'owners') {
             // 그렇지 않으면 owner-home으로 이동
             return OwnerHomeScreen();
           } else {

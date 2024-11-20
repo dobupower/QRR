@@ -164,8 +164,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: signInState.isLoading
                       ? null
                       : () async {
-                          final isOwner = signUpState.type == 'owner';
-                          await signInViewModel.signInWithGoogle(context, isOwner: isOwner);
+                          await signInViewModel.signInWithGoogle(context);
                         },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, screenHeight * 0.06),
