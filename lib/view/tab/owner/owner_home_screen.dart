@@ -6,7 +6,7 @@ import 'owner_settings_tab.dart';
 import 'point_management_screen.dart';
 import 'point_management_confirm_screen.dart';
 import 'meber_input_screen.dart';
-import 'owner_transaction_history_sceen.dart';
+import 'owner_transaction_history_screen.dart';
 import '../event_home.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
