@@ -53,202 +53,199 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
 
   /// 사용자 거래 내역을 가져오는 메소드
   Future<void> fetchUserTransactionHistory({bool isInitialLoad = false}) async {
+    // 1. 추가 데이터가 없는 경우 메소드 종료
     if (!isInitialLoad && !hasMoreData) {
-      // 추가 데이터가 없으면 메소드를 종료
       return;
     }
 
     try {
+      // 2. 초기 로드 시 상태 초기화
       if (isInitialLoad) {
-        // 초기 로드인 경우 상태를 로딩으로 설정하고 변수 초기화
         state = const AsyncValue.loading();
-        lastDocument = null; // 페이지네이션 상태 초기화
-        hasMoreData = true; // 추가 데이터 가능 상태로 설정
+        lastDocument = null;
+        hasMoreData = true;
       }
 
-      // PreferencesManager에서 현재 사용자의 이메일 가져오기
+      // 3. 현재 사용자의 이메일 가져오기
       final currentUserEmail = await PreferencesManager.instance.getEmail();
 
-      // Firestore에서 이메일을 기준으로 사용자의 UID를 조회
+      // 4. 이메일로 Firestore에서 현재 사용자의 UID 가져오기
       final userSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('email', isEqualTo: currentUserEmail)
-          .limit(1) // 이메일은 고유해야 하므로 1개만 조회
+          .limit(1)
           .get();
 
+      // 5. 사용자가 존재하지 않는 경우 에러 처리
       if (userSnapshot.docs.isEmpty) {
-        // 사용자를 찾을 수 없는 경우 에러 상태로 전환
         state = AsyncValue.error('사용자를 찾을 수 없습니다.', StackTrace.current);
         return;
       }
 
-      // 현재 사용자의 UID 추출
+      // 6. 현재 사용자의 UID 추출
       final currentUid = userSnapshot.docs.first.id;
 
-      // Firestore에서 거래 데이터를 조회하기 위한 쿼리 생성
+      // 7. 거래 데이터를 가져오기 위한 Firestore 쿼리 생성
       Query query = FirebaseFirestore.instance
           .collection('Transactions')
           .where(
             Filter.or(
-              Filter('userId', isEqualTo: currentUid), // 거래 주체가 현재 사용자
-              Filter('relatedUserId', isEqualTo: currentUid), // 거래 상대가 현재 사용자
+              Filter('userId', isEqualTo: currentUid),
+              Filter('relatedUserId', isEqualTo: currentUid),
             ),
           )
-          .orderBy('timestamp', descending: true) // 최신순으로 정렬
-          .limit(pageSize); // 한 번에 가져올 데이터 수 제한
+          .orderBy('timestamp', descending: true)
+          .limit(pageSize);
 
+      // 8. 페이지네이션을 위한 시작 지점 설정
       if (lastDocument != null) {
-        // 페이지네이션: 이전 마지막 문서 이후 데이터부터 가져오기
         query = query.startAfterDocument(lastDocument!);
       }
 
-      // Firestore에서 쿼리 실행
+      // 9. Firestore에서 쿼리 실행하여 거래 데이터 가져오기
       final querySnapshot = await query.get();
 
+      // 10. 가져온 거래 데이터가 없는 경우 처리
       if (querySnapshot.docs.isEmpty) {
-        // 가져온 데이터가 없는 경우
-        hasMoreData = false; // 추가 데이터 없음 표시
+        hasMoreData = false;
         if (isInitialLoad) {
-          // 초기 로드인 경우 빈 리스트 상태로 설정
           state = AsyncValue.data([]);
         }
         return;
       }
 
-      // 페이지네이션을 위해 마지막 문서를 저장
+      // 11. 페이지네이션을 위해 마지막 문서 저장
       lastDocument = querySnapshot.docs.last;
 
-      // 거래 데이터에서 사용자 ID를 수집
+      // 12. 거래 데이터에서 사용자 ID 수집
       final userIdsToFetch = await _collectUserIds(querySnapshot);
 
-      // 사용자 이름을 가져오기 위한 Firestore 쿼리 실행
+      // 13. 수집된 사용자 ID로 사용자 이름 가져오기
       final userNames = await _fetchUserNames(userIdsToFetch);
 
-      // Firestore 문서를 TransactionHistory 객체로 변환
+      // 14. 거래 데이터를 TransactionHistory 객체로 변환
       final newTransactions = querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>?; // 문서 데이터를 Map 형태로 가져옴
-        if (data == null) return null; // 데이터가 없는 경우 건너뜀
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) return null;
 
-        final userId = data['userId'] as String? ?? ''; // 거래 주체 ID
-        final relatedUserId = data['relatedUserId'] as String? ?? ''; // 거래 상대 ID
-        final type = data['type'] as String? ?? ''; // 거래 유형
-        final points = data['amount'] ?? 0; // 거래 포인트
+        final userId = data['userId'] as String? ?? '';
+        final relatedUserId = data['relatedUserId'] as String? ?? '';
+        final type = data['type'] as String? ?? '';
+        final points = data['amount'] ?? 0;
 
-        String name = ''; // 거래 상대방 이름
-        String message = ''; // 메시지
-        int adjustedPoints = -points; // 기본적으로 차감 포인트로 설정
+        String name = '';
+        String message = '';
+        int adjustedPoints = -points;
 
-        // 거래 유형에 따라 메시지와 포인트 설정
+        // 15. 거래 유형에 따라 메시지와 포인트 계산
         if (type == 'チップ交換') {
           message = 'ポイントでチップを交換しました';
         } else if (type == 'チャージ') {
           message = 'ポイントをチャージしました';
-          adjustedPoints = points; // 포인트 충전 시 가산
+          adjustedPoints = points;
         } else if (type == 'お支払い') {
           message = 'ポイントをお支払いしました';
         } else if (type == '') {
-          // 거래 유형이 정의되지 않은 경우
           if (userId == currentUid) {
-            // 내가 포인트를 보낸 경우
             name = userNames[relatedUserId] ?? '알 수 없는 사용자';
             message = 'ポイントを $nameさんに送りました';
           } else if (relatedUserId == currentUid) {
-            // 내가 포인트를 받은 경우
             name = userNames[userId] ?? '알 수 없는 사용자';
             message = '$nameさんからポイントを受け取りました';
-            adjustedPoints = points; // 포인트 수령 시 가산
+            adjustedPoints = points;
           }
         }
 
-        // TransactionHistory 객체 생성
+        // 16. TransactionHistory 객체 생성
         return TransactionHistory(
           name: name,
           transactionType: type,
           points: adjustedPoints,
-          timestamp: (data['timestamp'] as Timestamp).toDate(), // 타임스탬프를 DateTime으로 변환
+          timestamp: (data['timestamp'] as Timestamp).toDate(),
           message: message,
         );
       }).where((transaction) => transaction != null).cast<TransactionHistory>().toList();
 
-      // 기존 데이터와 새 데이터를 병합하여 중복 제거
+      // 17. 기존 상태와 새 데이터를 병합하여 중복 제거
       final mergedTransactions = <TransactionHistory>[
         if (state.value != null)
           ...state.value!.where((transaction) =>
-              !newTransactions.any((newTransaction) => newTransaction.timestamp == transaction.timestamp && newTransaction.points == transaction.points)),
+              !newTransactions.any((newTransaction) =>
+                  newTransaction.timestamp == transaction.timestamp &&
+                  newTransaction.points == transaction.points)),
         ...newTransactions,
       ];
 
-      // 시간순으로 정렬
+      // 18. 거래 내역을 시간순으로 정렬
       mergedTransactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-      // 상태를 갱신
+      // 19. 상태를 갱신
       state = AsyncValue.data(mergedTransactions);
     } catch (e, stackTrace) {
-      // 예외 발생 시 상태를 에러로 전환
+      // 20. 에러 발생 시 상태를 에러로 전환
       state = AsyncValue.error(e, stackTrace);
     }
   }
 
   /// 가맹점 소유자의 거래 내역을 가져오는 메소드
   Future<void> fetchOwnerTransactionHistory({bool isInitialLoad = false, DateTime? selectedDate}) async {
+    // 1. 추가 데이터가 없는 경우 메소드 종료
     if (!isInitialLoad && !hasMoreData) {
-      // 추가 데이터가 없으면 메소드를 종료
       return;
     }
 
     try {
+      // 2. 초기 로드 시 상태 초기화
       if (isInitialLoad) {
-        // 초기 로드인 경우 상태를 로딩으로 설정하고 변수 초기화
         state = const AsyncValue.loading();
-        lastDocument = null; // 페이지네이션 상태 초기화
-        hasMoreData = true; // 추가 데이터 가능 상태로 설정
+        lastDocument = null;
+        hasMoreData = true;
       }
 
-      // 현재 사용자의 이메일 가져오기
+      // 3. 현재 사용자의 이메일 가져오기
       final currentUserEmail = await PreferencesManager.instance.getEmail();
 
-      // 거래 데이터를 조회하기 위한 기본 쿼리 생성
+      // 4. 거래 데이터를 가져오기 위한 Firestore 쿼리 생성
       Query query = FirebaseFirestore.instance
           .collection('Transactions')
-          .where('relatedUserId', isEqualTo: currentUserEmail) // 가맹점 소유자 이메일로 필터링
-          .orderBy('timestamp', descending: true) // 최신순으로 정렬
-          .limit(pageSize); // 한 번에 가져올 데이터 수 제한
+          .where('relatedUserId', isEqualTo: currentUserEmail)
+          .orderBy('timestamp', descending: true)
+          .limit(pageSize);
 
+      // 5. 페이지네이션을 위한 시작 지점 설정
       if (lastDocument != null) {
-        // 페이지네이션: 이전 마지막 문서 이후 데이터부터 가져오기
         query = query.startAfterDocument(lastDocument!);
       }
 
-      // 특정 날짜로 필터링이 필요한 경우
+      // 6. 선택된 날짜로 거래 필터링
       if (selectedDate != null) {
         final startOfDay = Timestamp.fromDate(DateTime(selectedDate.year, selectedDate.month, selectedDate.day));
         final endOfDay = Timestamp.fromDate(DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 23, 59, 59));
         query = query.where('timestamp', isGreaterThanOrEqualTo: startOfDay, isLessThanOrEqualTo: endOfDay);
       }
 
-      // Firestore에서 쿼리 실행
+      // 7. Firestore에서 쿼리 실행하여 거래 데이터 가져오기
       final querySnapshot = await query.get();
 
+      // 8. 가져온 거래 데이터가 없는 경우 처리
       if (querySnapshot.docs.isEmpty) {
-        // 가져온 데이터가 없는 경우
-        hasMoreData = false; // 추가 데이터 없음 표시
+        hasMoreData = false;
         if (isInitialLoad) {
-          // 초기 로드인 경우 빈 리스트 상태로 설정
           state = AsyncValue.data([]);
         }
         return;
       }
 
-      // 페이지네이션을 위해 마지막 문서를 저장
+      // 9. 페이지네이션을 위해 마지막 문서 저장
       lastDocument = querySnapshot.docs.last;
 
-      // 거래 데이터에서 사용자 ID를 수집
+      // 10. 거래 데이터에서 사용자 ID 수집
       final userIdsToFetch = await _collectUserIds(querySnapshot);
 
-      // 사용자 이름을 가져오기 위한 Firestore 쿼리 실행
+      // 11. 수집된 사용자 ID로 사용자 이름 가져오기
       final userNames = await _fetchUserNames(userIdsToFetch);
 
-      // Firestore 문서를 TransactionHistory 객체로 변환
+      // 12. 거래 데이터를 TransactionHistory 객체로 변환
       final newTransactions = querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>?; // 문서 데이터를 Map 형태로 가져옴
         if (data == null) return null; // 데이터가 없는 경우 건너뜀
@@ -262,7 +259,7 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
 
         String message = ''; // 메시지
 
-        // 거래 유형에 따라 메시지와 포인트 설정
+        // 13. 거래 유형에 따라 메시지와 포인트 계산
         if (type == 'チャージ') {
           message = '$name様のポイントをチャージしました';
           adjustedPoints = -points; // 포인트 충전 시 차감
@@ -275,31 +272,33 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
           message = '$name様との取引がありました';
         }
 
-        // TransactionHistory 객체 생성
+        // 14. TransactionHistory 객체 생성
         return TransactionHistory(
           name: name,
           transactionType: type,
           points: adjustedPoints,
-          timestamp: (data['timestamp'] as Timestamp).toDate(), // 타임스탬프를 DateTime으로 변환
+          timestamp: (data['timestamp'] as Timestamp).toDate(),
           message: message,
         );
       }).where((transaction) => transaction != null).cast<TransactionHistory>().toList();
 
-      // 기존 데이터와 새 데이터를 병합하여 중복 제거
+      // 15. 기존 상태와 새 데이터를 병합하여 중복 제거
       final mergedTransactions = <TransactionHistory>[
         if (state.value != null)
           ...state.value!.where((transaction) =>
-              !newTransactions.any((newTransaction) => newTransaction.timestamp == transaction.timestamp && newTransaction.points == transaction.points)),
+              !newTransactions.any((newTransaction) =>
+                  newTransaction.timestamp == transaction.timestamp &&
+                  newTransaction.points == transaction.points)),
         ...newTransactions,
       ];
 
-      // 시간순으로 정렬
+      // 16. 거래 내역을 시간순으로 정렬
       mergedTransactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-      // 상태를 갱신
+      // 17. 상태를 갱신
       state = AsyncValue.data(mergedTransactions);
     } catch (e, stackTrace) {
-      // 예외 발생 시 상태를 에러로 전환
+      // 18. 에러 발생 시 상태를 에러로 전환
       state = AsyncValue.error(e, stackTrace);
     }
   }
