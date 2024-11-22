@@ -6,6 +6,8 @@ import 'owner_settings_tab.dart';
 import 'point_management_screen.dart';
 import 'point_management_confirm_screen.dart';
 import 'meber_input_screen.dart';
+import 'owner_transaction_history_screen.dart';
+import '../event_home.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
@@ -15,8 +17,8 @@ class OwnerHomeScreen extends ConsumerWidget {
 
     // 각 탭에 해당하는 화면을 저장하는 리스트
     final List<Widget> pages = [
-      HomeTab(),
-      TransactionHistoryTab(),
+      EventPageView(),
+      OwnerTransactionHistoryScreen(),
       ScanTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       AccountTab(),
       OwnerSettingsTab(),
@@ -99,15 +101,6 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text('ホーム'),
-    );
-  }
-}
-
-class TransactionHistoryTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('取引履歴'),
     );
   }
 }
