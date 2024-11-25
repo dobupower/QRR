@@ -1,9 +1,16 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/preferences_manager.dart';
+import '../../../viewModel/qrcode_make_view_model.dart'; // qrCodeProvider가 정의된 ViewModel import
+import '../../../viewModel/tab_view_model.dart';
+
 
 class AuthService {
   final String region = dotenv.env['REGION'] ?? '';
@@ -135,5 +142,25 @@ class AuthService {
     final random = Random();
     String fourDigit() => (random.nextInt(9000) + 1000).toString();
     return '${fourDigit()}-${fourDigit()}-${fourDigit()}';
+  }
+
+  // 로그아웃 함수
+  Future<void> logout(BuildContext context, WidgetRef ref) async {
+    try {
+      // FirebaseAuth 로그아웃
+      await FirebaseAuth.instance.signOut();
+
+      // PreferencesManager를 사용하여 SharedPreferences 초기화
+      await PreferencesManager.instance.logout();
+
+      // qrCodeProvider 상태 무효화
+      ref.invalidate(qrCodeProvider); // 유저의 QRcode 상태 초기화
+      ref.invalidate(tabViewModelProvider); // 유저의 탭 이동 현 상태 초기화
+    } catch (e) {
+      // 에러 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그아웃 실패: $e')),
+      );
+    }
   }
 }
