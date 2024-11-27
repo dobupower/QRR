@@ -55,20 +55,15 @@ class UpdatePubIdViewModel extends StateNotifier<UserUpdatePubIdState> {
   }
 
   void filterStores(String query) {
-    if (query.isEmpty) {
-      // 검색어가 비어 있으면 전체 데이터를 반환
-      state = state.copyWith(filteredStores: state.stores);
-      return;
-    }
-
-    // 검색어가 포함된 매장 이름만 필터링
-    final filtered = state.stores.where((storeName) {
-      return storeName.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+    // 검색어가 비어 있는지 확인 후 필터링
+    final filtered = query.isEmpty
+        ? state.stores
+        : state.stores.where((storeName) => storeName.toLowerCase().contains(query.toLowerCase())).toList();
 
     // 상태 업데이트
     state = state.copyWith(filteredStores: filtered);
   }
+
 
   // 사용자가 선택한 매장 이름을 `selectedStore` 상태에 저장합니다.
   void updateSelectedStore(String storeName) {

@@ -169,6 +169,17 @@ class SubmitButtonSection extends StatelessWidget {
         onPressed: () async {
           final password = passwordController.text;
 
+          // 입력 필드가 비어 있는 경우 경고 메시지 표시
+          if (password.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('パスワードを入力してください。'), // 비밀번호를 입력해 주세요.
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+          
           // 비밀번호 인증 요청
           final isValid = await ref
               .read(userAccountProvider.notifier)
