@@ -1,30 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/photo_upload_view_model.dart';
-import 'dart:io'; 
-import '../../model/owner_model.dart';
+import '../../viewModel/owner_sign_up_view_model.dart'; // ownerEmail을 가져오기 위해 import
+import 'dart:io';
 import 'owner_email_auth_screen.dart'; // 이메일 인증 페이지로 이동
+import '../../model/photo_upload_state_model.dart';
 
-/// [PhotoUploadScreen]은 사용자가 이미지(가게 이미지 및 로고)를 업로드하고 메시지를 입력하는 화면입니다.
-/// 업로드된 이미지는 Firebase Storage에 저장되고, Firestore에 저장됩니다.
-class PhotoUploadScreen extends ConsumerWidget {
-  final Owner owner; // Owner 객체를 전달받음
+class PhotoUploadScreen extends ConsumerStatefulWidget {
+  @override
+  _PhotoUploadScreenState createState() => _PhotoUploadScreenState();
+}
 
-  PhotoUploadScreen({required this.owner}); // 생성자에서 owner를 전달받음
+class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 빌드가 완료된 후에 상태 변경을 수행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final signUpState = ref.read(ownerSignUpViewModelProvider);
+      final viewModel = ref.read(photoUploadViewModelProvider.notifier);
+
+      final ownerEmail = signUpState.owner?.email;
+
+      if (ownerEmail != null && ref.read(photoUploadViewModelProvider).ownerEmail == null) {
+        viewModel.setOwnerEmail(ownerEmail);
+      }
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final state = ref.watch(photoUploadViewModelProvider);
     final viewModel = ref.read(photoUploadViewModelProvider.notifier);
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
 
-    return PopScope<Object?>(
-      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
-      },
+    return WillPopScope(
+      onWillPop: () async => false, // 뒤로 가기 방지
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -50,48 +63,32 @@ class PhotoUploadScreen extends ConsumerWidget {
               ),
               SizedBox(height: screenHeight * 0.02),
               _buildSectionTitle('店舗イメージ登録', screenWidth),
-              _buildImageUploadRow(screenWidth, screenHeight, viewModel),
+              _buildImageUploadRow(screenWidth, screenHeight, viewModel, state),
               SizedBox(height: screenHeight * 0.02),
               _buildSectionTitle('店舗ロゴ登録', screenWidth),
-              _buildLogoUpload(screenWidth, screenHeight, viewModel),
+              _buildLogoUpload(screenWidth, screenHeight, viewModel, state),
               SizedBox(height: screenHeight * 0.02),
               _buildSectionTitle('店舗からのメッセージ', screenWidth),
               _buildMessageField(screenWidth, viewModel),
               SizedBox(height: screenHeight * 0.04),
               Center(
                 child: ElevatedButton(
-                  onPressed: state.isLoading || !viewModel.isFormValid // 폼 유효성 검사
-                      ? null // 유효하지 않으면 버튼 비활성화
+                  onPressed: state.isLoading || !viewModel.isFormValid
+                      ? null
                       : () async {
-                          // XFile을 File로 변환
-                          List<File?> convertedImages = state.storeImages
-                              .map((xfile) =>
-                                  xfile != null ? File(xfile.path) : null)
-                              .toList();
-                          File? convertedLogo = state.storeLogo != null
-                              ? File(state.storeLogo!.path)
-                              : null;
+                          await viewModel.submitDetails();
 
-                          // owner.email을 ownerId로 사용
-                          await viewModel.submitDetails(owner.email);
-
-                          // 데이터를 owner_email_auth.dart로 넘기기
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => OwnerEmailAuthScreen(
-                                owner: owner, // Owner 객체 전달
-                                images: convertedImages, // 변환된 이미지 리스트 전달
-                                logo: convertedLogo, // 변환된 로고 이미지 전달
-                                message: state.message, // 메시지 전달
-                              ),
+                              builder: (context) => OwnerEmailAuthScreen(),
                             ),
                           );
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: viewModel.isFormValid
                         ? Color(0xFF1D2538)
-                        : Colors.grey, // 폼이 유효할 때만 색상 활성화
+                        : Colors.grey,
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.3,
                       vertical: screenHeight * 0.015,
@@ -126,7 +123,8 @@ class PhotoUploadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildImageUploadRow(double screenWidth, double screenHeight, PhotoUploadViewModel viewModel) {
+  Widget _buildImageUploadRow(double screenWidth, double screenHeight,
+      PhotoUploadViewModel viewModel, PhotoUploadState state) {
     return Container(
       width: screenWidth * 0.9,
       height: screenHeight * 0.16,
@@ -138,7 +136,7 @@ class PhotoUploadScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: List.generate(3, (index) {
-          final imageFile = viewModel.state.storeImages[index];  // 선택된 이미지를 가져옴
+          final imageFile = state.storeImages[index];
 
           return GestureDetector(
             onTap: () => viewModel.pickImage(index),
@@ -154,27 +152,34 @@ class PhotoUploadScreen extends ConsumerWidget {
                   child: Center(
                     child: imageFile != null
                         ? Image.file(
-                            File(imageFile.path),  // 선택한 이미지 파일을 표시
-                            fit: BoxFit.cover,  // 이미지가 꽉 차도록 설정
+                            File(imageFile.path),
+                            fit: BoxFit.cover,
                             width: screenWidth * 0.25,
                             height: screenWidth * 0.25,
                           )
-                        : index == 0 // 첫 번째 칸에만 카메라 아이콘 표시
+                        : index == 0
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.camera_alt, size: screenWidth * 0.08, color: Colors.grey),
-                                  Text("必須", style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.035)),
+                                  Icon(Icons.camera_alt,
+                                      size: screenWidth * 0.08,
+                                      color: Colors.grey),
+                                  Text("必須",
+                                      style: TextStyle(
+                                          color: Colors.blue,
+                                          fontSize: screenWidth * 0.035)),
                                 ],
                               )
-                            : null, // 나머지 칸에는 아무것도 표시하지 않음
+                            : null,
                   ),
                 ),
                 Positioned(
                   top: screenHeight * 0.005,
                   left: screenWidth * 0.01,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.015, vertical: screenHeight * 0.005),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.015,
+                        vertical: screenHeight * 0.005),
                     decoration: BoxDecoration(
                       color: Colors.grey[600],
                       borderRadius: BorderRadius.circular(screenWidth * 0.01),
@@ -197,32 +202,33 @@ class PhotoUploadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoUpload(double screenWidth, double screenHeight, PhotoUploadViewModel viewModel) {
-    final logoFile = viewModel.state.storeLogo; // 선택된 로고 이미지 파일
+  Widget _buildLogoUpload(double screenWidth, double screenHeight,
+      PhotoUploadViewModel viewModel, PhotoUploadState state) {
+    final logoFile = state.storeLogo;
 
     return Center(
       child: GestureDetector(
         onTap: () async {
-          await viewModel.pickImage(0, isLogo: true); // 사진 선택 기능 실행
+          await viewModel.pickImage(0, isLogo: true);
         },
         child: Container(
           width: screenWidth * 0.5,
           height: screenWidth * 0.5,
           padding: EdgeInsets.all(screenWidth * 0.04),
           decoration: BoxDecoration(
-            color: Colors.grey[200], // 바깥쪽 밝은 회색 박스
+            color: Colors.grey[200],
             borderRadius: BorderRadius.circular(screenWidth * 0.02),
           ),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white, // 안쪽 흰색 상자
-              borderRadius: BorderRadius.zero, // 정사각형이므로 모서리 둥글지 않음
+              color: Colors.white,
+              borderRadius: BorderRadius.zero,
             ),
             child: logoFile != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(screenWidth * 0.02),
                     child: Image.file(
-                      File(logoFile.path),  // 선택한 로고 이미지 파일 표시
+                      File(logoFile.path),
                       fit: BoxFit.cover,
                       width: screenWidth * 0.5,
                       height: screenWidth * 0.5,
@@ -232,8 +238,12 @@ class PhotoUploadScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.camera_alt, size: screenWidth * 0.1, color: Colors.grey), // 카메라 아이콘
-                        Text("必須", style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.035)), // 필수 텍스트
+                        Icon(Icons.camera_alt,
+                            size: screenWidth * 0.1, color: Colors.grey),
+                        Text("必須",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: screenWidth * 0.035)),
                       ],
                     ),
                   ),
@@ -243,13 +253,16 @@ class PhotoUploadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMessageField(double screenWidth, PhotoUploadViewModel viewModel) {
+  Widget _buildMessageField(
+      double screenWidth, PhotoUploadViewModel viewModel) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(screenWidth * 0.025),
-        border: Border.all(color: Colors.grey[300]!, width: screenWidth * 0.01),
+        border:
+            Border.all(color: Colors.grey[300]!, width: screenWidth * 0.01),
       ),
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03, vertical: screenWidth * 0.02),
+      padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.03, vertical: screenWidth * 0.02),
       child: TextField(
         onChanged: (value) {
           viewModel.updateMessage(value);
@@ -257,7 +270,8 @@ class PhotoUploadScreen extends ConsumerWidget {
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: '店舗からのメッセージを入力してください',
-          hintStyle: TextStyle(color: Colors.grey[500], fontSize: screenWidth * 0.04),
+          hintStyle:
+              TextStyle(color: Colors.grey[500], fontSize: screenWidth * 0.04),
         ),
         maxLines: 3,
       ),

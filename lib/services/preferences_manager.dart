@@ -46,4 +46,14 @@ class PreferencesManager {
   Future<void> logout() async {
     await _preferences?.clear(); // 모든 SharedPreferences 데이터 삭제
   }
+
+  // 알림 상태 가져오기 
+  bool getNotificationStatus() {
+    return _preferences?.getBool('notificationStatus') ?? true; // 기본값은 true
+  }
+
+  // 알림 상태 저장
+  Future<void> setNotificationStatus(bool value) async {
+    await _preferences?.setBool('notificationStatus', value);
+  }
 }

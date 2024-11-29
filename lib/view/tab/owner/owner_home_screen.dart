@@ -8,6 +8,9 @@ import 'point_management_confirm_screen.dart';
 import 'meber_input_screen.dart';
 import 'owner_transaction_history_screen.dart';
 import '../event_home.dart';
+import 'point_limit_screen.dart';
+import '../privacy_policy_screen.dart';
+import '../terms_of_service_screen.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
@@ -21,7 +24,7 @@ class OwnerHomeScreen extends ConsumerWidget {
       OwnerTransactionHistoryScreen(),
       ScanTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       AccountTab(),
-      OwnerSettingsTab(),
+      OwnerSettings(),
     ];
 
     return Scaffold(
@@ -88,6 +91,35 @@ class ScanTabNavigator extends StatelessWidget {
           default:
             return MaterialPageRoute(
               builder: (context) => ScanTab(),
+            );
+        }
+      },
+    );
+  }
+}
+
+class OwnerSettings extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      initialRoute: '/', // 초기 경로 설정
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/pointLimit':
+            return MaterialPageRoute(
+              builder: (context) => PointLimitScreen(),
+            );
+          case '/privacyPolicy': // PrivacyPolicyScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => PrivacyPolicyScreen(),
+            );
+          case '/termsOfservice': // TermsOfServiceScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => TermsOfServiceScreen(),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => OwnerSettingsTab(),
             );
         }
       },
