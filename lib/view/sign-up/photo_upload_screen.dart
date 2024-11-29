@@ -36,8 +36,11 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
 
-    return WillPopScope(
-      onWillPop: () async => false, // 뒤로 가기 방지
+    return PopScope<Object?>(
+      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
+      },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
