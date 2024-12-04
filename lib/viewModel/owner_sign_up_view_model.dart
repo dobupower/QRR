@@ -1,117 +1,14 @@
-import 'package:flutter/material.dart';
+// owner_sign_up_view_model.dart
+import 'dart:math';
+import 'package:flutter/foundation.dart'; // debugPrint 사용을 위한 패키지
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../model/owner_signup_state_model.dart';
 import '../model/owner_model.dart';
 import '../services/auth_service.dart';
-import 'dart:math';
-import '../view/sign-up/photo_upload_screen.dart';
-import 'photo_upload_view_model.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// [SignUpState]는 회원가입 화면의 상태를 관리하는 클래스입니다.
-class SignUpState {
-  // 각 입력 필드의 컨트롤러
-  final TextEditingController storeNameController;
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final TextEditingController confirmPasswordController;
-  final TextEditingController zipCodeController;
-  final TextEditingController stateController;
-  final TextEditingController cityController;
-  final TextEditingController addressController;
-  final TextEditingController buildingController;
-  final TextEditingController codeController; // 인증 코드 입력 필드 컨트롤러
-
-  // 인증 코드와 에러 메시지, 로딩 상태 등을 위한 변수들
-  final String? verificationCode;
-  final String? emailError;
-  final String? passwordError;
-  final String? confirmPasswordError;
-  final bool isLoading;
-  final bool isPasswordVisible;
-  final bool isConfirmPasswordVisible;
-  final String? verificationErrorMessage;
-
-  SignUpState({
-    required this.storeNameController,
-    required this.emailController,
-    required this.passwordController,
-    required this.confirmPasswordController,
-    required this.zipCodeController,
-    required this.stateController,
-    required this.cityController,
-    required this.addressController,
-    required this.buildingController,
-    required this.codeController,
-    this.verificationCode,
-    this.emailError,
-    this.passwordError,
-    this.confirmPasswordError,
-    this.isLoading = false,
-    this.isPasswordVisible = false,
-    this.isConfirmPasswordVisible = false,
-    this.verificationErrorMessage,
-  });
-
-  bool get isFormValid {
-    return emailError == null &&
-        passwordError == null &&
-        confirmPasswordError == null &&
-        storeNameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty &&
-        zipCodeController.text.isNotEmpty &&
-        stateController.text.isNotEmpty &&
-        cityController.text.isNotEmpty &&
-        addressController.text.isNotEmpty;
-  }
-
-  SignUpState copyWith({
-    TextEditingController? codeController,
-    TextEditingController? storeNameController,
-    TextEditingController? emailController,
-    TextEditingController? passwordController,
-    TextEditingController? confirmPasswordController,
-    TextEditingController? zipCodeController,
-    TextEditingController? stateController,
-    TextEditingController? cityController,
-    TextEditingController? addressController,
-    TextEditingController? buildingController,
-    String? verificationCode,
-    String? emailError,
-    String? passwordError,
-    String? confirmPasswordError,
-    bool? isLoading,
-    bool? isPasswordVisible,
-    bool? isConfirmPasswordVisible,
-    String? verificationErrorMessage,
-  }) {
-    return SignUpState(
-      storeNameController: storeNameController ?? this.storeNameController,
-      emailController: emailController ?? this.emailController,
-      passwordController: passwordController ?? this.passwordController,
-      confirmPasswordController: confirmPasswordController ?? this.confirmPasswordController,
-      zipCodeController: zipCodeController ?? this.zipCodeController,
-      stateController: stateController ?? this.stateController,
-      cityController: cityController ?? this.cityController,
-      addressController: addressController ?? this.addressController,
-      buildingController: buildingController ?? this.buildingController,
-      verificationCode: verificationCode ?? this.verificationCode,
-      codeController: codeController ?? this.codeController,
-      emailError: emailError,
-      passwordError: passwordError,
-      confirmPasswordError: confirmPasswordError,
-      isLoading: isLoading ?? this.isLoading,
-      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
-      isConfirmPasswordVisible: isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
-      verificationErrorMessage: verificationErrorMessage ?? this.verificationErrorMessage,
-    );
-  }
-}
-
-/// [OwnerSignUpViewModel]은 회원가입 로직을 관리하는 클래스입니다.
-class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
+class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
   final AuthService _authService;
   final firebase_auth.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
@@ -119,41 +16,63 @@ class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
   OwnerSignUpViewModel(this._authService)
       : _firebaseAuth = firebase_auth.FirebaseAuth.instance,
         _firestore = FirebaseFirestore.instance,
-        super(SignUpState(
-          codeController: TextEditingController(),
-          storeNameController: TextEditingController(),
-          emailController: TextEditingController(),
-          passwordController: TextEditingController(),
-          confirmPasswordController: TextEditingController(),
-          zipCodeController: TextEditingController(),
-          stateController: TextEditingController(),
-          cityController: TextEditingController(),
-          addressController: TextEditingController(),
-          buildingController: TextEditingController(),
-        ));
+        super(OwnerSignUpState());
 
-  // 각 컨트롤러와 상태 관리를 위해 dispose 필요
-  @override
-  void dispose() {
-    state.storeNameController.dispose();
-    state.emailController.dispose();
-    state.passwordController.dispose();
-    state.confirmPasswordController.dispose();
-    state.zipCodeController.dispose();
-    state.stateController.dispose();
-    state.cityController.dispose();
-    state.addressController.dispose();
-    state.buildingController.dispose();
-    state.codeController.dispose();
-    super.dispose();
+  // 상태 업데이트 메서드들
+  void updateStoreName(String value) {
+    state = state.copyWith(storeName: value);
   }
 
-  void validateFields() {
-    state = state.copyWith();
+  void updateEmail(String value) {
+    value = value.trim(); // 공백 제거
+    state = state.copyWith(email: value);
+    validateEmail(value);
   }
 
+  void updatePassword(String value) {
+    state = state.copyWith(password: value);
+    validatePassword(value);
+  }
+
+  void updateConfirmPassword(String value) {
+    state = state.copyWith(confirmPassword: value);
+    validateConfirmPassword(value);
+  }
+
+  void updateZipCode(String value) {
+    state = state.copyWith(zipCode: value);
+  }
+
+  void updateState(String value) {
+    state = state.copyWith(state: value);
+  }
+
+  void updateCity(String value) {
+    state = state.copyWith(city: value);
+  }
+
+  void updateAddress(String value) {
+    state = state.copyWith(address: value);
+  }
+
+  void updateBuilding(String value) {
+    state = state.copyWith(building: value);
+  }
+
+  void togglePasswordVisibility() {
+    state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
+  }
+
+  void toggleConfirmPasswordVisibility() {
+    state = state.copyWith(
+        isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
+  }
+
+  // 검증 메서드들
   void validateEmail(String email) {
-    const emailRegex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+    print('Validating email: "$email"');
+    const emailRegex =
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     if (!RegExp(emailRegex).hasMatch(email)) {
       state = state.copyWith(emailError: '正しいメールアドレスを入力してください。');
     } else {
@@ -167,25 +86,17 @@ class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
     } else {
       state = state.copyWith(passwordError: null);
     }
-    if (state.confirmPasswordController.text.isNotEmpty) {
-      validateConfirmPassword(state.confirmPasswordController.text);
+    if (state.confirmPassword.isNotEmpty) {
+      validateConfirmPassword(state.confirmPassword);
     }
   }
 
   void validateConfirmPassword(String confirmPassword) {
-    if (confirmPassword != state.passwordController.text) {
+    if (confirmPassword != state.password) {
       state = state.copyWith(confirmPasswordError: 'パスワードが一致しません。');
     } else {
       state = state.copyWith(confirmPasswordError: null);
     }
-  }
-
-  void togglePasswordVisibility() {
-    state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
-  }
-
-  void toggleConfirmPasswordVisibility() {
-    state = state.copyWith(isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
   String _generateVerificationCode() {
@@ -193,133 +104,147 @@ class OwnerSignUpViewModel extends StateNotifier<SignUpState> {
     return (random.nextInt(9000) + 1000).toString();
   }
 
-  /// 회원가입 요청 함수
-  Future<void> signUp(BuildContext context) async {
+  // 회원가입 요청 함수
+  Future<void> signUp() async {
     if (state.isFormValid) {
       state = state.copyWith(isLoading: true);
       try {
-        final email = state.emailController.text;
+        final email = state.email;
 
         if (await _authService.OwnerisEmailAlreadyRegistered(email)) {
-          state = state.copyWith(emailError: 'このメールアドレスは既に登録されています。');
+          state = state.copyWith(
+              emailError: 'このメールアドレスは既に登録されています。', isLoading: false);
           return;
         }
 
         final owner = Owner(
-          uid: '',
-          storeName: state.storeNameController.text,
-          email: state.emailController.text,
-          zipCode: state.zipCodeController.text,
-          prefecture: state.stateController.text,
-          city: state.cityController.text,
-          address: state.addressController.text,
-          building: state.buildingController.text.isNotEmpty ? state.buildingController.text : null,
+          uid: '', // uid는 나중에 설정됩니다.
+          storeName: state.storeName,
+          email: state.email,
+          zipCode: state.zipCode,
+          prefecture: state.state,
+          city: state.city,
+          address: state.address,
+          building:
+              state.building?.isNotEmpty == true ? state.building : null,
           authType: 'email',
+          pointLimit: 100000,
         );
 
         final verificationCode = _generateVerificationCode();
-        state = state.copyWith(verificationCode: verificationCode);
+        state = state.copyWith(
+          verificationCode: verificationCode,
+          owner: owner, // Owner 객체를 상태에 저장
+          signUpSuccess: true, // 회원가입 성공 이벤트 표시
+        );
 
-        bool emailSent = await _authService.sendVerificationEmail(owner.email, verificationCode);
-
-        if (emailSent) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PhotoUploadScreen(owner: owner),
-            ),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('認証コードを送信しました。メールを確認してください。')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('이메일 전송에 실패했습니다。')),
-          );
-        }
+        await _authService.sendVerificationEmail(owner.email, verificationCode);
       } catch (e) {
-        debugPrint('회원가입 오류: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('회원가입 중 오류가 발생했습니다。')),
+        print('회원가입 오류: $e');
+        state = state.copyWith(
+          isLoading: false,
+          signUpError: '회원가입 중 오류가 발생했습니다。',
         );
       } finally {
         state = state.copyWith(isLoading: false);
       }
     } else {
-      debugPrint('Form is not valid');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('입력된 정보를 확인해주세요。')),
+      print('Form is not valid');
+      state = state.copyWith(
+        signUpError: '입력된 정보를 확인해주세요。',
       );
     }
   }
 
-  /// 인증 코드 검증 함수
-  Future<void> verifyCode(String inputCode, BuildContext context, Owner owner, WidgetRef ref) async {
+  // 인증 코드 검증 함수
+  Future<void> verifyCode(String inputCode) async {
     if (state.verificationCode == inputCode) {
-      state = state.copyWith(verificationErrorMessage: null); // 오류 메시지 초기화
-
+      state = state.copyWith(verificationErrorMessage: null);
       try {
-        final firebaseAuth = firebase_auth.FirebaseAuth.instance;
-
         // Firebase에서 계정 생성
-        firebase_auth.UserCredential userCredential = await firebaseAuth.createUserWithEmailAndPassword(
-          email: owner.email,
-          password: state.passwordController.text,
+        firebase_auth.UserCredential userCredential =
+            await _firebaseAuth.createUserWithEmailAndPassword(
+          email: state.email,
+          password: state.password,
         );
+
+        // owner 객체 생성
+        final owner = state.owner!.copyWith(uid: userCredential.user!.uid);
 
         // Firestore에 사용자 정보 저장
-        await _authService.saveownerToFirestore(
-          owner.copyWith(uid: userCredential.user!.uid).toMap(),
-        );
-        
-        final photoUploadViewModel = ref.read(photoUploadViewModelProvider.notifier);
-        await photoUploadViewModel.submitDetails(owner.uid);
+        await _authService.saveownerToFirestore(owner.toJson());
 
-        // 인증 완료 후 첫 화면으로 돌아감
-        Navigator.popUntil(context, (route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('アカウント登録が完了しました。')),
+        state = state.copyWith(
+          verificationSuccess: true, // 인증 성공 이벤트 표시
         );
       } on firebase_auth.FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
           state = state.copyWith(emailError: 'このメールアドレスは既に登録されています。');
         } else {
           debugPrint('Firebase Auth error: $e');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('ユーザー登録中にエラーが発生しました。')),
+          state = state.copyWith(
+            verificationErrorMessage: 'ユーザー登録中にエラーが発生しました。',
           );
         }
       } catch (e) {
         debugPrint('Error during authentication or Firestore saving: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ユーザー登録中にエラーが発生しました。')),
+        state = state.copyWith(
+          verificationErrorMessage: 'ユーザー登録中にエラーが発生しました。',
         );
       }
     } else {
       state = state.copyWith(verificationErrorMessage: '認証コードが正しくありません。');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('認証に失敗しました。')),
-      );
     }
   }
 
+  // 코드 재전송 함수
   Future<void> resendVerificationCode() async {
     final newCode = _generateVerificationCode();
     state = state.copyWith(verificationCode: newCode);
 
-    if (state.emailController.text.isNotEmpty) {
+    if (state.email.isNotEmpty) {
       try {
-        await _authService.sendVerificationEmail(state.emailController.text, newCode);
+        await _authService.sendVerificationEmail(state.email, newCode);
+        state = state.copyWith(resendCodeSuccess: true); // 코드 재전송 성공 이벤트
       } catch (e) {
         debugPrint('인증 코드 재전송 실패: $e');
+        state = state.copyWith(
+          resendCodeError: '인증 코드 재전송 실패',
+        );
       }
     }
+  }
+
+  // 이벤트 플래그 리셋 메서드
+  void resetSignUpSuccess() {
+    state = state.copyWith(signUpSuccess: false);
+  }
+
+  void resetSignUpError() {
+    state = state.copyWith(signUpError: null);
+  }
+
+  void resetVerificationSuccess() {
+    state = state.copyWith(verificationSuccess: false);
+  }
+
+  void resetVerificationError() {
+    state = state.copyWith(verificationErrorMessage: null);
+  }
+
+  void resetResendCodeSuccess() {
+    state = state.copyWith(resendCodeSuccess: false);
+  }
+
+  void resetResendCodeError() {
+    state = state.copyWith(resendCodeError: null);
   }
 }
 
 final authServiceProvider = Provider((ref) => AuthService());
 
-final ownersignUpViewModelProvider = StateNotifierProvider<OwnerSignUpViewModel, SignUpState>(
+final ownerSignUpViewModelProvider =
+    StateNotifierProvider<OwnerSignUpViewModel, OwnerSignUpState>(
   (ref) {
     final authService = ref.watch(authServiceProvider);
     return OwnerSignUpViewModel(authService);

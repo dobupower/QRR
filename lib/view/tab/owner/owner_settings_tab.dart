@@ -1,49 +1,185 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../../services/preferences_manager.dart'; // PreferencesManager 클래스 import
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../viewModel/owner_settings_tab_view_model.dart';
+import '../../../services/preferences_manager.dart';
 
-class OwnerSettingsTab extends StatelessWidget {
-  const OwnerSettingsTab({Key? key}) : super(key: key);
+class OwnerSettingsTab extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pointLimit = ref.watch(ownerSettingProvider);
 
-  // 로그아웃 및 SharedPreferences 초기화 함수
-  Future<void> _logout(BuildContext context) async {
-    try {
-      // FirebaseAuth 로그아웃
-      await FirebaseAuth.instance.signOut();
-
-      // PreferencesManager를 사용하여 SharedPreferences 초기화
-      await PreferencesManager.instance.logout();
-
-      // 로그아웃 후 첫 화면으로 이동 (FirstScreen 또는 LoginScreen 등으로)
-      Navigator.pushReplacementNamed(context, '/First');
-    } catch (e) {
-      // 에러 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그아웃 실패: $e')),
+    if (pointLimit == null) {
+      // 로딩 상태 표시
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
+
+    return Scaffold(
+      body: SettingsBody(
+        pointLimit: pointLimit,
+        onPointLimitChange: (newLimit) {
+          ref.read(ownerSettingProvider.notifier).updatePointLimit(newLimit);
+        },
+      ),
+    );
+  }
+}
+
+class SettingsBody extends StatefulWidget {
+  final int pointLimit;
+  final ValueChanged<int> onPointLimitChange;
+
+  SettingsBody({
+    required this.pointLimit,
+    required this.onPointLimitChange,
+  });
+
+  @override
+  _SettingsBodyState createState() => _SettingsBodyState();
+}
+
+class _SettingsBodyState extends State<SettingsBody> {
+  late bool _notificationStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationStatus = PreferencesManager.instance.getNotificationStatus();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope<Object?>(
-      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
-      },
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('設定'), // "설정" 텍스트
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _logout(context), // 로그아웃 버튼 클릭 시 로그아웃 처리
-              child: Text('ログアウト'), // "로그아웃" 텍스트 (일본어로 표시)
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 상단 제목
+          SizedBox(height: screenHeight * 0.08),
+          Text(
+            '設定', // 설정 화면의 제목
+            style: TextStyle(
+              fontSize: screenWidth * 0.06,
+              fontWeight: FontWeight.bold,
             ),
-          ],
+          ),
+          SizedBox(height: screenHeight * 0.03),
+
+          // 설정 항목
+          Expanded(
+            child: ListView(
+              children: [
+                // 포인트 리미트 설정
+                SettingsSection(
+                  title: 'ポイントチャージ上限設定',
+                  trailingWidget: Text(
+                    '${NumberFormat("#,###").format(widget.pointLimit)} pt',
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.04,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  onTap: () => Navigator.pushNamed(context, '/pointLimit'),
+                ),
+                Divider(
+                  color: Colors.grey[300],
+                  thickness: 1,
+                  height: screenHeight * 0.02,
+                ),
+
+                // 알림 토글
+                SettingsSection(
+                  title: '通知',
+                  trailingWidget: Switch(
+                    value: _notificationStatus,
+                    onChanged: (value) async {
+                      await PreferencesManager.instance.setNotificationStatus(value);
+                      setState(() {
+                        _notificationStatus = value;
+                      });
+                      print('Notification status updated to $value');
+                    },
+                  ),
+                ),
+                Divider(
+                  color: Colors.grey[300],
+                  thickness: 1,
+                  height: screenHeight * 0.02,
+                ),
+
+                // 개인정보 처리방침
+                SettingsSection(
+                  title: 'プライバシーポリシー',
+                  onTap: () => Navigator.pushNamed(context, '/privacyPolicy'),
+                ),
+                Divider(
+                  color: Colors.grey[300],
+                  thickness: 1,
+                  height: screenHeight * 0.02,
+                ),
+
+                // 이용약관
+                SettingsSection(
+                  title: '利用規約',
+                  onTap: () => Navigator.pushNamed(context, '/termsOfservice'),
+                ),
+                Divider(
+                  color: Colors.grey[300],
+                  thickness: 1,
+                  height: screenHeight * 0.02,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SettingsSection extends StatelessWidget {
+  final String title;
+  final VoidCallback? onTap;
+  final Widget? trailingWidget;
+
+  SettingsSection({
+    required this.title,
+    this.onTap,
+    this.trailingWidget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: screenWidth * 0.045,
+          fontWeight: FontWeight.w500,
         ),
       ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min, // Align the row to take minimal space
+        children: [
+          if (trailingWidget != null) trailingWidget!,
+          SizedBox(width: screenWidth * 0.01), // Add some spacing
+          Icon(
+            Icons.arrow_forward_ios, // `>` icon
+            size: screenWidth * 0.045,
+            color: Colors.grey,
+          ),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

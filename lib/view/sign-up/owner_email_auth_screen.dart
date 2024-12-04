@@ -1,139 +1,261 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../viewModel/owner_sign_up_view_model.dart'; // SignUpViewModel 가져오기
-import '../../model/owner_model.dart'; // User 모델 가져오기
-import 'dart:io'; // File 사용을 위한 패키지
+import '../../viewModel/owner_sign_up_view_model.dart';
+import '../../model/owner_signup_state_model.dart';
 
-// 이메일 인증 화면 클래스 (ConsumerWidget을 사용하여 Riverpod 상태를 감시)
-class OwnerEmailAuthScreen extends ConsumerWidget {
-  final Owner owner; // 이메일 인증 대상인 사용자
-  final List<File?> images; // 가게 이미지 파일 리스트
-  final File? logo; // 가게 로고 파일
-  final String message; // 가게 메시지
+class OwnerEmailAuthScreen extends ConsumerStatefulWidget {
+  @override
+  _OwnerEmailAuthScreenState createState() => _OwnerEmailAuthScreenState();
+}
 
-  // 생성자에서 필수적으로 User 객체, 이미지들, 로고, 메시지를 받아옴
-  OwnerEmailAuthScreen({
-    required this.owner,
-    required this.images,
-    required this.logo,
-    required this.message,
+class _OwnerEmailAuthScreenState extends ConsumerState<OwnerEmailAuthScreen> {
+  final TextEditingController _codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final signUpState = ref.watch(ownerSignUpViewModelProvider);
+    final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      handleVerificationState(context, signUpState, signUpViewModel);
+    });
+
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {},
+      child: Scaffold(
+        appBar: CustomAppBar(),
+        body: AuthScreenBody(
+          codeController: _codeController,
+          ownerEmail: signUpState.owner?.email,
+          signUpViewModel: signUpViewModel,
+        ),
+      ),
+    );
+  }
+
+  void handleVerificationState(
+      BuildContext context, OwnerSignUpState signUpState, OwnerSignUpViewModel signUpViewModel) {
+    if (signUpState.verificationSuccess) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('アカウント登録が完了しました。')),
+      );
+      signUpViewModel.resetVerificationSuccess();
+    }
+
+    if (signUpState.verificationErrorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(signUpState.verificationErrorMessage!)),
+      );
+      signUpViewModel.resetVerificationError();
+    }
+
+    if (signUpState.resendCodeSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('新しいコードが送信されました。')),
+      );
+      signUpViewModel.resetResendCodeSuccess();
+    }
+
+    if (signUpState.resendCodeError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(signUpState.resendCodeError!)),
+      );
+      signUpViewModel.resetResendCodeError();
+    }
+  }
+}
+
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.grey),
+        onPressed: () => Navigator.pop(context),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class AuthScreenBody extends StatelessWidget {
+  final TextEditingController codeController;
+  final String? ownerEmail;
+  final OwnerSignUpViewModel signUpViewModel;
+
+  AuthScreenBody({
+    required this.codeController,
+    required this.ownerEmail,
+    required this.signUpViewModel,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 화면 크기 정보 가져오기
+  Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
 
-    // SignUpState 및 SignUpViewModel 상태를 감시
-    final signUpState = ref.watch(ownersignUpViewModelProvider); 
-    final signUpViewModel = ref.read(ownersignUpViewModelProvider.notifier);
-
-    return PopScope<Object?>(
-      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.grey),
-            onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
+    return Padding(
+      padding: EdgeInsets.all(screenSize.width * 0.05),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TitleSection(screenSize: screenSize),
+          SizedBox(height: screenSize.height * 0.02),
+          DescriptionSection(ownerEmail: ownerEmail, screenSize: screenSize),
+          SizedBox(height: screenSize.height * 0.04),
+          CodeInputField(codeController: codeController, screenSize: screenSize),
+          Spacer(),
+          ResendCodeButton(signUpViewModel: signUpViewModel),
+          SubmitButton(
+            codeController: codeController,
+            signUpViewModel: signUpViewModel,
+            screenSize: screenSize,
           ),
-          backgroundColor: Colors.transparent, // AppBar의 배경색 투명
-          elevation: 0, // 그림자 제거
+          SizedBox(height: screenSize.height * 0.05),
+        ],
+      ),
+    );
+  }
+}
+
+class TitleSection extends StatelessWidget {
+  final Size screenSize;
+
+  TitleSection({required this.screenSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'アカウント認証',
+        style: TextStyle(
+          fontSize: screenSize.width * 0.07,
+          fontWeight: FontWeight.bold,
         ),
-        // 본문 내용
-        body: Padding(
-          padding: EdgeInsets.all(screenWidth * 0.05), // 화면 여백을 상대적으로 설정
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
-            children: [
-              // 중앙에 위치한 타이틀 텍스트
-              Center(
-                child: Text(
-                  'アカウント認証', // 'アカウント認証' = 계정 인증
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.07, // 폰트 크기를 상대적으로 설정
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.02), // 간격을 상대적으로 설정
-              // 사용자 이메일 정보와 안내 메시지
-              Center(
-                child: Text(
-                  '${owner.email}に認証コードを送りました。\n認証コードを入力してください。', 
-                  // '認証コードを送りました。' = 인증 코드를 보냈습니다.
-                  textAlign: TextAlign.center, // 텍스트 가운데 정렬
-                  style: TextStyle(fontSize: screenWidth * 0.038, color: Colors.black), // 텍스트 크기를 상대적으로 설정
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.04), // 간격을 상대적으로 설정
-              // 인증 코드 입력 필드 라벨
-              Text(
-                '認証コード', // '認証コード' = 인증 코드
-                style: TextStyle(fontSize: screenWidth * 0.045), // 폰트 크기를 상대적으로 설정
-              ),
-              SizedBox(height: screenHeight * 0.01), // 간격을 상대적으로 설정
-              // 인증 코드 입력 필드
-              TextField(
-                controller: signUpState.codeController, // 인증 코드 입력을 위한 컨트롤러
-                decoration: InputDecoration(
-                  hintText: '4桁コードを入力', // '4桁コードを入力' = 4자리 코드를 입력
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenWidth * 0.03), // 필드 테두리를 상대적으로 설정
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                ),
-                keyboardType: TextInputType.number, // 숫자 입력만 가능하도록 설정
-                maxLength: 4, // 최대 입력 길이 4자리로 설정
-              ),
-              Spacer(), // 화면 남은 공간 채우기 (필드와 버튼 사이 간격 유지)
-              // 코드 재전송 버튼
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    signUpViewModel.resendVerificationCode(); // 코드 재전송 함수 호출
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('新しいコードが送信されました。')), 
-                      // '新しいコードが送信されました' = 새로운 코드가 전송되었습니다.
-                    );
-                  },
-                  child: Text(
-                    'コード再送する', // 'コード再送する' = 코드 재전송
-                    style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.04), // 텍스트 크기를 상대적으로 설정
-                  ),
-                ),
-              ),
-              // 인증 확인 버튼
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    // 입력된 코드를 기반으로 인증 처리
-                    await signUpViewModel.verifyCode(
-                      signUpState.codeController.text, 
-                      context, 
-                      owner,
-                      ref,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1D2538), // 버튼 배경색 설정
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.3, vertical: screenHeight * 0.015), // 버튼 크기를 상대적으로 설정
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(screenWidth * 0.07), // 버튼 모서리를 둥글게 상대적으로 설정
-                    ),
-                  ),
-                  child: Text(
-                    'アカウント認証', // 'アカウント認証' = 계정 인증
-                    style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white), // 텍스트 크기를 상대적으로 설정
-                  ),
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.05), // 마지막 간격을 상대적으로 설정
-            ],
+      ),
+    );
+  }
+}
+
+class DescriptionSection extends StatelessWidget {
+  final String? ownerEmail;
+  final Size screenSize;
+
+  DescriptionSection({required this.ownerEmail, required this.screenSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        '${ownerEmail ?? ''}に認証コードを送りました。\n認証コードを入力してください。',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: screenSize.width * 0.038,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+class CodeInputField extends StatelessWidget {
+  final TextEditingController codeController;
+  final Size screenSize;
+
+  CodeInputField({required this.codeController, required this.screenSize});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '認証コード',
+          style: TextStyle(fontSize: screenSize.width * 0.045),
+        ),
+        SizedBox(height: screenSize.height * 0.01),
+        TextField(
+          controller: codeController,
+          decoration: InputDecoration(
+            hintText: '4桁コードを入力',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(screenSize.width * 0.03),
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+          ),
+          keyboardType: TextInputType.number,
+          maxLength: 4,
+        ),
+      ],
+    );
+  }
+}
+
+class ResendCodeButton extends StatelessWidget {
+  final OwnerSignUpViewModel signUpViewModel;
+
+  ResendCodeButton({required this.signUpViewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton(
+        onPressed: () {
+          signUpViewModel.resendVerificationCode();
+        },
+        child: Text(
+          'コード再送する',
+          style: TextStyle(color: Colors.blue),
+        ),
+      ),
+    );
+  }
+}
+
+class SubmitButton extends StatelessWidget {
+  final TextEditingController codeController;
+  final OwnerSignUpViewModel signUpViewModel;
+  final Size screenSize;
+
+  SubmitButton({
+    required this.codeController,
+    required this.signUpViewModel,
+    required this.screenSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () async {
+          await signUpViewModel.verifyCode(codeController.text);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF1D2538),
+          padding: EdgeInsets.symmetric(
+            horizontal: screenSize.width * 0.3,
+            vertical: screenSize.height * 0.015,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(screenSize.width * 0.07),
+          ),
+        ),
+        child: Text(
+          'アカウント認証',
+          style: TextStyle(
+            fontSize: screenSize.width * 0.045,
+            color: Colors.white,
           ),
         ),
       ),

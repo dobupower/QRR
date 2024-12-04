@@ -11,6 +11,8 @@ import '../event_home.dart';
 import 'user_account_screen.dart';
 import 'verify_password_screen.dart'; // 비밀번호 확인 화면 추가
 import 'update_pubid_screen.dart';
+import '../privacy_policy_screen.dart';
+import '../terms_of_service_screen.dart';
 
 // UserHomeScreen 클래스는 ConsumerWidget을 사용하여 상태 관리
 class UserHomeScreen extends ConsumerWidget {
@@ -25,7 +27,7 @@ class UserHomeScreen extends ConsumerWidget {
       UserTransactionHistoryScreen(),
       QrTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
       UserAccountNavigator(), // UserAccountNavigator로 교체
-      UserSettingsTab(),
+      UserSettingsNavigator(),
     ];
 
     return Scaffold(
@@ -117,6 +119,31 @@ class UserAccountNavigator extends StatelessWidget {
           default:
             return MaterialPageRoute(
               builder: (context) => UserAccountScreen(), // 기본 UserAccountScreen
+            );
+        }
+      },
+    );
+  }
+}
+
+// UserSettingsTab을 위한 Navigator
+class UserSettingsNavigator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/privacyPolicy': // PrivacyPolicyScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => PrivacyPolicyScreen(),
+            );
+          case '/termsOfservice': // PrivacyPolicyScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => TermsOfServiceScreen(),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => UserSettingsTab(), // 기본 UserSettingsTab
             );
         }
       },

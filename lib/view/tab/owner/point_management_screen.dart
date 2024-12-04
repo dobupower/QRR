@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // For number formatting
 import 'package:qrr_project/viewModel/qrcode_scan_view_model.dart';
-import '../../../viewModel/point_management_view_model.dart';
+import '../../../viewModel/point_management_view_model.dart'; // 올바른 ViewModel 경로 사용
 
 class PointManagementScreen extends ConsumerStatefulWidget {
   @override
@@ -13,8 +13,10 @@ class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
   @override
   void initState() {
     super.initState();
-    // 초기 상태에서 fetchUserNameandEmail 호출 사용자의 이름과 정보 가져오기
-    ref.read(transactionProvider.notifier).fetchUserData(ref);
+    // 초기 상태에서 fetchUserData 호출하여 사용자의 이름과 정보 가져오기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(transactionProvider.notifier).fetchUserData(ref);
+    });
   }
 
   @override
@@ -259,13 +261,13 @@ class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () async {
-                          final isSuccess = await ref.read(transactionProvider.notifier).updateUserPoints(ref);
-                          if (isSuccess) {
+                          final errorMessage = await ref.read(transactionProvider.notifier).updateUserPoints(ref);
+                          if (errorMessage == null) {
                             Navigator.pushNamed(context, '/pointManagementConfirm');
                           } else {
-                            // 포인트 부족 또는 오류 시 Snackbar 표시
+                            // 포인트 부족 또는 오류 시 SnackBar 표시
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('ポイントが不足しています。')),
+                              SnackBar(content: Text(errorMessage)),
                             );
                           }
                         },

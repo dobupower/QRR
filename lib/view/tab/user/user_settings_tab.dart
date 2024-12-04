@@ -1,60 +1,155 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../services/preferences_manager.dart'; // PreferencesManager 클래스 import
-import '../../../viewModel/qrcode_make_view_model.dart'; // qrCodeProvider가 정의된 ViewModel import
-import '../../../viewModel/tab_view_model.dart';
+import '../../../services/preferences_manager.dart';
 
-class UserSettingsTab extends StatelessWidget {
-  const UserSettingsTab({Key? key}) : super(key: key);
+class UserSettingsTab extends StatefulWidget {
+  @override
+  _UserSettingsTabState createState() => _UserSettingsTabState();
+}
 
-  // 로그아웃 및 Riverpod 상태 초기화 함수
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
-    try {
-      // FirebaseAuth 로그아웃
-      await FirebaseAuth.instance.signOut();
+class _UserSettingsTabState extends State<UserSettingsTab> {
+  late bool _notificationStatus;
 
-      // PreferencesManager를 사용하여 SharedPreferences 초기화
-      await PreferencesManager.instance.logout();
-
-      // qrCodeProvider 상태 무효화
-      ref.invalidate(qrCodeProvider); // 유저의 QRcode 상태 초기화
-      ref.invalidate(tabViewModelProvider); // 유저의 탭 이동 현 상태 초기화
-
-      // 로그아웃 후 첫 화면으로 이동 (FirstScreen 또는 LoginScreen 등으로)
-      Navigator.pushReplacementNamed(context, '/first');
-    } catch (e) {
-      // 에러 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그아웃 실패: $e')),
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _notificationStatus = PreferencesManager.instance.getNotificationStatus();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope<Object?>(
-      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
-      },
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('設定'), // "설정" 텍스트
-            SizedBox(height: 20),
-            Consumer(
-              builder: (context, ref, child) {
-                return ElevatedButton(
-                  onPressed: () => _logout(context, ref), // 로그아웃 버튼 클릭 시 로그아웃 처리
-                  child: Text('ログアウト'), // "로그아웃" 텍스트 (일본어로 표시)
-                );
-              },
-            ),
-          ],
-        ),
+    return Scaffold(
+      body: SettingsBody(
+        notificationStatus: _notificationStatus,
+        onNotificationToggle: (value) async {
+          await PreferencesManager.instance.setNotificationStatus(value);
+          setState(() {
+            _notificationStatus = value;
+          });
+        },
       ),
+    );
+  }
+}
+
+// Body를 별도의 위젯으로 분리
+class SettingsBody extends StatelessWidget {
+  final bool notificationStatus;
+  final ValueChanged<bool> onNotificationToggle;
+
+  SettingsBody({
+    required this.notificationStatus,
+    required this.onNotificationToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    const dividerColor = Colors.grey;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: screenHeight * 0.05),
+          // 상단 제목
+          Text(
+            '設定', // 설정 화면의 제목
+            style: TextStyle(
+              fontSize: screenWidth * 0.05,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: screenHeight * 0.02), // 제목과 내용 간격
+          // 알림 토글
+          NotificationToggle(
+            notificationStatus: notificationStatus,
+            onToggle: onNotificationToggle,
+          ),
+          Divider(
+            color: dividerColor[300],
+            thickness: 1,
+            height: screenHeight * 0.03,
+          ),
+          // 설정 항목 1: 개인정보 처리방침
+          SettingsListTile(
+            title: 'プライバシーポリシー', // 개인정보 처리방침
+            onTap: () => Navigator.pushNamed(context, '/privacyPolicy'),
+          ),
+          Divider(
+            color: dividerColor[300],
+            thickness: 1,
+            height: screenHeight * 0.03,
+          ),
+          // 설정 항목 2: 이용약관
+          SettingsListTile(
+            title: '利用規約', // 이용약관
+            onTap: () => Navigator.pushNamed(context, '/termsOfService'),
+          ),
+          Divider(
+            color: dividerColor[300],
+            thickness: 1,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 알림 토글 스위치를 별도의 위젯으로 분리
+class NotificationToggle extends StatelessWidget {
+  final bool notificationStatus;
+  final ValueChanged<bool> onToggle;
+
+  NotificationToggle({
+    required this.notificationStatus,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        '通知', // 알림 토글 텍스트
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+      ),
+      trailing: Switch(
+        value: notificationStatus,
+        onChanged: onToggle,
+      ),
+    );
+  }
+}
+
+// 설정 항목을 위한 공통 ListTile 위젯
+class SettingsListTile extends StatelessWidget {
+  final String title;
+  final VoidCallback onTap;
+
+  SettingsListTile({
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        size: Theme.of(context).iconTheme.size,
+        color: Colors.grey,
+      ),
+      onTap: onTap,
     );
   }
 }

@@ -70,15 +70,36 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   }
 
   // 사용자 포인트를 업데이트하는 메서드 (충전 또는 차감)
-  Future<bool> updateUserPoints(WidgetRef ref) async {
+  Future<String?> updateUserPoints(WidgetRef ref) async {
     try {
       // 현재 Transaction의 이메일과 관련 사용자 이메일을 가져옴
       final email = state?.email;
       final relatedUserEmail = await PreferencesManager.instance.getEmail();
       
-      // 이메일이 없으면 false 반환
+      // 이메일이 없으면 오류 메시지 반환
       if (email == null || relatedUserEmail == null) {
-        return false;
+        return '이메일 정보를 가져올 수 없습니다.';
+      }
+
+      // owners 컬렉션에서 relatedUserEmail과 일치하는 문서에서 pointLimit 가져오기
+      final ownersSnapshot = await FirebaseFirestore.instance
+          .collection('owners')
+          .where('email', isEqualTo: relatedUserEmail)
+          .limit(1)
+          .get();
+
+      if (ownersSnapshot.docs.isEmpty) {
+        print('owners 컬렉션에서 일치하는 문서를 찾을 수 없습니다.');
+        return '포인트 한도를 가져올 수 없습니다.';
+      }
+
+      final ownerDoc = ownersSnapshot.docs.first;
+      int pointLimit = ownerDoc['pointLimit'] as int; // pointLimit 가져오기
+
+      // state.amount가 pointLimit을 초과하는지 확인
+      if (state?.amount != null && state!.amount > pointLimit) {
+        print('거래 금액이 포인트 한도를 초과했습니다. 최대 $pointLimit 포인트까지 가능합니다.');
+        return '거래 금액이 포인트 한도를 초과했습니다. 최대 $pointLimit 포인트까지 가능합니다.';
       }
 
       // Firestore에서 사용자의 현재 포인트 정보 조회
@@ -88,8 +109,10 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
           .limit(1)
           .get();
 
-      // 사용자 문서가 없으면 false 반환
-      if (userSnapshot.docs.isEmpty) return false;
+      // 사용자 문서가 없으면 오류 메시지 반환
+      if (userSnapshot.docs.isEmpty) {
+        return '사용자 문서를 찾을 수 없습니다.';
+      }
 
       final userDoc = userSnapshot.docs.first;
       int currentPoint = userDoc['points'] as int; // 현재 포인트 가져오기
@@ -99,7 +122,8 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
 
       // 포인트가 0 미만이 되지 않도록 검사
       if (state?.type != 'チャージ' && currentPoint + adjustment < 0) {
-        return false;
+        print('현재 포인트가 부족하여 거래를 진행할 수 없습니다.');
+        return '현재 포인트가 부족하여 거래를 진행할 수 없습니다.';
       }
 
       // 새로운 포인트 값 계산 후 Firestore 업데이트
@@ -128,10 +152,10 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
       // qrViewModelProvider 상태 초기화하여 카메라 재개
       ref.read(qrViewModelProvider.notifier).resumeCamera();
 
-      return true; // 포인트 업데이트 성공 시 true 반환
+      return null; // 포인트 업데이트 성공 시 null 반환
     } catch (e) {
       print('포인트 업데이트 중 오류 발생: $e');
-      return false; // 오류 발생 시 false 반환
+      return '포인트 업데이트 중 오류가 발생했습니다.';
     }
   }
 
