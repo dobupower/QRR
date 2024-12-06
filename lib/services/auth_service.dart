@@ -167,9 +167,9 @@ class AuthService {
   //사용자 패스워드를 재인증합니다.
   Future<bool> validatePassword(String password) async {
     try {
-      final Email = await PreferencesManager.instance.getEmail();
+      final email = await PreferencesManager.instance.getEmail();
 
-      if (Email == null || Email.isEmpty) {
+      if (email == null || email.isEmpty) {
         throw Exception('사용자의 이메일 정보를 확인할 수 없습니다.');
       }
 
@@ -182,7 +182,7 @@ class AuthService {
 
       // 2. 이메일과 비밀번호로 자격 증명 생성
       final credential = EmailAuthProvider.credential(
-        email: Email,
+        email: email,
         password: password,
       );
 
@@ -190,7 +190,7 @@ class AuthService {
       await currentUser.reauthenticateWithCredential(credential);
 
       // 4. 비밀번호 재설정 이메일 전송
-      await sendPasswordResetEmail(Email);
+      await sendPasswordResetEmail(email);
 
       print('비밀번호 인증 성공'); // 성공 로그
       return true;
@@ -201,9 +201,9 @@ class AuthService {
   }
 
   //현재 사용자 이메일로 비밀번호 재설정 이메일을 보냅니다.
-  Future<void> sendPasswordResetEmail(String Email) async {
+  Future<void> sendPasswordResetEmail(String email) async {
     try {
-      final user = Email; // 현재 상태에서 사용자 데이터를 가져옵니다.
+      final user = email; // 현재 상태에서 사용자 데이터를 가져옵니다.
 
       if (user.isEmpty) {
         throw Exception('사용자의 이메일 정보를 확인할 수 없습니다.');
