@@ -163,4 +163,59 @@ class AuthService {
       );
     }
   }
+
+  //사용자 패스워드를 재인증합니다.
+  Future<bool> validatePassword(String password) async {
+    try {
+      final Email = await PreferencesManager.instance.getEmail();
+
+      if (Email == null || Email.isEmpty) {
+        throw Exception('사용자의 이메일 정보를 확인할 수 없습니다.');
+      }
+
+      // 1. 현재 로그인된 사용자 가져오기
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        throw Exception('현재 로그인된 사용자를 찾을 수 없습니다.');
+      }
+
+      // 2. 이메일과 비밀번호로 자격 증명 생성
+      final credential = EmailAuthProvider.credential(
+        email: Email,
+        password: password,
+      );
+
+      // 3. Firebase Authentication에서 재인증
+      await currentUser.reauthenticateWithCredential(credential);
+
+      // 4. 비밀번호 재설정 이메일 전송
+      await sendPasswordResetEmail(Email);
+
+      print('비밀번호 인증 성공'); // 성공 로그
+      return true;
+    } catch (e) {
+      print('비밀번호 인증 실패: $e'); // 실패 로그
+      return false;
+    }
+  }
+
+  //현재 사용자 이메일로 비밀번호 재설정 이메일을 보냅니다.
+  Future<void> sendPasswordResetEmail(String Email) async {
+    try {
+      final user = Email; // 현재 상태에서 사용자 데이터를 가져옵니다.
+
+      if (user.isEmpty) {
+        throw Exception('사용자의 이메일 정보를 확인할 수 없습니다.');
+      }
+
+      // Firebase Authentication을 사용하여 비밀번호 재설정 이메일 전송
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: user);
+
+      print('비밀번호 재설정 이메일이 발송되었습니다.'); // 성공 로그
+    } catch (e) {
+      print('비밀번호 재설정 이메일 발송 중 오류가 발생했습니다: $e');
+      throw Exception('비밀번호 재설정 이메일 발송 실패: $e'); // 실패 시 예외 발생
+    }
+  }
 }

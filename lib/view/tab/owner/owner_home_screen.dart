@@ -11,6 +11,10 @@ import '../event_home.dart';
 import 'point_limit_screen.dart';
 import '../privacy_policy_screen.dart';
 import '../terms_of_service_screen.dart';
+import 'owner_account_screen.dart';
+import '../verify_password_screen.dart';
+import 'photo_update_screen.dart';
+import 'owner_signup_update_screen.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
@@ -23,7 +27,7 @@ class OwnerHomeScreen extends ConsumerWidget {
       EventPageView(),
       OwnerTransactionHistoryScreen(),
       ScanTabNavigator(), // QR 코드 스캔 및 포인트 관리 페이지
-      AccountTab(),
+      OwnerAccountTab(),
       OwnerSettings(),
     ];
 
@@ -127,21 +131,32 @@ class OwnerSettings extends StatelessWidget {
   }
 }
 
-// 각 탭에 해당하는 더미 화면들
-class HomeTab extends StatelessWidget {
+// QR 코드 스캔 및 포인트 관리 페이지를 위한 Navigator
+class OwnerAccountTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('ホーム'),
-    );
-  }
-}
-
-class AccountTab extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('アカウント'),
+    return Navigator(
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/SignupUpdate': // VerifyPasswordScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => OwnerSignUpUpdateScreen(),
+            );
+            
+          case '/verifyPassword': // VerifyPasswordScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => VerifyPasswordScreen(),
+            );
+          case '/photoUpdate': // VerifyPasswordScreen으로 이동하는 경로 추가
+            return MaterialPageRoute(
+              builder: (context) => PhotoUpdateScreen(),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => OwnerAccountScreen(),
+            );
+        }
+      },
     );
   }
 }

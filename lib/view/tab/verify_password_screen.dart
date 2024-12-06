@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../viewModel/user_account_view_model.dart';
-import 'user_account_screen.dart';
+import 'user/user_account_screen.dart';
+import '../../services/auth_service.dart';
 
 class VerifyPasswordScreen extends ConsumerStatefulWidget {
   @override
@@ -164,6 +164,7 @@ class SubmitButtonSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthService _authService = AuthService();
     return Center(
       child: ElevatedButton(
         onPressed: () async {
@@ -181,15 +182,15 @@ class SubmitButtonSection extends StatelessWidget {
           }
           
           // 비밀번호 인증 요청
-          final isValid = await ref
-              .read(userAccountProvider.notifier)
-              .validatePassword(password);
+          final isValid = await _authService.validatePassword(password);
 
           if (isValid) {
             // 성공 시 비밀번호 재설정 화면으로 이동
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => UserAccountScreen()),
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('비밀번호 변경 이메일을 보냈습니다。'),
+                backgroundColor: Colors.green,
+              ),
             );
           } else {
             // 실패 시 에러 메시지 표시

@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/photo_upload_state_model.dart'; // 수정된 PhotoUploadState를 import
 import '../model/photo_upload_model.dart'; // 수정된 PhotoUpload 모델
+import '../services/preferences_manager.dart';
 
 class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -124,6 +125,111 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
     return state.message.isNotEmpty &&
         hasAtLeastOneImage &&
         state.storeLogo != null;
+  }
+  
+  Future<void> _deleteExistingImages(String ownerEmail) async {
+    try {
+      // Firestore에서 해당 가게의 기존 데이터 가져오기
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('PubInfos')
+          .where('ownerId', isEqualTo: ownerEmail)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        print('해당 ownerEmail로 가게를 찾을 수 없습니다.');
+        return;
+      }
+
+      var docSnapshot = querySnapshot.docs.first; // 첫 번째 문서 선택
+      var data = docSnapshot.data() as Map<String, dynamic>;
+
+      // 기존 로고 이미지 삭제
+      String? existingLogoUrl = data['logoUrl'];
+      if (existingLogoUrl != null) {
+        Reference logoRef = _storage.refFromURL(existingLogoUrl);
+        await logoRef.delete();
+        print('기존 로고 이미지를 삭제했습니다.');
+      }
+
+      // 기존 가게 이미지들 삭제
+      List<dynamic> existingPhotoUrls = data['photoUrls'] ?? [];
+      for (var photoUrl in existingPhotoUrls) {
+        if (photoUrl != null) {
+          Reference photoRef = _storage.refFromURL(photoUrl);
+          await photoRef.delete();
+          print('기존 가게 이미지를 삭제했습니다.');
+        }
+      }
+    } catch (e) {
+      print('기존 이미지를 삭제하는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  Future<void> updateStorePhotos() async {
+    final ownerEmail = await PreferencesManager.instance.getEmail();
+    if (ownerEmail == null) {
+      state = state.copyWith(uploadError: '오류가 발생했습니다. 다시 시도해주세요.');
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, uploadError: null);
+    List<String?> imageUrls = [];
+
+    // 1. 기존 이미지 삭제
+    await _deleteExistingImages(ownerEmail);
+
+    // 2. 새로운 이미지 업로드 및 URL 수집
+    for (int i = 0; i < state.storeImages.length; i++) {
+      if (state.storeImages[i] != null) {
+        String? imageUrl =
+            await uploadImage(state.storeImages[i], 'storeImages');
+        if (imageUrl != null) {
+          imageUrls.add(imageUrl);
+        } else {
+          imageUrls.add(null); // 업로드 실패
+        }
+      } else {
+        imageUrls.add(null); // 업로드할 이미지 없음
+      }
+    }
+
+    // 3. 로고 이미지가 있을 경우 업로드
+    String? logoUrl = await uploadImage(state.storeLogo, 'storeLogo');
+
+    // 4. Firestore 업데이트를 위한 데이터 준비
+    PhotoUpload photoUpload = PhotoUpload(
+      ownerId: ownerEmail,
+      logoUrl: logoUrl,
+      photoUrls: imageUrls,
+      message: state.message,
+    );
+
+    try {
+      // 5. Firestore 문서 업데이트
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('PubInfos')
+          .where('ownerId', isEqualTo: ownerEmail)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        state = state.copyWith(
+            isLoading: false, uploadError: '해당 가게를 찾을 수 없습니다.');
+        return;
+      }
+
+      var docSnapshot = querySnapshot.docs.first; // 첫 번째 문서 선택
+      DocumentReference docRef = docSnapshot.reference;
+
+      // Firestore에서 해당 문서 업데이트
+      await docRef.update(photoUpload.toJson());
+
+      state = state.copyWith(isLoading: false);
+      print('가게 사진이 성공적으로 업데이트되었습니다.');
+    } catch (e) {
+      print('가게 사진 업데이트 중 오류 발생: $e');
+      state = state.copyWith(
+          isLoading: false, uploadError: '업데이트에 실패했습니다. 다시 시도해주세요.');
+    }
   }
 }
 

@@ -9,7 +9,7 @@ import 'user_transfer_confirm_screen.dart'; // 유저 포인트 거래 확인 �
 import 'user_transaction_history_screen.dart';
 import '../event_home.dart';
 import 'user_account_screen.dart';
-import 'verify_password_screen.dart'; // 비밀번호 확인 화면 추가
+import '../verify_password_screen.dart'; // 비밀번호 확인 화면 추가
 import 'update_pubid_screen.dart';
 import '../privacy_policy_screen.dart';
 import '../terms_of_service_screen.dart';
