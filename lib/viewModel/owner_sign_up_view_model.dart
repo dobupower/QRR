@@ -256,20 +256,24 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
         // 문서 ID 가져오기
         final docId = querySnapshot.docs.first.id;
 
-        // 업데이트할 데이터 준비
+        // 업데이트할 데이터 준비 (null 값은 제외)
         final updatedData = {
-          'storeName': state.storeName,
-          'zipCode': state.zipCode,
-          'state': state.state,
-          'city': state.city,
-          'address': state.address,
-          'building': state.building?.isNotEmpty == true ? state.building : null,
+          if (state.storeName != null && state.storeName!.isNotEmpty) 'storeName': state.storeName,
+          if (state.zipCode != null && state.zipCode!.isNotEmpty) 'zipCode': state.zipCode,
+          if (state.state != null && state.state!.isNotEmpty) 'state': state.state,
+          if (state.city != null && state.city!.isNotEmpty) 'city': state.city,
+          if (state.address != null && state.address!.isNotEmpty) 'address': state.address,
+          if (state.building != null && state.building!.isNotEmpty) 'building': state.building,
         };
 
-        // 문서 업데이트
-        await _firestore.collection('owners').doc(docId).update(updatedData);
-
-        debugPrint('Owner 정보가 성공적으로 업데이트되었습니다.');
+        if (updatedData.isNotEmpty) {
+          // 문서 업데이트
+          await _firestore.collection('owners').doc(docId).update(updatedData);
+          debugPrint('Owner 정보가 성공적으로 업데이트되었습니다.');
+        } else {
+          debugPrint('업데이트할 데이터가 없습니다.');
+          state = state.copyWith(signUpError: '업데이트할 데이터가 없습니다。');
+        }
       } else {
         debugPrint('해당 이메일로 등록된 문서를 찾을 수 없습니다.');
         state = state.copyWith(signUpError: '등록된 이메일을 찾을 수 없습니다。');

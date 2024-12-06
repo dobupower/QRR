@@ -152,12 +152,6 @@ class StoreNameField extends ConsumerWidget {
       hint: '店舗名を入力してください',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateStoreName,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '店舗名を入力してください';
-        }
-        return null;
-      },
     );
   }
 }
@@ -180,12 +174,6 @@ class AddressFields extends ConsumerWidget {
             hint: '郵便番号を入力してください',
             screenWidth: screenWidth,
             onChanged: signUpViewModel.updateZipCode,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return '郵便番号を入力してください';
-              }
-              return null;
-            },
           ),
         ),
         SizedBox(width: screenWidth * 0.02), // Spacer between Zip Code and Prefecture
@@ -195,12 +183,6 @@ class AddressFields extends ConsumerWidget {
             hint: '都道府県を入力してください',
             screenWidth: screenWidth,
             onChanged: signUpViewModel.updateState,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return '都道府県を入力してください';
-              }
-              return null;
-            },
           ),
         ),
       ],
@@ -223,12 +205,6 @@ class CityField extends ConsumerWidget {
       hint: '市区町村を入力してください',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateCity,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '市区町村を入力してください';
-        }
-        return null;
-      },
     );
   }
 }
@@ -248,12 +224,6 @@ class AddressField extends ConsumerWidget {
       hint: '住所を入力してください',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateAddress,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '住所を入力してください';
-        }
-        return null;
-      },
     );
   }
 }
@@ -346,7 +316,6 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final double screenWidth;
   final Function(String) onChanged;
-  final String? Function(String?)? validator;
   final bool isOptional;
 
   const CustomTextField({
@@ -354,7 +323,6 @@ class CustomTextField extends StatelessWidget {
     required this.hint,
     required this.screenWidth,
     required this.onChanged,
-    this.validator,
     this.isOptional = false,
   });
 
@@ -373,13 +341,6 @@ class CustomTextField extends StatelessWidget {
             ),
             hintText: hint,
           ),
-          validator: validator ??
-              (value) {
-                if (!isOptional && (value == null || value.isEmpty)) {
-                  return '$labelを入力してください';
-                }
-                return null;
-              },
           onChanged: (value) {
             onChanged(value);
           },
