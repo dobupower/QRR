@@ -28,19 +28,33 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'ご利用店舗選択',
-          style: TextStyle(fontSize: screenWidth * 0.045), // 상대 크기 설정
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
         ),
-        centerTitle: true,
+        title: SizedBox.shrink(),  // AppBar에서 title 제거
+        backgroundColor: Colors.transparent,  // 배경을 투명으로 설정
+        elevation: 0,  // 그림자 제거
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+        padding: EdgeInsets.all(screenWidth * 0.02), // padding을 화면 너비의 2%로 설정
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: screenHeight * 0.02), // 상대 크기 설정
-            // 검색 필드
+            // 'ご利用店舗選択' 텍스트를 상단에 배치
+            Padding(
+              padding: EdgeInsets.only(top: screenHeight * 0.01), // 화면 높이의 1%로 상단 여백
+              child: Text(
+                'ご利用店舗選択', // AppBar에서 옮겨온 텍스트
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: screenWidth * 0.07, // 텍스트 크기 화면 너비의 7%
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.02), // 추가적인 여백
+
             TextField(
               onChanged: (query) {
                 final trimmedQuery = query.trim();
@@ -58,7 +72,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
                 ),
               ),
             ),
-            SizedBox(height: screenHeight * 0.02),
+            SizedBox(height: screenHeight * 0.002),
             // 필터링된 매장 리스트
             Expanded(
               child: filteredStoreNames.isEmpty
@@ -68,22 +82,31 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
                         style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.grey),
                       ),
                     )
-                  : ListView.separated(
+                  : ListView.builder(
                       itemCount: filteredStoreNames.length,
-                      separatorBuilder: (context, index) => Divider(
-                        color: Colors.grey[300],
-                        thickness: screenHeight * 0.001, // 상대 크기 설정
-                        height: screenHeight * 0.01, // 상대 크기 설정
-                      ),
                       itemBuilder: (context, index) {
                         final storeName = filteredStoreNames[index];
-                        return _buildStoreTile(
-                          context,
-                          viewModel,
-                          storeName,
-                          screenWidth,
-                          screenHeight,
-                          selectedStoreName,
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04), // 왼쪽/오른쪽 패딩 추가
+                              child: _buildStoreTile(
+                                context,
+                                viewModel,
+                                storeName,
+                                screenWidth,
+                                screenHeight,
+                                selectedStoreName,
+                              ),
+                            ),
+                            Divider(
+                              color: Colors.grey[300],
+                              thickness: screenHeight * 0.001, // 상대 크기 설정
+                              height: screenHeight * 0.005, // 항목과 간격을 좁히기 위해 줄임
+                              indent: screenWidth * 0.04, // 왼쪽 padding과 맞추기
+                              endIndent: screenWidth * 0.04, // 오른쪽 padding과 맞추기
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -103,34 +126,25 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
     double screenHeight,
     String? selectedStoreName,
   ) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-          title: Text(
-            storeName,
-            style: TextStyle(
-              fontSize: screenWidth * 0.045,
-              color: storeName == selectedStoreName ? Colors.blue : Colors.black,
-              fontWeight: storeName == selectedStoreName ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          onTap: () async {
-            final isSuccess = await viewModel.updateSelectedStoreAndPubId(storeName);
-            if (isSuccess) {
-              ref.read(userAccountProvider.notifier).updatePubId(storeName);
-              Navigator.pop(context); // 성공 시 이전 화면으로 이동
-            } else {
-              _showSnackBar(context, '更新に失敗しました。'); // 실패 시 에러 메시지 표시
-            }
-          },
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.007),
+      title: Text(
+        storeName,
+        style: TextStyle(
+          fontSize: screenWidth * 0.045,
+          color: storeName == selectedStoreName ? Colors.blue : Colors.black,
+          fontWeight: storeName == selectedStoreName ? FontWeight.bold : FontWeight.normal,
         ),
-        Divider(
-          color: Colors.grey[300],
-          thickness: screenHeight * 0.001, // 상대 크기 설정
-          height: screenHeight * 0.01, // 상대 크기 설정
-        ),
-      ],
+      ),
+      onTap: () async {
+        final isSuccess = await viewModel.updateSelectedStoreAndPubId(storeName);
+        if (isSuccess) {
+          ref.read(userAccountProvider.notifier).updatePubId(storeName);
+          Navigator.pop(context); // 성공 시 이전 화면으로 이동
+        } else {
+          _showSnackBar(context, '更新に失敗しました。'); // 실패 시 에러 메시지 표시
+        }
+      },
     );
   }
 
