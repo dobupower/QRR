@@ -10,12 +10,6 @@ class OwnerAccountScreen extends ConsumerWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
-    final localizations = AppLocalizations.of(context);
-if (localizations == null) {
-  print("Localization is null");
-} else {
-  print("Localization is available");
-}
 
     // 병합된 상태를 Provider에서 직접 가져오기
     final combinedState = ref.watch(ownerAccountProvider);
