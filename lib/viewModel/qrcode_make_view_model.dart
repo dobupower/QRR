@@ -8,11 +8,6 @@ import '../model/qr_code_model.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// 포인트 상태 관리
-final userPointsProvider = StateNotifierProvider<UserPointsViewModel, AsyncValue<int>>((ref) {
-  return UserPointsViewModel();
-});
-
 // StateNotifierProvider로 상태 관리
 final qrCodeProvider = StateNotifierProvider<QrCodeViewModel, AsyncValue<QrCode?>>((ref) {
   return QrCodeViewModel();
@@ -46,19 +41,35 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
         .limit(1)
         .snapshots()
         .listen((querySnapshot) async {
-      if (querySnapshot.docs.isNotEmpty) {
-        var qrDoc = querySnapshot.docs.first;
-        final qrCode = QrCode.fromJson(qrDoc.data());
-
-        bool isUsed = qrCode.isUsed;
-        DateTime expiryDate = DateTime.parse(qrCode.expiryDate);
-
-        if (isUsed || DateTime.now().isAfter(expiryDate)) {
-          // QR 코드가 사용되었거나 만료된 경우 새 QR 코드 생성 및 상태 업데이트
+      // 문서가 없는 경우 새 QR 코드를 생성하고 종료
+      if (querySnapshot.docs.isEmpty) {
+        try {
           await generateAndMonitorQrCode(email);
-        } else {
-          // 유효한 QR 코드가 있을 경우 상태 업데이트
-          // Firestore에서 가져온 평문 데이터를 암호화하여 QR 코드 상태로 설정
+        } catch (e, stackTrace) {
+          // 예외 로깅 및 상태 업데이트
+          state = AsyncValue.error(e, stackTrace);
+        }
+        return;
+      }
+
+      // 문서가 있는 경우
+      var qrDoc = querySnapshot.docs.first;
+      final qrCode = QrCode.fromJson(qrDoc.data());
+
+      bool isUsed = qrCode.isUsed;
+      DateTime expiryDate = DateTime.parse(qrCode.expiryDate);
+
+      // QR 코드 상태 확인 및 처리
+      if (isUsed || DateTime.now().isAfter(expiryDate)) {
+        try {
+          await generateAndMonitorQrCode(email);
+        } catch (e, stackTrace) {
+          // 예외 로깅 및 상태 업데이트
+          state = AsyncValue.error(e, stackTrace);
+        }
+      } else {
+        try {
+          // 유효한 QR 코드가 있을 경우 데이터를 암호화하여 상태 업데이트
           String encryptedQrCode = await _callEncryptApi({
             'token': qrCode.token,
             'createdAt': qrCode.createdAt,
@@ -66,7 +77,7 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
             'email': qrCode.userId,
           });
 
-          // 암호화된 QR 코드 데이터를 상태로 업데이트
+          // 암호화된 QR 코드 상태로 설정
           final encryptedQrCodeModel = QrCode(
             token: encryptedQrCode,
             createdAt: qrCode.createdAt,
@@ -76,10 +87,10 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
           );
 
           state = AsyncValue.data(encryptedQrCodeModel);
+        } catch (e, stackTrace) {
+          // 암호화 API 호출 또는 상태 업데이트 중 예외 처리
+          state = AsyncValue.error(e, stackTrace);
         }
-      } else {
-        // QR 코드가 없을 때 새로 생성
-        await generateAndMonitorQrCode(email);
       }
     });
   }
@@ -189,36 +200,5 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
       }
     }
     return uuid;
-  }
-}
-
-// 사용자 포인트 관리 ViewModel
-class UserPointsViewModel extends StateNotifier<AsyncValue<int>> {
-  UserPointsViewModel() : super(const AsyncValue.loading()) {
-    monitorUserPoints(); // 초기 포인트 로드
-  }
-
-  // Firestore에서 사용자 포인트를 실시간으로 감시
-  Future<void> monitorUserPoints() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? email = prefs.getString('email');
-
-    if (email != null) {
-      FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: email)
-          .snapshots()
-          .listen((querySnapshot) {
-        if (querySnapshot.docs.isNotEmpty) {
-          final userDoc = querySnapshot.docs.first;
-          final points = userDoc.data()['points'] ?? 0;
-          state = AsyncValue.data(points); // 포인트 상태 업데이트
-        } else {
-          state = AsyncValue.data(0); // 사용자가 없으면 0 포인트
-        }
-      });
-    } else {
-      state = AsyncValue.error('사용자 이메일이 없습니다.', StackTrace.current);
-    }
   }
 }

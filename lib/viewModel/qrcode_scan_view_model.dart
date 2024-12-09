@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../model/qr_code_model.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class QRViewModel extends StateNotifier<QrCode?> {
@@ -50,6 +52,9 @@ class QRViewModel extends StateNotifier<QrCode?> {
 
         state = qrCode; // QrCode 상태 업데이트
 
+        // QR 코드 유효성 검사
+        await validateQrCode(context, qrCode);
+        
         // 성공 시 OwnerHomeScreen 내에서 PointManagementScreen으로 이동
         Navigator.pushNamed(context, '/pointManagement');
       } catch (e) {
@@ -59,6 +64,73 @@ class QRViewModel extends StateNotifier<QrCode?> {
         controller?.pauseCamera(); // 비동기 작업 완료 후 카메라 일시정지
       }
     });
+  }
+
+  // QR 코드 유효성 검사 함수
+  Future<void> validateQrCode(BuildContext context, QrCode qrCode) async {
+    try {
+      final token = qrCode.token;
+      final currentDateTime = DateTime.now();
+      print('Token: $token');
+
+      // Firestore에서 qrcodes 컬렉션에서 해당 토큰의 문서를 찾음
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('qrcodes')
+          .where('token', isEqualTo: token)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        _showSnackbar(context, "유효하지 않은 QR 코드입니다.", Colors.red);
+        return;
+      }
+
+      final doc = querySnapshot.docs.first;
+      final data = doc.data();
+
+      // 데이터에서 필요한 필드를 추출
+      final isUsed = data['isUsed'] as bool;
+      final expiryDateString = data['expiryDate'] as String;
+
+      // String을 DateTime으로 변환
+      final expiryDate = _parseDateTime(expiryDateString);
+
+      // 유효성 검사
+      if (!isUsed && expiryDate.isAfter(currentDateTime)) {
+        // 조건이 만족될 경우 PointManagementScreen으로 이동
+        Navigator.pushNamed(context, '/pointManagement');
+      } else {
+        // 조건이 만족되지 않을 경우 Snackbar로 오류 메시지 표시
+        _showSnackbar(
+          context,
+          "QR Code가 만료되었습니다. 새로운 QR Code를 생성하여 다시 시도해 주세요.",
+          Colors.red,
+        );
+      }
+    } catch (e) {
+      print('QR 코드 유효성 검사 중 오류 발생: $e');
+      _showSnackbar(
+        context,
+        "QR 코드 검증 중 오류가 발생했습니다. 다시 시도해 주세요.",
+        Colors.red,
+      );
+    }
+  }
+
+  /// 날짜 문자열을 DateTime으로 변환
+  DateTime _parseDateTime(String dateString) {
+    final DateFormat format = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return format.parse(dateString);
+  }
+
+  /// Snackbar 표시
+  void _showSnackbar(BuildContext context, String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+      ),
+    );
   }
 
   // 카메라 재개 함수

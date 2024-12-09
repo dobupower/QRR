@@ -86,7 +86,7 @@ class SettingsBody extends StatelessWidget {
           // 설정 항목 2: 이용약관
           SettingsListTile(
             title: '利用規約', // 이용약관
-            onTap: () => Navigator.pushNamed(context, '/termsOfService'),
+            onTap: () => Navigator.pushNamed(context, '/termsOfservice'),
           ),
           Divider(
             color: dividerColor[300],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/owner_account_view_model.dart';
 import '../../../services/auth_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OwnerAccountScreen extends ConsumerWidget {
   @override
@@ -107,7 +108,7 @@ class OwnerAccountScreen extends ConsumerWidget {
             Navigator.pushNamed(context, '/SignupUpdate'); // 매장 선택 화면 이동
           },
           child: _buildInfoRow(
-            title: '${owner.storeName ?? '未登録'}@${owner.address ?? ''}', // storeName과 address 결합
+            title: '${owner.storeName ?? AppLocalizations.of(context)!.unregistered}@${owner.address ?? ''}', // storeName과 address 결합
             value: '',
             isLongText: true,
             screenWidth: screenWidth,
@@ -115,7 +116,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           ),
         ),
         _buildInfoRow(
-          title: 'メールアドレス',
+          title: AppLocalizations.of(context)!.email,
           value: owner.email,
           isLongText: true,
           screenWidth: screenWidth,
@@ -196,7 +197,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'パスワード変更',
+              AppLocalizations.of(context)!.passwordChange,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: screenWidth * 0.04,
@@ -226,7 +227,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '店舗写真設定',
+              AppLocalizations.of(context)!.storePhotoSetting,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: screenWidth * 0.04,
@@ -270,7 +271,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           minimumSize: Size(screenWidth, screenHeight * 0.05),
         ),
         child: Text(
-          'ログアウト',
+          AppLocalizations.of(context)!.logout,
           style: TextStyle(
             fontSize: screenWidth * 0.04,
             fontWeight: FontWeight.bold,
