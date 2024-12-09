@@ -1,0 +1,8 @@
+{
+  "storeName": "店舗名",
+  "unregistered": "未登録",
+  "email": "メールアドレス",
+  "passwordChange": "パスワード変更",
+  "storePhotoSetting": "店舗写真設定",
+  "logout": "ログアウト"
+}

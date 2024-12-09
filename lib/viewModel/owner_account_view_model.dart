@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../model/owner_model.dart';
 import '../model/photo_upload_model.dart';
 import '../services/preferences_manager.dart';

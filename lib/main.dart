@@ -12,6 +12,8 @@ import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
 import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
 import 'services/preferences_manager.dart'; // 싱글톤 PreferencesManager 가져오기
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // 다언어 설정
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -29,6 +31,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [  // 다언어 설정
+        AppLocalizations.delegate, 
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [ // 다언어 설정
+        Locale('ko', ''), //한국어
+        Locale('en', ''), //영어
+        Locale('ja', ''), //일본어
+      ],
       home: FutureBuilder(
         future: _getLoginStatus(),
         builder: (context, snapshot) {
