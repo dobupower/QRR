@@ -47,17 +47,6 @@
       			<string>com.googleusercontent.apps.95994485173-sbprlovmdbjk6g8sptvu2ae4lfck8ff5</string>
     		</array>
   		</dict>
-		<dict>
-        	<key>CFBundleURLSchemes</key>
-			<array>
-				<string>line3rdp.$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-			</array>
-    	</dict>
-	</array>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<!-- Specify URL scheme to use when launching LINE from your app. -->
-		<string>lineauth2</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

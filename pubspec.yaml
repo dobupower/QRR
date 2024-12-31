@@ -57,7 +57,6 @@ dependencies:
   cloud_functions: ^5.0.4
   cached_network_image: ^3.4.0
   flutter_line_sdk: ^2.3.8
-  jwt_decoder: ^2.0.1
 
 dev_dependencies:
   freezed: 2.5.7
