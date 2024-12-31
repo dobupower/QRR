@@ -19,7 +19,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
       final currentUserEmail = await PreferencesManager.instance.getEmail();
 
       final nameSnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('name', isGreaterThanOrEqualTo: query)
           .where('name', isLessThan: query + 'z')
           .get();
@@ -31,7 +31,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
       }
 
       final uidSnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('uid', isEqualTo: query)
           .get();
 
@@ -55,7 +55,7 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
   // Firestore에서 특정 UID로 사용자 정보를 가져와 업데이트하는 함수
   Future<void> updateUserByUid(String uid) async {
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final userDoc = await FirebaseFirestore.instance.collection('Users').doc(uid).get();
 
       if (userDoc.exists) {
         final userData = userDoc.data();
@@ -97,14 +97,14 @@ class UserPointsUidViewModel extends StateNotifier<UserPointsUidState> {
     }
 
     try {
-      final senderDoc = await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: senderEmail).get();
+      final senderDoc = await FirebaseFirestore.instance.collection('Users').where('email', isEqualTo: senderEmail).get();
       if (senderDoc.docs.isEmpty) {
         return false;
       }
 
       final senderUid = senderDoc.docs.first.id;
-      final senderDocRef = FirebaseFirestore.instance.collection('users').doc(senderUid);
-      final receiverDocRef = FirebaseFirestore.instance.collection('users').doc(receiverUser.uid);
+      final senderDocRef = FirebaseFirestore.instance.collection('Users').doc(senderUid);
+      final receiverDocRef = FirebaseFirestore.instance.collection('Users').doc(receiverUser.uid);
 
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         final senderSnapshot = await transaction.get(senderDocRef);

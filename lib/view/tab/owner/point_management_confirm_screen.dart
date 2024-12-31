@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // For number formatting
 import '../../../viewModel/point_management_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PointManagementConfirmScreen extends ConsumerStatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
     super.initState();
     // 초기화 시 한 번만 fetchUserData 호출
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(transactionProvider.notifier).fetchUserData(ref);
+      ref.read(transactionProvider.notifier).fetchUserData(ref, context);
     });
   }
 
@@ -24,6 +25,7 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     // transactionProvider의 상태를 구독
     final transaction = ref.watch(transactionProvider);
@@ -38,22 +40,18 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
     Color backgroundColor;
     String displayText;
 
-    switch (transaction?.type) {
-      case 'チャージ':
-        backgroundColor = Color(0xFF4CAF50); // 초록색
-        displayText = 'チャージ完了';
-        break;
-      case 'チップ交換':
-        backgroundColor = Color(0xFF2196F3); // 파란색
-        displayText = 'チップ交換';
-        break;
-      case 'お支払い':
-        backgroundColor = Color(0xFFF44336); // 빨간색
-        displayText = 'お支払い';
-        break;
-      default:
-        backgroundColor = Colors.grey; // 기본색 (없을 경우)
-        displayText = '타입 없음';
+    if (transaction?.type == localizations?.pointManagementConfirmScreenCharge1) {
+      backgroundColor = Color(0xFF4CAF50); // 초록색
+      displayText = localizations?.pointManagementConfirmScreenCharge2 ?? '';
+    } else if (transaction?.type == localizations?.pointManagementConfirmScreenChange) {
+      backgroundColor = Color(0xFF2196F3); // 파란색
+      displayText = localizations?.pointManagementConfirmScreenChange ?? '';
+    } else if (transaction?.type == localizations?.pointManagementConfirmScreenSpend) {
+      backgroundColor = Color(0xFFF44336); // 빨간색
+      displayText = localizations?.pointManagementConfirmScreenSpend ?? '';
+    } else {
+      backgroundColor = Colors.grey; // 기본색 (없을 경우)
+      displayText = '타입 없음';
     }
 
     return PopScope<Object?>(
@@ -72,7 +70,7 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
               Padding(
                 padding: EdgeInsets.only(top: screenHeight * 0.05), // 화면 높이의 5%만큼 상단 여백
                 child: Text(
-                  'ポイント管理',
+                  localizations?.pointManagementConfirmScreenTitle ?? '',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: screenWidth * 0.07, // 텍스트 크기 화면 너비의 4.5%
@@ -111,7 +109,7 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
                       children: [
                         // Firestore에서 가져온 사용자 이름을 표시
                         Text(
-                          transaction?.name ?? 'ユーザー名を取得中...',
+                          transaction?.name ?? localizations?.pointManagementConfirmScreenNameLoading ?? '',
                           style: TextStyle(
                             fontSize: screenWidth * 0.045, // 텍스트 크기를 4/3로 줄임
                             fontWeight: FontWeight.bold,
@@ -200,7 +198,7 @@ class _PointManagementConfirmScreenState extends ConsumerState<PointManagementCo
                     ),
                     child: Center(
                       child: Text(
-                        'ホームへ',
+                        localizations?.pointManagementConfirmScreenHome ?? '',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: screenWidth * 0.045,

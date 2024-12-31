@@ -13,6 +13,7 @@ import '../verify_password_screen.dart'; // 비밀번호 확인 화면 추가
 import 'update_pubid_screen.dart';
 import '../privacy_policy_screen.dart';
 import '../terms_of_service_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // UserHomeScreen 클래스는 ConsumerWidget을 사용하여 상태 관리
 class UserHomeScreen extends ConsumerWidget {
@@ -20,6 +21,7 @@ class UserHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // tabViewModelProvider를 구독하여 현재 선택된 탭의 인덱스를 가져옴
     final currentIndex = ref.watch(tabViewModelProvider);
+    final localizations = AppLocalizations.of(context);
 
     // 각 탭에 해당하는 화면을 저장하는 리스트
     final List<Widget> pages = [
@@ -44,11 +46,11 @@ class UserHomeScreen extends ConsumerWidget {
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'ホーム',
+            label: localizations?.ownerHomeScreenHome ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: '取引履歴',
+            label: localizations?.ownerHomeScreenTransactionHistory ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.qr_code_scanner),
@@ -56,11 +58,11 @@ class UserHomeScreen extends ConsumerWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
-            label: 'アカウント',
+            label: localizations?.ownerHomeScreenAccount ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: '設定',
+            label: localizations?.ownerHomeScreenSetting ?? '',
           ),
         ],
         type: BottomNavigationBarType.fixed,

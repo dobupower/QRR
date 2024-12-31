@@ -15,6 +15,7 @@ const decryptEndpoint = process.env.DECRYPT_ENDPOINT;
 const EmailEndpoint = process.env.EMAIL_ENDPOINT;
 const OwnerEmailEndpoint = process.env.OWNER_EMAIL_ENDPOINT;
 const UidEndpoint = process.env.UID_ENDPOINT;
+const OwnerCollectionEndpoint = process.env.OWNER_COLLECTION_ENDPOINT;
 const region = process.env.REGION;
 
 /**
@@ -177,7 +178,7 @@ exports[EmailEndpoint] = functions.https.onCall(
           );
         }
 
-        return await getUserData("users", "email", email);
+        return await getUserData("Users", "email", email);
       } catch (error) {
         console.error("이메일 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
@@ -204,7 +205,7 @@ exports[OwnerEmailEndpoint] = functions.https.onCall(
           );
         }
 
-        return await getUserData("owners", "email", email);
+        return await getUserData("Owners", "email", email);
       } catch (error) {
         console.error("오너 이메일 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
@@ -231,12 +232,43 @@ exports[UidEndpoint] = functions.https.onCall(
           );
         }
 
-        return await getUserData("users", "uid", uid);
+        return await getUserData("Users", "uid", uid);
       } catch (error) {
         console.error("UID 존재 여부 확인 오류:", error);
         throw new functions.https.HttpsError(
             "internal",
             "UID 존재 여부 확인에 실패했습니다.",
+            error.message,
+        );
+      }
+    },
+);
+
+// 모든 오너 정보 가져오기
+exports[OwnerCollectionEndpoint] = functions.https.onCall(
+    {
+      region: region,
+    },
+    async (request) => {
+      try {
+        const ownersRef = admin.firestore().collection("Owners");
+        const snapshot = await ownersRef.get();
+
+        if (snapshot.empty) {
+          throw new Error("오너 데이터가 없습니다.");
+        }
+        // 모든 오너 데이터를 배열로 반환
+        const ownersData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        return {owners: ownersData};
+      } catch (error) {
+        console.error("오너 정보 가져오기 오류:", error);
+        throw new functions.https.HttpsError(
+            "internal",
+            "오너 정보를 가져오는데 실패했습니다.",
             error.message,
         );
       }

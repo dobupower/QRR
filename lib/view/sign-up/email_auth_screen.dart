@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/sign_up_view_model.dart'; // SignUpViewModel 가져오기
-import '../../model/user_model.dart'; // User 모델 가져오기
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // 이메일 인증 화면 클래스 (ConsumerWidget을 사용하여 Riverpod 상태를 감시)
 class EmailAuthScreen extends ConsumerWidget {
-  final User user; // 이메일 인증 대상인 사용자
-
-  // 생성자에서 필수적으로 User 객체를 받아옴
-  EmailAuthScreen({required this.user});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,6 +12,7 @@ class EmailAuthScreen extends ConsumerWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     // SignUpState 및 SignUpViewModel 상태를 감시
     final signUpState = ref.watch(signUpViewModelProvider); 
@@ -43,7 +40,7 @@ class EmailAuthScreen extends ConsumerWidget {
             children: [
               Center(
                 child: Text(
-                  'アカウント認証', // 'アカウント認証' = 계정 인증
+                  localizations?.emailAuthScreenAccount ?? '', // 'アカウント認証' = 계정 인증
                   style: TextStyle(
                     fontSize: screenWidth * 0.07,
                     fontWeight: FontWeight.bold,
@@ -53,21 +50,21 @@ class EmailAuthScreen extends ConsumerWidget {
               SizedBox(height: screenHeight * 0.02),
               Center(
                 child: Text(
-                  '${user.email}に認証コードを送りました。\n認証コードを入力してください。',
+                  ('${signUpState.emailController?.text ?? ''}') + (localizations?.emailAuthScreenCodeSend ?? '') + '\n' + (localizations?.emailAuthScreenCodeInput2 ?? ''),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: screenWidth * 0.038, color: Colors.black),
                 ),
               ),
               SizedBox(height: screenHeight * 0.04),
               Text(
-                '認証コード', // '認証コード' = 인증 코드
+                localizations?.emailAuthScreenCode ?? '', // '認証コード' = 인증 코드
                 style: TextStyle(fontSize: screenWidth * 0.045),
               ),
               SizedBox(height: screenHeight * 0.01),
               TextField(
                 controller: signUpState.codeController ?? TextEditingController(), // null일 경우 빈 컨트롤러 생성
                 decoration: InputDecoration(
-                  hintText: '4桁コードを入力', // '4桁コードを入力' = 4자리 코드를 입력
+                  hintText: localizations?.emailAuthScreenCodeInput1 ?? '', // '4桁コードを入力' = 4자리 코드를 입력
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(screenWidth * 0.03),
                     borderSide: BorderSide(color: Colors.grey),
@@ -80,13 +77,13 @@ class EmailAuthScreen extends ConsumerWidget {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    signUpViewModel.resendVerificationCode();
+                    signUpViewModel.resendVerificationCode(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('新しいコードが送信されました。')),
+                      SnackBar(content: Text(localizations?.emailAuthScreenCodeResend1?? '')),
                     );
                   },
                   child: Text(
-                    'コード再送する', // 'コード再送する' = 코드 재전송
+                    localizations?.emailAuthScreenCodeResend2 ?? '', // 'コード再送する' = 코드 재전송
                     style: TextStyle(color: Colors.blue, fontSize: screenWidth * 0.04),
                   ),
                 ),
@@ -99,10 +96,10 @@ class EmailAuthScreen extends ConsumerWidget {
                       // 입력된 코드를 기반으로 인증 처리
                       final code = signUpState.codeController?.text ?? ''; // null 체크
                       if (code.isNotEmpty) {
-                        await signUpViewModel.verifyCode(code, context, user);
+                        await signUpViewModel.verifyCode(code, context);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('認証コードを入力してください。')),
+                          SnackBar(content: Text(localizations?.emailAuthScreenCodeInput2 ?? '')),
                         );
                       }
                     },
@@ -114,7 +111,7 @@ class EmailAuthScreen extends ConsumerWidget {
                       ),
                     ),
                     child: Text(
-                      'アカウント認証', // 'アカウント認証' = 계정 인증
+                      localizations?.emailAuthScreenAccount ?? '', // 'アカウント認証' = 계정 인증
                       style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white),
                     ),
                   ),

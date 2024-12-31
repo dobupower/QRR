@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/transaction_model.dart' as CustomTransaction;
 import 'qrcode_scan_view_model.dart';
 import '../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Transaction 상태를 관리하는 Provider 정의
 final transactionProvider = StateNotifierProvider<TransactionViewModel, CustomTransaction.Transaction?>((ref) {
@@ -14,13 +16,14 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   TransactionViewModel() : super(null);
 
   // email과 uid 조건을 모두 처리하여 사용자 데이터를 가져오는 메서드
-  Future<void> fetchUserData(WidgetRef ref) async {
+  Future<void> fetchUserData(WidgetRef ref, BuildContext context) async {
     try {
       String? email = ref.read(qrViewModelProvider)?.userId;
       String? uid = state?.uid;
 
       if (email != null || uid != null) {
-        await _fetchAndUpdateUserData(email: email, uid: uid);
+        // Pass 'context' here to the next method
+        await _fetchAndUpdateUserData(email: email, uid: uid, context: context); 
       }
     } catch (e) {
       print('오류 발생: $e');
@@ -28,8 +31,8 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   }
 
   // email 또는 uid로 사용자 정보 조회하여 상태 업데이트
-  Future<void> _fetchAndUpdateUserData({String? email, String? uid}) async {
-    final query = FirebaseFirestore.instance.collection('users');
+  Future<void> _fetchAndUpdateUserData({String? email, String? uid, required BuildContext context}) async {
+    final query = FirebaseFirestore.instance.collection('Users');
     QuerySnapshot querySnapshot;
 
     if (email != null) {
@@ -46,7 +49,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
       final data = userIdDoc.data() as Map<String, dynamic>;
 
       if (data.containsKey('name') && data.containsKey('points')) {
-        _updateTransactionState(data);
+        _updateTransactionState(data, context); // Pass BuildContext here
       } else {
         print('사용자 정보를 찾을 수 없습니다.');
       }
@@ -54,11 +57,11 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   }
 
   // Transaction 상태를 업데이트하는 메서드
-  void _updateTransactionState(Map<String, dynamic> data) {
+  void _updateTransactionState(Map<String, dynamic> data, BuildContext context) {
     state = CustomTransaction.Transaction(
       transactionId: '',
       uid: data['uid'] ?? '',
-      type: state?.type ?? 'チャージ',
+      type: state?.type ?? AppLocalizations.of(context)?.pointManagementConfirmScreenCharge1 ?? '',
       amount: state?.amount ?? 0,
       timestamp: DateTime.now(),
       pubId: data['name'] ?? '',
@@ -70,11 +73,12 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   }
 
   // 사용자 포인트를 업데이트하는 메서드 (충전 또는 차감)
-  Future<String?> updateUserPoints(WidgetRef ref) async {
+  Future<String?> updateUserPoints(WidgetRef ref, BuildContext context) async {
     try {
       // 현재 Transaction의 이메일과 관련 사용자 이메일을 가져옴
       final email = state?.email;
       final relatedUserEmail = await PreferencesManager.instance.getEmail();
+      final localizations = AppLocalizations.of(context);
       
       // 이메일이 없으면 오류 메시지 반환
       if (email == null || relatedUserEmail == null) {
@@ -83,7 +87,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
 
       // owners 컬렉션에서 relatedUserEmail과 일치하는 문서에서 pointLimit 가져오기
       final ownersSnapshot = await FirebaseFirestore.instance
-          .collection('owners')
+          .collection('Owners')
           .where('email', isEqualTo: relatedUserEmail)
           .limit(1)
           .get();
@@ -104,7 +108,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
 
       // Firestore에서 사용자의 현재 포인트 정보 조회
       final userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('email', isEqualTo: email)
           .limit(1)
           .get();
@@ -118,23 +122,33 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
       int currentPoint = userDoc['points'] as int; // 현재 포인트 가져오기
 
       // 트랜잭션 타입에 따라 포인트 조정 (충전 또는 차감)
-      final adjustment = (state?.type == 'チャージ') ? state?.amount ?? 0 : -(state?.amount ?? 0);
+      final adjustment = (state?.type == localizations?.pointManagementConfirmScreenCharge1 ?? false) ? state?.amount ?? 0 : -(state?.amount ?? 0);
 
       // 포인트가 0 미만이 되지 않도록 검사
-      if (state?.type != 'チャージ' && currentPoint + adjustment < 0) {
+      if (state?.type != localizations?.pointManagementConfirmScreenCharge1 && currentPoint + adjustment < 0) {
         print('현재 포인트가 부족하여 거래를 진행할 수 없습니다.');
-        return '현재 포인트가 부족하여 거래를 진행할 수 없습니다.';
+        return localizations?.pointManagementScreenError;
       }
 
       // 새로운 포인트 값 계산 후 Firestore 업데이트
       int newPoint = (currentPoint + adjustment).clamp(0, double.infinity).toInt();
-      await FirebaseFirestore.instance.collection('users').doc(userDoc.id).update({'points': newPoint});
+      await FirebaseFirestore.instance.collection('Users').doc(userDoc.id).update({'points': newPoint});
+
+      // 트랜잭션 타입 변환
+      String transactionType = '';
+      if (state?.type == localizations?.pointManagementConfirmScreenCharge1 ?? false) {
+        transactionType = 'charge';
+      } else if (state?.type == localizations?.pointManagementConfirmScreenChange ?? false) {
+        transactionType = 'transfer';
+      } else if (state?.type == localizations?.pointManagementConfirmScreenSpend ?? false) {
+        transactionType = 'spend';
+      }
 
       // 트랜잭션 기록을 Firestore에 추가
       final transactionRef = await FirebaseFirestore.instance.collection('Transactions').add({
         'userId': state!.uid, // 트랜잭션 사용자 ID
         'relatedUserId': relatedUserEmail, // 관련 사용자 ID
-        'type': state?.type ?? 'チャージ', // 트랜잭션 타입
+        'type': transactionType, // 변환된 트랜잭션 타입
         'amount': state?.amount ?? 0, // 트랜잭션 금액
         'timestamp': FieldValue.serverTimestamp(), // 트랜잭션 시간 (서버 시간)
         'pubId': await _getPubId(relatedUserEmail), // 관련 사용자 ID로 Pub ID 가져오기
@@ -162,7 +176,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   // QR 코드의 사용 상태를 업데이트하는 메서드
   Future<void> _updateQrCodeIsUsed(String token) async {
     final querySnapshot = await FirebaseFirestore.instance
-        .collection('qrcodes')
+        .collection('Qrcodes')
         .where('token', isEqualTo: token)
         .limit(1)
         .get();
@@ -202,13 +216,13 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   }
 
   // 트랜잭션에 사용자 uid를 설정하는 메서드
-  void updateUid(String newUid) {
+  void updateUid(String newUid,  BuildContext context) {
     // 상태가 null이면 새로운 Transaction 객체를 생성하여 uid 설정
     if (state == null) {
       state = CustomTransaction.Transaction(
         transactionId: '',
         uid: newUid,
-        type: state?.type ?? 'チャージ',
+        type: state?.type ?? AppLocalizations.of(context)?.pointManagementConfirmScreenCharge1 ?? '',
         amount: 0,
         timestamp: DateTime.now(),
         pubId: '',
@@ -228,7 +242,7 @@ class TransactionViewModel extends StateNotifier<CustomTransaction.Transaction?>
   Future<bool> verifyUserUid(String uid) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('uid', isEqualTo: uid)
           .limit(1)
           .get();

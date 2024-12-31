@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'user/user_account_screen.dart';
 import '../../services/auth_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class VerifyPasswordScreen extends ConsumerStatefulWidget {
   @override
@@ -76,7 +76,7 @@ class HeaderSection extends StatelessWidget {
         top: screenHeight * 0.03,
       ),
       child: Text(
-        'パスワード確認', // 일본어로 비밀번호 확인
+        AppLocalizations.of(context)?.ownerSignUpScreenPasswordConfirm1 ?? '', // 일본어로 비밀번호 확인
         style: TextStyle(
           fontSize: screenWidth * 0.06,
           fontWeight: FontWeight.bold,
@@ -98,7 +98,7 @@ class InstructionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        '現在のパスワードを入力してください',
+        AppLocalizations.of(context)?.verifyPasswordScreenPassword1 ?? '',
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: screenWidth * 0.05,
@@ -125,7 +125,7 @@ class PasswordInputSection extends StatelessWidget {
       controller: passwordController,
       obscureText: true,
       decoration: InputDecoration(
-        labelText: '現在のパスワード',
+        labelText: AppLocalizations.of(context)?.verifyPasswordScreenPassword2 ?? '',
         labelStyle: TextStyle(
           fontSize: screenWidth * 0.045,
           color: Colors.grey,
@@ -165,6 +165,8 @@ class SubmitButtonSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthService _authService = AuthService();
+    final localizations = AppLocalizations.of(context);
+
     return Center(
       child: ElevatedButton(
         onPressed: () async {
@@ -174,7 +176,7 @@ class SubmitButtonSection extends StatelessWidget {
           if (password.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('パスワードを入力してください。'), // 비밀번호를 입력해 주세요.
+                content: Text(localizations?.ownerSignUpScreenPassword2 ?? ''), // 비밀번호를 입력해 주세요.
                 backgroundColor: Colors.red,
               ),
             );
@@ -182,13 +184,13 @@ class SubmitButtonSection extends StatelessWidget {
           }
           
           // 비밀번호 인증 요청
-          final isValid = await _authService.validatePassword(password);
+          final isValid = await _authService.validatePassword(password, context);
 
           if (isValid) {
             // 성공 시 비밀번호 재설정 화면으로 이동
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('비밀번호 변경 이메일을 보냈습니다。'),
+                content: Text(localizations?.verifyPasswordScreenMail ?? ''),
                 backgroundColor: Colors.green,
               ),
             );
@@ -196,7 +198,7 @@ class SubmitButtonSection extends StatelessWidget {
             // 실패 시 에러 메시지 표시
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('パスワードが一致しません。'),
+                content: Text(localizations?.verifyPasswordScreenPasswordFail ?? ''),
                 backgroundColor: Colors.red,
               ),
             );
@@ -214,7 +216,7 @@ class SubmitButtonSection extends StatelessWidget {
           ),
         ),
         child: Text(
-          '確認',
+          localizations?.meberInputScreenSubmit ?? '',
           style: TextStyle(
             fontSize: screenWidth * 0.045,
             fontWeight: FontWeight.bold,

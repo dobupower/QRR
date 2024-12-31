@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/owner_sign_up_view_model.dart';
 import '../../model/owner_signup_state_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OwnerEmailAuthScreen extends ConsumerStatefulWidget {
   @override
@@ -40,12 +41,12 @@ class _OwnerEmailAuthScreenState extends ConsumerState<OwnerEmailAuthScreen> {
     );
   }
 
-  void handleVerificationState(
-      BuildContext context, OwnerSignUpState signUpState, OwnerSignUpViewModel signUpViewModel) {
+  void handleVerificationState(BuildContext context, OwnerSignUpState signUpState, OwnerSignUpViewModel signUpViewModel) {
+    final localizations = AppLocalizations.of(context);
     if (signUpState.verificationSuccess) {
       Navigator.popUntil(context, (route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('アカウント登録が完了しました。')),
+        SnackBar(content: Text(localizations?.ownerEmailAuthScreenOkay ?? '')),
       );
       signUpViewModel.resetVerificationSuccess();
     }
@@ -59,7 +60,7 @@ class _OwnerEmailAuthScreenState extends ConsumerState<OwnerEmailAuthScreen> {
 
     if (signUpState.resendCodeSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('新しいコードが送信されました。')),
+        SnackBar(content: Text(localizations?.emailAuthScreenCodeResend1 ?? '')),
       );
       signUpViewModel.resetResendCodeSuccess();
     }
@@ -138,7 +139,7 @@ class TitleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'アカウント認証',
+        AppLocalizations.of(context)?.emailAuthScreenAccount ?? '',
         style: TextStyle(
           fontSize: screenSize.width * 0.07,
           fontWeight: FontWeight.bold,
@@ -156,9 +157,11 @@ class DescriptionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return Center(
       child: Text(
-        '${ownerEmail ?? ''}に認証コードを送りました。\n認証コードを入力してください。',
+        ('${ownerEmail ?? ''}') + (localizations?.emailAuthScreenCodeSend ?? '') + '\n' + (localizations?.emailAuthScreenCodeInput2 ?? ''),
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: screenSize.width * 0.038,
@@ -177,18 +180,20 @@ class CodeInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '認証コード',
+          localizations?.emailAuthScreenCode ?? '',
           style: TextStyle(fontSize: screenSize.width * 0.045),
         ),
         SizedBox(height: screenSize.height * 0.01),
         TextField(
           controller: codeController,
           decoration: InputDecoration(
-            hintText: '4桁コードを入力',
+            hintText: localizations?.emailAuthScreenCodeInput1 ?? '',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(screenSize.width * 0.03),
               borderSide: BorderSide(color: Colors.grey),
@@ -212,10 +217,10 @@ class ResendCodeButton extends StatelessWidget {
     return Center(
       child: TextButton(
         onPressed: () {
-          signUpViewModel.resendVerificationCode();
+          signUpViewModel.resendVerificationCode(context);
         },
         child: Text(
-          'コード再送する',
+          AppLocalizations.of(context)?.emailAuthScreenCodeResend2 ?? '',
           style: TextStyle(color: Colors.blue),
         ),
       ),
@@ -239,7 +244,7 @@ class SubmitButton extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () async {
-          await signUpViewModel.verifyCode(codeController.text);
+          await signUpViewModel.verifyCode(codeController.text, context);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF1D2538),
@@ -252,7 +257,7 @@ class SubmitButton extends StatelessWidget {
           ),
         ),
         child: Text(
-          'アカウント認証',
+          AppLocalizations.of(context)?.emailAuthScreenAccount ?? '',
           style: TextStyle(
             fontSize: screenSize.width * 0.045,
             color: Colors.white,

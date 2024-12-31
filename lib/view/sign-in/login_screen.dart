@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/sign_up_view_model.dart';
 import '../../viewModel/sign_in_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   @override
@@ -39,6 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final signUpState = ref.watch(signUpViewModelProvider);
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               SizedBox(height: screenHeight * 0.02),
               Center(
                 child: Text(
-                  'ログイン',
+                  localizations?.firstScreenLogin ?? '',
                   style: TextStyle(
                     fontSize: screenHeight * 0.03,
                     fontWeight: FontWeight.bold,
@@ -120,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // 비밀번호 복구 로직
                   },
                   child: Text(
-                    'パスワードを忘れた方はこちら',
+                    localizations?.loginScreenLossPassword ?? '',
                     style: TextStyle(
                       color: Colors.blue,
                       fontSize: screenHeight * 0.017,
@@ -150,7 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: signInState.isLoading
                       ? CircularProgressIndicator(color: Colors.white)
                       : Text(
-                          'ログイン',
+                          localizations?.firstScreenLogin ?? '',
                           style: TextStyle(
                             fontSize: screenHeight * 0.022,
                             color: Colors.white,
@@ -194,12 +196,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               SizedBox(height: 10), // Google 로그인 버튼 아래 빈 공간
 
-              // 'LINE'으로 로그인 버튼 (구현 예정)
+              // 'LINE'으로 로그인 버튼
               Center(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Line 로그인 로직 추가 예정
-                  },
+                  onPressed: signInState.isLoading
+                      ? null
+                      : () async {
+                          await signInViewModel.signInWithLine(context);
+                        },
                   icon: Image.asset(
                     'lib/img/line_logo.png', // Line 로고 이미지
                     height: screenHeight * 0.03,
@@ -208,7 +212,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      'LINEを利用してログイン', // 버튼 텍스트 'LINE을 이용해 로그인'
+                      localizations?.loginScreenLineLogin ?? '', // 버튼 텍스트 'LINE을 이용해 로그인'
                       style: TextStyle(
                         fontSize: screenHeight * 0.02,
                         color: Colors.black,

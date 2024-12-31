@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TermsOfServiceScreen extends StatelessWidget {
   @override
@@ -8,7 +9,7 @@ class TermsOfServiceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '利用規約',
+          AppLocalizations.of(context)?.ownerSettingsTabTermsOfservice ?? '',
           style: TextStyle(
             fontWeight: FontWeight.bold,
           ),

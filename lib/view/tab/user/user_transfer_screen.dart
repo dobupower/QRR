@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/user_point_uid_view_model.dart';
 import '../../../model/user_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserTransferScreen extends ConsumerStatefulWidget {
   @override
@@ -27,13 +28,14 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       body: SingleChildScrollView(
         child: userState!.when(
           data: (users) {
             if (users.isEmpty) {
-              return Center(child: Text('사용자를 찾을 수 없습니다.'));
+              return Center(child: Text(localizations?.userTransferScreenUserFindError ?? ''));
             }
             final user = users.first;
 
@@ -44,7 +46,7 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
                 children: [
                   SizedBox(height: screenHeight * 0.05),
                   Text(
-                    'ポイント入力',
+                    localizations?.userTransferScreenInputPoint ?? '',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: screenWidth * 0.07,
@@ -194,7 +196,7 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
                         ),
                       ),
                       child: Text(
-                        '確認',
+                        localizations?.meberInputScreenSubmit ?? '',
                         style: TextStyle(
                           fontSize: screenWidth * 0.045,
                           color: Colors.white,
@@ -207,7 +209,7 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
             );
           },
           loading: () => Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(child: Text('오류 발생: $error')),
+          error: (error, stackTrace) => Center(child: Text(localizations?.ownerAccountScreenError ?? '' + ': $error')),
         ),
       ),
     );

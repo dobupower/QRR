@@ -15,12 +15,14 @@ import 'owner_account_screen.dart';
 import '../verify_password_screen.dart';
 import 'photo_update_screen.dart';
 import 'owner_signup_update_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OwnerHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // tabViewModelProvider를 구독하여 현재 선택된 탭의 인덱스를 가져옴
     final currentIndex = ref.watch(tabViewModelProvider);
+    final localizations = AppLocalizations.of(context);
 
     // 각 탭에 해당하는 화면을 저장하는 리스트
     final List<Widget> pages = [
@@ -45,11 +47,11 @@ class OwnerHomeScreen extends ConsumerWidget {
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'ホーム',
+            label: localizations?.ownerHomeScreenHome ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: '取引履歴',
+            label: localizations?.ownerHomeScreenTransactionHistory ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.qr_code_scanner),
@@ -57,11 +59,11 @@ class OwnerHomeScreen extends ConsumerWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
-            label: 'アカウント',
+            label: localizations?.ownerHomeScreenAccount ?? '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: '設定',
+            label: localizations?.ownerHomeScreenSetting ?? '',
           ),
         ],
         type: BottomNavigationBarType.fixed,

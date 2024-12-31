@@ -4,6 +4,7 @@ import 'package:intl/intl.dart'; // 숫자 포맷팅을 위해 추가
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../viewModel/qrcode_make_view_model.dart';
 import '../../../viewModel/user_point_state_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class QrTab extends ConsumerWidget {
   @override
@@ -55,7 +56,7 @@ class QrTabTitle extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: screenSize.width * 0.05, top: screenSize.height * 0.03),
       child: Text(
-        '会員証',
+        AppLocalizations.of(context)?.qrTabMember ?? '',
         style: TextStyle(
           color: Colors.black,
           fontSize: screenSize.width * 0.06,
@@ -74,6 +75,7 @@ class QrTabUserInfo extends ConsumerWidget {
     final qrCodeState = ref.watch(qrCodeProvider);
     final userPointsState = ref.watch(userPointsProvider);
     final screenSize = MediaQuery.of(context).size;
+    final localizations = AppLocalizations.of(context);
 
     // 포인트 숫자 포맷
     String formatPoints(int points) {
@@ -98,7 +100,7 @@ class QrTabUserInfo extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '会員番号',
+                  localizations?.qrTabNumber ?? '',
                   style: TextStyle(
                     fontSize: screenSize.width * 0.04,
                     color: const Color(0xFF4A6FA5),
@@ -115,8 +117,8 @@ class QrTabUserInfo extends ConsumerWidget {
                       color: Colors.black,
                     ),
                   ),
-                  loading: () => const Text('読み込み中...'),
-                  error: (error, _) => const Text('エラーが発生しました'),
+                  loading: () => Text(localizations?.qrTabLoading ?? ''),
+                  error: (error, _) => Text(localizations?.ownerAccountScreenError ?? ''),
                 ),
               ],
             ),
@@ -149,9 +151,9 @@ class QrTabUserInfo extends ConsumerWidget {
                             errorCorrectionLevel: QrErrorCorrectLevel.L,
                           ),
                         )
-                      : const Text('QRコードがありません'),
+                      : Text(localizations?.qrTabFail1 ?? ''),
                   loading: () => const CircularProgressIndicator(),
-                  error: (error, _) => const Text('QRコードの取得に失敗しました'),
+                  error: (error, _) => Text(localizations?.qrTabFail2 ?? ''),
                 ),
               ],
             ),
@@ -159,7 +161,7 @@ class QrTabUserInfo extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          '利用可能ポイント',
+          localizations?.qrTabPoint ?? '',
           style: TextStyle(
             fontSize: screenSize.width * 0.04,
             color: const Color(0xFF4A6FA5),
@@ -178,7 +180,7 @@ class QrTabUserInfo extends ConsumerWidget {
                 ),
               ),
               loading: () => const Text('0'),
-              error: (error, _) => const Text('取得失敗'),
+              error: (error, _) => Text(localizations?.qrTabFail3 ?? ''),
             ),
             Text(
               'pt',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/user_point_uid_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserSearchScreen extends ConsumerStatefulWidget {
   @override
@@ -23,6 +24,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,7 +38,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
               children: [
                 SizedBox(height: screenHeight * 0.05),
                 Text(
-                  'クーポンを送る',
+                  localizations?.userSearchScreenTitle ?? '',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: screenWidth * 0.06,
@@ -68,7 +70,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
                         ref.read(userPointsUidProvider.notifier).searchUserByNameOrUid('');
                       },
                     ),
-                    hintText: 'AceClub IDまたは会員番号',
+                    hintText: localizations?.userSearchScreenSearchHint ?? '',
                     hintStyle: TextStyle(color: Colors.grey[600], fontSize: screenWidth * 0.04),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(screenWidth * 0.08),
@@ -86,7 +88,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
               child: userState.when(
                 data: (users) {
                   if (users.isEmpty) {
-                    return Center(child: Text('사용자를 검색해 주세요'));
+                    return Center(child: Text(localizations?.userSearchScreenSearchSnackbar ?? ''));
                   }
                   return ListView.builder(
                     itemCount: users.length,
@@ -166,7 +168,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
                   );
                 },
                 loading: () => Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => Center(child: Text('오류 발생: $error')),
+                error: (error, stackTrace) => Center(child: Text(localizations?.ownerAccountScreenError ?? '' + ': $error')),
               ),
             ),
           ),

@@ -45,6 +45,9 @@ mixin _$SignUpState {
   bool get isPasswordVisible => throw _privateConstructorUsedError;
   bool get isConfirmPasswordVisible => throw _privateConstructorUsedError;
   String? get selectedStore => throw _privateConstructorUsedError;
+  List<String> get stores =>
+      throw _privateConstructorUsedError; // 스토어 목록 기본값 설정
+  List<String> get filteredStores => throw _privateConstructorUsedError;
 
   /// Serializes this SignUpState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -77,7 +80,9 @@ abstract class $SignUpStateCopyWith<$Res> {
       String type,
       bool isPasswordVisible,
       bool isConfirmPasswordVisible,
-      String? selectedStore});
+      String? selectedStore,
+      List<String> stores,
+      List<String> filteredStores});
 }
 
 /// @nodoc
@@ -110,6 +115,8 @@ class _$SignUpStateCopyWithImpl<$Res, $Val extends SignUpState>
     Object? isPasswordVisible = null,
     Object? isConfirmPasswordVisible = null,
     Object? selectedStore = freezed,
+    Object? stores = null,
+    Object? filteredStores = null,
   }) {
     return _then(_value.copyWith(
       nameController: freezed == nameController
@@ -172,6 +179,14 @@ class _$SignUpStateCopyWithImpl<$Res, $Val extends SignUpState>
           ? _value.selectedStore
           : selectedStore // ignore: cast_nullable_to_non_nullable
               as String?,
+      stores: null == stores
+          ? _value.stores
+          : stores // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      filteredStores: null == filteredStores
+          ? _value.filteredStores
+          : filteredStores // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 }
@@ -199,7 +214,9 @@ abstract class _$$SignUpStateImplCopyWith<$Res>
       String type,
       bool isPasswordVisible,
       bool isConfirmPasswordVisible,
-      String? selectedStore});
+      String? selectedStore,
+      List<String> stores,
+      List<String> filteredStores});
 }
 
 /// @nodoc
@@ -230,6 +247,8 @@ class __$$SignUpStateImplCopyWithImpl<$Res>
     Object? isPasswordVisible = null,
     Object? isConfirmPasswordVisible = null,
     Object? selectedStore = freezed,
+    Object? stores = null,
+    Object? filteredStores = null,
   }) {
     return _then(_$SignUpStateImpl(
       nameController: freezed == nameController
@@ -292,6 +311,14 @@ class __$$SignUpStateImplCopyWithImpl<$Res>
           ? _value.selectedStore
           : selectedStore // ignore: cast_nullable_to_non_nullable
               as String?,
+      stores: null == stores
+          ? _value._stores
+          : stores // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      filteredStores: null == filteredStores
+          ? _value._filteredStores
+          : filteredStores // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -314,7 +341,11 @@ class _$SignUpStateImpl implements _SignUpState {
       this.type = 'customer',
       this.isPasswordVisible = false,
       this.isConfirmPasswordVisible = false,
-      this.selectedStore});
+      this.selectedStore,
+      final List<String> stores = const [],
+      final List<String> filteredStores = const []})
+      : _stores = stores,
+        _filteredStores = filteredStores;
 
   factory _$SignUpStateImpl.fromJson(Map<String, dynamic> json) =>
       _$$SignUpStateImplFromJson(json);
@@ -358,10 +389,29 @@ class _$SignUpStateImpl implements _SignUpState {
   final bool isConfirmPasswordVisible;
   @override
   final String? selectedStore;
+  final List<String> _stores;
+  @override
+  @JsonKey()
+  List<String> get stores {
+    if (_stores is EqualUnmodifiableListView) return _stores;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_stores);
+  }
+
+// 스토어 목록 기본값 설정
+  final List<String> _filteredStores;
+// 스토어 목록 기본값 설정
+  @override
+  @JsonKey()
+  List<String> get filteredStores {
+    if (_filteredStores is EqualUnmodifiableListView) return _filteredStores;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_filteredStores);
+  }
 
   @override
   String toString() {
-    return 'SignUpState(nameController: $nameController, emailController: $emailController, passwordController: $passwordController, confirmPasswordController: $confirmPasswordController, codeController: $codeController, verificationCode: $verificationCode, emailError: $emailError, passwordError: $passwordError, confirmPasswordError: $confirmPasswordError, verificationErrorMessage: $verificationErrorMessage, isLoading: $isLoading, type: $type, isPasswordVisible: $isPasswordVisible, isConfirmPasswordVisible: $isConfirmPasswordVisible, selectedStore: $selectedStore)';
+    return 'SignUpState(nameController: $nameController, emailController: $emailController, passwordController: $passwordController, confirmPasswordController: $confirmPasswordController, codeController: $codeController, verificationCode: $verificationCode, emailError: $emailError, passwordError: $passwordError, confirmPasswordError: $confirmPasswordError, verificationErrorMessage: $verificationErrorMessage, isLoading: $isLoading, type: $type, isPasswordVisible: $isPasswordVisible, isConfirmPasswordVisible: $isConfirmPasswordVisible, selectedStore: $selectedStore, stores: $stores, filteredStores: $filteredStores)';
   }
 
   @override
@@ -400,7 +450,10 @@ class _$SignUpStateImpl implements _SignUpState {
                     other.isConfirmPasswordVisible, isConfirmPasswordVisible) ||
                 other.isConfirmPasswordVisible == isConfirmPasswordVisible) &&
             (identical(other.selectedStore, selectedStore) ||
-                other.selectedStore == selectedStore));
+                other.selectedStore == selectedStore) &&
+            const DeepCollectionEquality().equals(other._stores, _stores) &&
+            const DeepCollectionEquality()
+                .equals(other._filteredStores, _filteredStores));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -421,7 +474,9 @@ class _$SignUpStateImpl implements _SignUpState {
       type,
       isPasswordVisible,
       isConfirmPasswordVisible,
-      selectedStore);
+      selectedStore,
+      const DeepCollectionEquality().hash(_stores),
+      const DeepCollectionEquality().hash(_filteredStores));
 
   /// Create a copy of SignUpState
   /// with the given fields replaced by the non-null parameter values.
@@ -456,7 +511,9 @@ abstract class _SignUpState implements SignUpState {
       final String type,
       final bool isPasswordVisible,
       final bool isConfirmPasswordVisible,
-      final String? selectedStore}) = _$SignUpStateImpl;
+      final String? selectedStore,
+      final List<String> stores,
+      final List<String> filteredStores}) = _$SignUpStateImpl;
 
   factory _SignUpState.fromJson(Map<String, dynamic> json) =
       _$SignUpStateImpl.fromJson;
@@ -496,6 +553,10 @@ abstract class _SignUpState implements SignUpState {
   bool get isConfirmPasswordVisible;
   @override
   String? get selectedStore;
+  @override
+  List<String> get stores; // 스토어 목록 기본값 설정
+  @override
+  List<String> get filteredStores;
 
   /// Create a copy of SignUpState
   /// with the given fields replaced by the non-null parameter values.

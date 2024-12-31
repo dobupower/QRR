@@ -35,7 +35,7 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
   // Firestore 실시간 감시 - 가장 최신의 QR 코드를 createdAt 기준으로 모니터링
   void _monitorLatestQrCode(String email) {
     FirebaseFirestore.instance
-        .collection('qrcodes')
+        .collection('Qrcodes')
         .where('userId', isEqualTo: email)
         .orderBy('createdAt', descending: true)
         .limit(1)
@@ -129,7 +129,7 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
       print('qrPayload: $qrPayload');
 
        // **Firestore에 평문 데이터를 저장** (암호화된 데이터는 저장하지 않음)
-      await FirebaseFirestore.instance.collection('qrcodes').add({
+      await FirebaseFirestore.instance.collection('Qrcodes').add({
         'token': newToken,
         'createdAt': createdAt,
         'expiryDate': expiryDate,
@@ -189,7 +189,7 @@ class QrCodeViewModel extends StateNotifier<AsyncValue<QrCode?>> {
 
     while (!isUnique) {
       var querySnapshot = await FirebaseFirestore.instance
-          .collection('qrcodes')
+          .collection('Qrcodes')
           .where('token', isEqualTo: uuid)
           .get();
 

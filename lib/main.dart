@@ -7,13 +7,13 @@ import 'view/sign-up/store_select_screen.dart'; // StoreSelectionScreen 가져�
 import 'view/sign-up/email_auth_screen.dart'; // EmailAuthScreen 가져오기
 import 'view/tab/owner/owner_home_screen.dart'; // HomeScreen 가져오기
 import 'view/tab/user/user_home_screen.dart';
-import 'model/user_model.dart'; // User 모델 가져오기
 import 'view/sign-in/login_screen.dart'; // LoginScreen 가져오기
 import 'view/sign-up/owner_sign_up_screen.dart'; // OwnerSignUpScreen 가져오기
 import 'services/preferences_manager.dart'; // 싱글톤 PreferencesManager 가져오기
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; // 다언어 설정
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 
 // 메인 함수, Firebase 초기화
 void main() async {
@@ -21,7 +21,7 @@ void main() async {
   await Firebase.initializeApp(); // Firebase 앱 초기화
   await PreferencesManager.instance.init(); // PreferencesManager 초기화
   await dotenv.load(fileName: ".env"); // dotenv 초기화
-  
+  LineSDK.instance.setup(dotenv.env['LINE_ID']!); // Line SDK 초기화
   // ProviderScope는 Riverpod 상태 관리를 위한 최상위 위젯
   runApp(ProviderScope(child: MyApp()));
 }
@@ -39,7 +39,6 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [ // 다언어 설정
         Locale('ko', ''), //한국어
-        Locale('en', ''), //영어
         Locale('ja', ''), //일본어
       ],
       home: FutureBuilder(
@@ -58,10 +57,10 @@ class MyApp extends StatelessWidget {
           }
 
           // 로그인 여부에 따라 초기 화면을 다르게 설정
-          if (snapshot.data == 'users') {
+          if (snapshot.data == 'Users') {
             // 만약 email이 저장되어 있으면 user-home으로 이동
             return UserHomeScreen();
-          } else if (snapshot.data == 'owners') {
+          } else if (snapshot.data == 'Owners') {
             // 그렇지 않으면 owner-home으로 이동
             return OwnerHomeScreen();
           } else {
@@ -84,22 +83,7 @@ class MyApp extends StatelessWidget {
         '/owner-home': (context) => OwnerHomeScreen(), // HomeScreen 추가
         '/owner-sign-up': (context) => OwnerSignUpScreen(), // OwnerSignUpScreen 추가
         '/user-home': (context) => UserHomeScreen(),
-      },
-      // 동적 경로 생성, 이메일 인증 화면
-      onGenerateRoute: (settings) {
-        if (settings.name == '/email-auth') {
-          final user = settings.arguments as User?; // 전달된 User 객체를 받음
-          if (user != null) {
-            return MaterialPageRoute(
-              builder: (context) => EmailAuthScreen(user: user), // User가 있으면 EmailAuthScreen으로 이동
-            );
-          } else {
-            return MaterialPageRoute(
-              builder: (context) => FirstScreen(), // User가 없으면 FirstScreen으로 이동
-            );
-          }
-        }
-        return null; // 해당 경로가 없으면 null 반환
+        '/email-auth': (context) => EmailAuthScreen(),
       },
       // 알 수 없는 경로 처리
       onUnknownRoute: (settings) {

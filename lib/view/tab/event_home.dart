@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../viewModel/event_view_model.dart'; // ViewModel 파일 경로에 맞게 수정
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class EventPageView extends ConsumerWidget {
   @override
@@ -27,12 +28,13 @@ class EventImageViewer extends ConsumerWidget {
     // ViewModel의 상태를 구독
     final eventImagesAsync = ref.watch(eventViewModelProvider);
     final currentIndex = ref.watch(eventCurrentIndexProvider);
+    final localizations = AppLocalizations.of(context);
 
     return eventImagesAsync.when(
       data: (images) {
         if (images.isEmpty) {
-          return const CenterMessage(
-            message: 'このイベントの画像がありません。',
+          return CenterMessage(
+            message: localizations?.eventHomeError1 ?? '',
           );
         }
 
@@ -58,8 +60,8 @@ class EventImageViewer extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => const CenterMessage(
-        message: '画像を取得中にエラーが発生しました。',
+      error: (error, stackTrace) => CenterMessage(
+        message: localizations?.eventHomeError2 ?? '',
       ),
     );
   }

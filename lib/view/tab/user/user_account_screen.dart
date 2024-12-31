@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/user_account_view_model.dart';
 import '../../../services/auth_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserAccountScreen extends ConsumerWidget {
   @override
@@ -24,7 +25,7 @@ class UserAccountScreen extends ConsumerWidget {
           child: userState.when(
             loading: () => Center(child: CircularProgressIndicator()),
             error: (error, stackTrace) =>
-                Center(child: Text('오류 발생: $error')), // 에러 상태
+                Center(child: Text(AppLocalizations.of(context)?.ownerAccountScreenError ?? '' + ': $error')), // 에러 상태
             data: (user) => Column(
               children: [
                 _buildProfileSection(user, screenWidth, screenHeight),
@@ -101,6 +102,8 @@ class UserAccountScreen extends ConsumerWidget {
 
   // 상세 정보 섹션
   Widget _buildDetailsSection(BuildContext context, dynamic user, double screenWidth, double screenHeight) {
+    final localizations = AppLocalizations.of(context);
+
     return Column(
       children: [
         GestureDetector(
@@ -108,15 +111,15 @@ class UserAccountScreen extends ConsumerWidget {
             Navigator.pushNamed(context, '/updatePubid'); // 매장 선택 화면 이동
           },
           child: _buildInfoRow(
-            title: 'ご利用店舗名',
-            value: user.pubId ?? '未登録',
+            title: localizations?.userAccountScreenStore ?? '',
+            value: user.pubId ?? localizations?.ownerAccountScreenNull ?? '',
             isLongText: true,
             screenWidth: screenWidth,
             showIcon: true,
           ),
         ),
         _buildInfoRow(
-          title: 'メールアドレス',
+          title: localizations?.ownerSignUpScreenEmail1 ?? '',
           value: user.email,
           isLongText: true,
           screenWidth: screenWidth,
@@ -186,13 +189,15 @@ class UserAccountScreen extends ConsumerWidget {
 
   // 비밀번호 변경 섹션
   Widget _buildPasswordChangeSection(BuildContext context, dynamic user, double screenWidth, double screenHeight) {
+    final localizations = AppLocalizations.of(context);
+    
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        if (user.authType == 'google') {
+        if (user.authType == 'google' || user.authType == 'line') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('해당 아이디는 비밀번호 변경이 불가합니다.'),
+            SnackBar(
+              content: Text(localizations?.userAccountScreenPasswordError ?? ''),
             ),
           );
         } else {
@@ -205,7 +210,7 @@ class UserAccountScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'パスワード変更',
+              localizations?.ownerAccountScreenPasswordChange ?? '',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: screenWidth * 0.04,
@@ -249,7 +254,7 @@ class UserAccountScreen extends ConsumerWidget {
           minimumSize: Size(screenWidth, screenHeight * 0.05),
         ),
         child: Text(
-          'ログアウト',
+          AppLocalizations.of(context)?.ownerAccountScreenLogout ?? '',
           style: TextStyle(
             fontSize: screenWidth * 0.04,
             fontWeight: FontWeight.bold,

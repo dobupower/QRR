@@ -1,117 +1,159 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../viewModel/sign_up_view_model.dart'; // SignUpViewModel 가져오기
-import '../../model/user_model.dart'; // User 모델 가져오기
+import '../../../viewModel/sign_up_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-
-// StoreSelectionScreen 클래스 (ConsumerWidget을 상속받아 Riverpod의 상태 관리 기능 사용)
-
-class StoreSelectionScreen extends ConsumerWidget {
+class StoreSelectionScreen extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 화면 크기 정보 가져오기
+  _StoreSelectionScreenState createState() => _StoreSelectionScreenState();
+}
+
+class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Firestore에서 데이터를 가져옵니다.
+    ref.read(signUpViewModelProvider.notifier).fetchStoresFromFirestore(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = ref.read(signUpViewModelProvider.notifier);
+    final filteredStoreNames = ref.watch(signUpViewModelProvider.select((state) => state.filteredStores));
+    final selectedStoreName = ref.watch(signUpViewModelProvider.select((state) => state.selectedStore));
+
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
-    // Navigator로 전달된 User 객체를 가져옴
-    final user = ModalRoute.of(context)?.settings.arguments as User?;
-
-    
-    // User가 null이거나 이메일이 유효하지 않으면 에러 화면을 표시
-    if (user == null || user.email.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Error')), // 에러 페이지의 타이틀
-        body: Center(child: Text('User data not found or invalid email.')), // 에러 메시지 표시
-      );
-    }
-
-    // SignUpViewModel을 읽어서 상태 변경 기능을 가져옴
-    final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
-    final selectedStore = ref.watch(signUpViewModelProvider.select((state) => state.selectedStore)); // 선택한 매장 감시
-
-    return PopScope<Object?>(
-      canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        // 뒤로 가기 동작을 하지 않도록 막음 (아무 동작도 하지 않음)
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.grey),
-            onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), // 뒤로 가기 버튼
         ),
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-          child: Column(
-            children: [
-              SizedBox(height: screenHeight * 0.03), // 화면 상단 여백 추가
-
-              // 'ご利用店舗選択' 텍스트를 Body에 넣음
-              Text(
-                'ご利用店舗選択', // 'ご利用店舗選択' = 선택할 매장
+        title: SizedBox.shrink(),  // AppBar에서 title 제거
+        backgroundColor: Colors.transparent,  // 배경을 투명으로 설정
+        elevation: 0,  // 그림자 제거
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(screenWidth * 0.02), // padding을 화면 너비의 2%로 설정
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 'ご利用店舗選択' 텍스트를 상단에 배치
+            Padding(
+              padding: EdgeInsets.only(top: screenHeight * 0.01), // 화면 높이의 1%로 상단 여백
+              child: Text(
+                localizations?.storeSelectScreenSelectStore ?? '', // AppBar에서 옮겨온 텍스트
                 style: TextStyle(
-                  fontSize: screenWidth * 0.07,
-                ),
-                textAlign: TextAlign.center, // 중앙 정렬
-              ),
-
-              SizedBox(height: screenHeight * 0.02), // 텍스트 아래 여백
-
-              // 검색 입력 필드
-              TextField(
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-                  hintText: '検索', // '検索' = 검색
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(screenWidth * 0.05), // 원형 모서리 설정
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
+                  color: Colors.black,
+                  fontSize: screenWidth * 0.07, // 텍스트 크기 화면 너비의 7%
+                  fontWeight: FontWeight.normal,
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02), // 검색 필드 아래 빈 공간
+            ),
+            SizedBox(height: screenHeight * 0.02), // 추가적인 여백
 
-              // 매장 목록을 표시하는 ListView
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildStoreTile(context, signUpViewModel, 'm HOLD\'EM 目黒', user, screenWidth, selectedStore),
-                    _buildStoreTile(context, signUpViewModel, '六本木BROADWAY', user, screenWidth, selectedStore),
-                    _buildStoreTile(context, signUpViewModel, 'カジスタ東京', user, screenWidth, selectedStore),
-                    _buildStoreTile(context, signUpViewModel, 'シブヤギルド', user, screenWidth, selectedStore),
-                    _buildStoreTile(context, signUpViewModel, 'Extreme Bar BACK DOOR', user, screenWidth, selectedStore),
-                    _buildStoreTile(context, signUpViewModel, 'JCS Hold’em', user, screenWidth, selectedStore),
-                  ],
+            TextField(
+              onChanged: (query) {
+                final trimmedQuery = query.trim();
+                print('입력된 검색어: $trimmedQuery');
+                viewModel.filterStores(trimmedQuery);
+              },
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                hintText: localizations?.storeSelectScreenSearch ?? '',
+                hintStyle: TextStyle(fontSize: screenWidth * 0.04), // 상대 크기 설정
+                prefixIcon: Icon(Icons.search, size: screenWidth * 0.05, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                  borderSide: BorderSide(color: Colors.grey[300]!, width: screenWidth * 0.002),
                 ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: screenHeight * 0.002),
+            // 필터링된 매장 리스트
+            Expanded(
+              child: filteredStoreNames.isEmpty
+                  ? Center(
+                      child: Text(
+                        localizations?.storeSelectScreenSearchNo ?? '',
+                        style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredStoreNames.length,
+                      itemBuilder: (context, index) {
+                        final storeName = filteredStoreNames[index];
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04), // 왼쪽/오른쪽 패딩 추가
+                              child: _buildStoreTile(
+                                context,
+                                viewModel,
+                                storeName,
+                                screenWidth,
+                                screenHeight,
+                                selectedStoreName,
+                              ),
+                            ),
+                            Divider(
+                              color: Colors.grey[300],
+                              thickness: screenHeight * 0.001, // 상대 크기 설정
+                              height: screenHeight * 0.005, // 항목과 간격을 좁히기 위해 줄임
+                              indent: screenWidth * 0.04, // 왼쪽 padding과 맞추기
+                              endIndent: screenWidth * 0.04, // 오른쪽 padding과 맞추기
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // 매장 타일을 빌드하는 함수
-  Widget _buildStoreTile(BuildContext context, SignUpViewModel signUpViewModel, String storeName, User user, double screenWidth, String? selectedStore) {
+  // 매장 타일 위젯
+  Widget _buildStoreTile(
+    BuildContext context,
+    SignUpViewModel viewModel,
+    String storeName,
+    double screenWidth,
+    double screenHeight,
+    String? selectedStoreName,
+  ) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(vertical: screenWidth * 0.02), // 패딩 조정
+      contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.007),
       title: Text(
-        storeName, 
+        storeName,
         style: TextStyle(
           fontSize: screenWidth * 0.045,
-          color: Colors.black,
+          color: storeName == selectedStoreName ? Colors.blue : Colors.black,
+          fontWeight: storeName == selectedStoreName ? FontWeight.bold : FontWeight.normal,
         ),
       ),
-      onTap: () {
-        // 선택한 매장 정보를 업데이트하고 UI를 즉시 반영
-        signUpViewModel.updateSelectedStore(storeName);
-
-        // 매장 선택 후 즉시 다음 화면으로 이동
-        Navigator.pushNamed(context, '/email-auth', arguments: user);
+      onTap: () async {
+        viewModel.updateSelectedStore(storeName);
+        Navigator.pushNamed(context, '/email-auth');
       },
+    );
+  }
+
+  // 스낵바 표시
+  void _showSnackBar(BuildContext context, String message) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(fontSize: screenWidth * 0.04), // 상대 크기 설정
+        ),
+      ),
     );
   }
 }

@@ -19,6 +19,14 @@ _$SignUpStateImpl _$$SignUpStateImplFromJson(Map<String, dynamic> json) =>
       isConfirmPasswordVisible:
           json['isConfirmPasswordVisible'] as bool? ?? false,
       selectedStore: json['selectedStore'] as String?,
+      stores: (json['stores'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      filteredStores: (json['filteredStores'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$SignUpStateImplToJson(_$SignUpStateImpl instance) =>
@@ -33,4 +41,6 @@ Map<String, dynamic> _$$SignUpStateImplToJson(_$SignUpStateImpl instance) =>
       'isPasswordVisible': instance.isPasswordVisible,
       'isConfirmPasswordVisible': instance.isConfirmPasswordVisible,
       'selectedStore': instance.selectedStore,
+      'stores': instance.stores,
+      'filteredStores': instance.filteredStores,
     };

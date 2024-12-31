@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/user_update_pubid_view_model.dart';
 import '../../../viewModel/user_account_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UpdatePubIdScreen extends ConsumerStatefulWidget {
   @override
@@ -25,6 +26,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +47,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
             Padding(
               padding: EdgeInsets.only(top: screenHeight * 0.01), // 화면 높이의 1%로 상단 여백
               child: Text(
-                'ご利用店舗選択', // AppBar에서 옮겨온 텍스트
+                localizations?.storeSelectScreenSelectStore ?? '', // AppBar에서 옮겨온 텍스트
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: screenWidth * 0.07, // 텍스트 크기 화면 너비의 7%
@@ -63,7 +65,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
               },
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-                hintText: '検索',
+                hintText: localizations?.storeSelectScreenSearch ?? '',
                 hintStyle: TextStyle(fontSize: screenWidth * 0.04), // 상대 크기 설정
                 prefixIcon: Icon(Icons.search, size: screenWidth * 0.05, color: Colors.grey),
                 border: OutlineInputBorder(
@@ -78,7 +80,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
               child: filteredStoreNames.isEmpty
                   ? Center(
                       child: Text(
-                        '検索結果がありません。',
+                        localizations?.storeSelectScreenSearchNo ?? '',
                         style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.grey),
                       ),
                     )
@@ -142,7 +144,7 @@ class _UpdatePubIdScreenState extends ConsumerState<UpdatePubIdScreen> {
           ref.read(userAccountProvider.notifier).updatePubId(storeName);
           Navigator.pop(context); // 성공 시 이전 화면으로 이동
         } else {
-          _showSnackBar(context, '更新に失敗しました。'); // 실패 시 에러 메시지 표시
+          _showSnackBar(context, AppLocalizations.of(context)?.updatePubIdScreenError ?? ''); // 실패 시 에러 메시지 표시
         }
       },
     );

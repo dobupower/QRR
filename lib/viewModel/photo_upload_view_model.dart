@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/photo_upload_state_model.dart'; // 수정된 PhotoUploadState를 import
 import '../model/photo_upload_model.dart'; // 수정된 PhotoUpload 모델
 import '../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -65,10 +66,10 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
     }
   }
 
-  Future<void> submitDetails() async {
+  Future<void> submitDetails(BuildContext context) async {
     final ownerEmail = state.ownerEmail;
     if (ownerEmail == null) {
-      state = state.copyWith(uploadError: '오류가 발생했습니다. 다시 시도해주세요.');
+      state = state.copyWith(uploadError: AppLocalizations.of(context)?.photoUploadViewModelSubmitError ?? '');
       return;
     }
 
@@ -111,7 +112,7 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
     } catch (e) {
       print('Error occurred while saving to Firestore: $e');
       state = state.copyWith(
-          isLoading: false, uploadError: '업로드에 실패했습니다. 다시 시도해주세요.');
+          isLoading: false, uploadError: AppLocalizations.of(context)?.photoUploadViewModelUploadError ?? '');
     }
   }
 
@@ -165,10 +166,10 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
     }
   }
 
-  Future<void> updateStorePhotos() async {
+  Future<void> updateStorePhotos(BuildContext context) async {
     final ownerEmail = await PreferencesManager.instance.getEmail();
     if (ownerEmail == null) {
-      state = state.copyWith(uploadError: '오류가 발생했습니다. 다시 시도해주세요.');
+      state = state.copyWith(uploadError: AppLocalizations.of(context)?.photoUploadViewModelSubmitError ?? '',);
       return;
     }
 
@@ -213,7 +214,7 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
 
       if (querySnapshot.docs.isEmpty) {
         state = state.copyWith(
-            isLoading: false, uploadError: '해당 가게를 찾을 수 없습니다.');
+            isLoading: false, uploadError: AppLocalizations.of(context)?.photoUploadViewModelStoreNotFound ?? '');
         return;
       }
 
@@ -228,7 +229,7 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
     } catch (e) {
       print('가게 사진 업데이트 중 오류 발생: $e');
       state = state.copyWith(
-          isLoading: false, uploadError: '업데이트에 실패했습니다. 다시 시도해주세요.');
+          isLoading: false, uploadError: AppLocalizations.of(context)?.photoUploadViewModelUploadError ?? '');
     }
   }
 }

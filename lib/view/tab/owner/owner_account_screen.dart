@@ -19,7 +19,7 @@ class OwnerAccountScreen extends ConsumerWidget {
       body: SafeArea(
         child: combinedState.when(
           loading: () => Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(child: Text('오류 발생: $error')), // 에러 상태
+          error: (error, stackTrace) => Center(child: Text(AppLocalizations.of(context)?.ownerAccountScreenError ?? '' + ': $error')), // 에러 상태
           data: (data) {
             final owner = data['owner']; // Owner 데이터
             final pubInfo = data['pubInfo']; // PubInfo 데이터
@@ -101,6 +101,7 @@ class OwnerAccountScreen extends ConsumerWidget {
 
  // 상세 정보 섹션
   Widget _buildDetailsSection(BuildContext context, dynamic owner, double screenWidth, double screenHeight) {
+    final localizations = AppLocalizations.of(context);
     return Column(
       children: [
         GestureDetector(
@@ -108,7 +109,7 @@ class OwnerAccountScreen extends ConsumerWidget {
             Navigator.pushNamed(context, '/SignupUpdate'); // 매장 선택 화면 이동
           },
           child: _buildInfoRow(
-            title: '${owner.storeName ?? AppLocalizations.of(context)!.unregistered}@${owner.address ?? ''}', // storeName과 address 결합
+            title: '${owner.storeName ?? localizations?.ownerAccountScreenNull ?? ''}@${owner.address ?? ''}', // storeName과 address 결합
             value: '',
             isLongText: true,
             screenWidth: screenWidth,
@@ -116,7 +117,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           ),
         ),
         _buildInfoRow(
-          title: AppLocalizations.of(context)!.email,
+          title: localizations?.ownerSignUpScreenEmail1 ?? '',
           value: owner.email,
           isLongText: true,
           screenWidth: screenWidth,
@@ -197,7 +198,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              AppLocalizations.of(context)!.passwordChange,
+              AppLocalizations.of(context)?.ownerAccountScreenPasswordChange ?? '',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: screenWidth * 0.04,
@@ -227,7 +228,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              AppLocalizations.of(context)!.storePhotoSetting,
+              AppLocalizations.of(context)?.ownerAccountScreenPhotoChange ?? '',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: screenWidth * 0.04,
@@ -271,7 +272,7 @@ class OwnerAccountScreen extends ConsumerWidget {
           minimumSize: Size(screenWidth, screenHeight * 0.05),
         ),
         child: Text(
-          AppLocalizations.of(context)!.logout,
+          AppLocalizations.of(context)?.ownerAccountScreenLogout ?? '',
           style: TextStyle(
             fontSize: screenWidth * 0.04,
             fontWeight: FontWeight.bold,

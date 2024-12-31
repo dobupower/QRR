@@ -37,7 +37,7 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
     if (userIds.isNotEmpty) {
       // 사용자 ID 목록이 비어있지 않을 때만 Firestore 쿼리 실행
       final usersSnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where(FieldPath.documentId, whereIn: userIds.toList()) // 문서 ID로 조회
           .get();
 
@@ -71,7 +71,7 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
 
       // 4. 이메일로 Firestore에서 현재 사용자의 UID 가져오기
       final userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('email', isEqualTo: currentUserEmail)
           .limit(1)
           .get();
@@ -138,21 +138,21 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
         int adjustedPoints = -points;
 
         // 15. 거래 유형에 따라 메시지와 포인트 계산
-        if (type == 'チップ交換') {
+        if (type == 'transfer') {
           message = 'ポイントでチップを交換しました';
-        } else if (type == 'チャージ') {
+        } else if (type == 'charge') {
           message = 'ポイントをチャージしました';
           adjustedPoints = points;
-        } else if (type == 'お支払い') {
+        } else if (type == 'spend') {
           message = 'ポイントをお支払いしました';
         } else if (type == '') {
           if (userId == currentUid) {
             name = userNames[relatedUserId] ?? '알 수 없는 사용자';
-            message = 'ポイントを $nameさんに送りました';
-          } else if (relatedUserId == currentUid) {
-            name = userNames[userId] ?? '알 수 없는 사용자';
             message = '$nameさんからポイントを受け取りました';
             adjustedPoints = points;
+          } else if (relatedUserId == currentUid) {
+            name = userNames[userId] ?? '알 수 없는 사용자';
+            message = 'ポイントを $nameさんに送りました';
           }
         }
 
@@ -260,12 +260,12 @@ class TransactionHistoryNotifier extends StateNotifier<AsyncValue<List<Transacti
         String message = ''; // 메시지
 
         // 13. 거래 유형에 따라 메시지와 포인트 계산
-        if (type == 'チャージ') {
+        if (type == 'charge') {
           message = '$name様のポイントをチャージしました';
           adjustedPoints = -points; // 포인트 충전 시 차감
-        } else if (type == 'お支払い') {
+        } else if (type == 'spend') {
           message = '$name様がお支払いしました。';
-        } else if (type == 'チップ交換') {
+        } else if (type == 'transfer') {
           message = '$name様がチップを交換しました';
         } else {
           // 기타 거래 유형 처리

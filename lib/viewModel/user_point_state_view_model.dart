@@ -21,7 +21,7 @@ class UserPointsViewModel extends StateNotifier<AsyncValue<UserPointsState>> {
 
     if (email != null) {
       FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('email', isEqualTo: email)
           .snapshots()
           .listen((querySnapshot) {

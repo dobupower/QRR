@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/transaction_history_view_model.dart';
 import '../../../model/transaction_history_model.dart'; // TransactionHistory 모델 임포트
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserTransactionHistoryScreen extends ConsumerStatefulWidget {
   @override
@@ -93,7 +94,7 @@ class TransactionHistoryHeader extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Text(
-      '取引履歴',
+      AppLocalizations.of(context)?.ownerHomeScreenTransactionHistory ?? '',
       style: TextStyle(
         fontSize: screenWidth * 0.06,
         fontWeight: FontWeight.bold,
@@ -144,7 +145,7 @@ class EmptyTransactionMessage extends ConsumerWidget {
           height: MediaQuery.of(context).size.height * 0.7,
           child: Center(
             child: Text(
-              '取引履歴がありません', // 거래 내역이 없습니다
+              AppLocalizations.of(context)?.ownerTransactionHistoryScreenNoHistory ?? '', // 거래 내역이 없습니다
               style: TextStyle(
                 fontSize: MediaQuery.of(context).size.width * 0.04,
                 color: Colors.grey,
@@ -178,7 +179,7 @@ class ErrorDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text('エラーが発生しました: $error'),
+      child: Text(AppLocalizations.of(context)?.ownerAccountScreenError ?? '' + ': $error'),
     );
   }
 }
@@ -193,7 +194,7 @@ class TransactionListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
 
-    final dateFormat = DateFormat('yyyy年M月d日 H時m分');
+    final dateFormat = DateFormat(AppLocalizations.of(context)?.ownerTransactionHistoryScreenDataFormat2 ?? '');
     final formattedDate = dateFormat.format(transaction.timestamp);
     final isPositive = transaction.points > 0;
 

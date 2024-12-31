@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../viewModel/user_point_uid_view_model.dart';
 import '../../../model/user_model.dart';
 import '../../../model/user_transaction_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserTransferConfirmScreen extends ConsumerStatefulWidget {
   @override
@@ -28,6 +29,7 @@ class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmS
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     final user = userState?.when(
       data: (users) => users.isNotEmpty ? users.first : null,
@@ -49,7 +51,7 @@ class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmS
             Padding(
               padding: EdgeInsets.only(top: screenHeight * 0.05),
               child: Text(
-                '完了',
+                localizations?.userTransferConfirmScreenOkay ?? '',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: screenWidth * 0.07,
@@ -87,7 +89,7 @@ class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmS
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user?.name ?? 'ユーザー名',
+                        user?.name ?? localizations?.userTransferConfirmScreenUserName ?? '',
                         style: TextStyle(
                           fontSize: screenWidth * 0.045,
                           fontWeight: FontWeight.bold,
@@ -149,7 +151,7 @@ class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmS
                   borderRadius: BorderRadius.circular(screenWidth * 0.07),
                 ),
                 child: Text(
-                  '受け取り完了',
+                  localizations?.userTransferConfirmScreenReceive ?? '',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: screenWidth * 0.045,
@@ -178,7 +180,7 @@ class _UserTransferConfirmScreenState extends ConsumerState<UserTransferConfirmS
                   ),
                   child: Center(
                     child: Text(
-                      'ホームへ',
+                      localizations?.pointManagementConfirmScreenHome ?? '',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: screenWidth * 0.045,

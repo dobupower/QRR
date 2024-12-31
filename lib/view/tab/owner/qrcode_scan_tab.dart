@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import '../../../viewModel/qrcode_scan_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ScanTab extends ConsumerWidget {
   @override
@@ -12,6 +13,7 @@ class ScanTab extends ConsumerWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return PopScope<Object?>(
       canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
@@ -34,7 +36,7 @@ class ScanTab extends ConsumerWidget {
               top: screenHeight * 0.05, // 화면 높이의 5%만큼 위에 배치
               left: screenWidth * 0.05, // 화면 너비의 5%만큼 왼쪽에 배치
               child: Text(
-                'スキャン',
+                localizations?.qrcodeScanTabScan ?? '',
                 style: TextStyle(
                   fontSize: screenWidth * 0.06, // 화면 너비의 6% 크기
                   fontWeight: FontWeight.bold,
@@ -76,7 +78,7 @@ class ScanTab extends ConsumerWidget {
                   label: Padding(
                     padding: EdgeInsets.only(left: screenWidth * 0.05), // 텍스트와 아이콘 사이 간격 조절
                     child: Text(
-                      '会員番号を入力',
+                      localizations?.meberInputScreenUserNumber1 ?? '',
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold, // 텍스트에 더 두꺼운 느낌을 줌
