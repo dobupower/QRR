@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/photo_upload_view_model.dart';
 import 'dart:io';
 import '../../../model/photo_upload_state_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhotoUpdateScreen extends ConsumerWidget {
   @override
@@ -12,6 +13,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,7 +31,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
           children: [
             Center(
               child: Text(
-                '店舗詳細情報',
+                localizations?.photoUploadScreenStoreInfo ?? '',
                 style: TextStyle(
                   fontSize: screenWidth * 0.06,
                   fontWeight: FontWeight.bold,
@@ -37,14 +39,14 @@ class PhotoUpdateScreen extends ConsumerWidget {
               ),
             ),
             SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗イメージ登録', screenWidth),
-            _buildImageUploadRow(screenWidth, screenHeight, viewModel, state),
+            _buildSectionTitle(localizations?.photoUploadScreenPhotoUpload ?? '', screenWidth),
+            _buildImageUploadRow(screenWidth, screenHeight, viewModel, state, context),
             SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗ロゴ登録', screenWidth),
-            _buildLogoUpload(screenWidth, screenHeight, viewModel, state),
+            _buildSectionTitle(localizations?.photoUploadScreenLogoUpload ?? '', screenWidth),
+            _buildLogoUpload(screenWidth, screenHeight, viewModel, state, context),
             SizedBox(height: screenHeight * 0.02),
-            _buildSectionTitle('店舗からのメッセージ', screenWidth),
-            _buildMessageField(screenWidth, viewModel),
+            _buildSectionTitle(localizations?.photoUploadScreenStoreMessage1 ?? '', screenWidth),
+            _buildMessageField(screenWidth, viewModel, context),
             SizedBox(height: screenHeight * 0.04),
             Center(
               child: ElevatedButton(
@@ -52,7 +54,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
                     ? null
                     : () async {
                         // 기존 이미지를 삭제하고 업데이트
-                        await viewModel.updateStorePhotos();
+                        await viewModel.updateStorePhotos(context);
 
                         Navigator.pop(context);
                       },
@@ -69,7 +71,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  '詳細情報登録',
+                  localizations?.photoUploadScreenDetailInfo ?? '',
                   style: TextStyle(
                     fontSize: screenWidth * 0.045,
                     color: Colors.white,
@@ -94,7 +96,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
   }
 
   Widget _buildImageUploadRow(double screenWidth, double screenHeight,
-      PhotoUploadViewModel viewModel, PhotoUploadState state) {
+      PhotoUploadViewModel viewModel, PhotoUploadState state, BuildContext context) {
     return Container(
       width: screenWidth * 0.9,
       height: screenHeight * 0.16,
@@ -134,7 +136,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
                                   Icon(Icons.camera_alt,
                                       size: screenWidth * 0.08,
                                       color: Colors.grey),
-                                  Text("必須",
+                                  Text(AppLocalizations.of(context)?.photoUploadScreenEssential ?? '',
                                       style: TextStyle(
                                           color: Colors.blue,
                                           fontSize: screenWidth * 0.035)),
@@ -173,7 +175,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
   }
 
   Widget _buildLogoUpload(double screenWidth, double screenHeight,
-      PhotoUploadViewModel viewModel, PhotoUploadState state) {
+      PhotoUploadViewModel viewModel, PhotoUploadState state, BuildContext context) {
     final logoFile = state.storeLogo;
 
     return Center(
@@ -210,7 +212,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
                       children: [
                         Icon(Icons.camera_alt,
                             size: screenWidth * 0.1, color: Colors.grey),
-                        Text("必須",
+                        Text(AppLocalizations.of(context)?.photoUploadScreenEssential ?? '',
                             style: TextStyle(
                                 color: Colors.blue,
                                 fontSize: screenWidth * 0.035)),
@@ -224,7 +226,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
   }
 
   Widget _buildMessageField(
-      double screenWidth, PhotoUploadViewModel viewModel) {
+      double screenWidth, PhotoUploadViewModel viewModel, BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(screenWidth * 0.025),
@@ -239,7 +241,7 @@ class PhotoUpdateScreen extends ConsumerWidget {
         },
         decoration: InputDecoration(
           border: InputBorder.none,
-          hintText: '店舗からのメッセージを入力してください',
+          hintText: AppLocalizations.of(context)?.photoUploadScreenStoreMessage2 ?? '',
           hintStyle:
               TextStyle(color: Colors.grey[500], fontSize: screenWidth * 0.04),
         ),

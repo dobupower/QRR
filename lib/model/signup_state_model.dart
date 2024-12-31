@@ -22,6 +22,8 @@ class SignUpState with _$SignUpState {
     @Default(false) bool isPasswordVisible,
     @Default(false) bool isConfirmPasswordVisible,
     String? selectedStore,
+    @Default([]) List<String> stores, // 스토어 목록 기본값 설정
+    @Default([]) List<String> filteredStores, // 검색된 스토어 목록 기본값 설정
   }) = _SignUpState;
 
   factory SignUpState.fromJson(Map<String, dynamic> json) => _$SignUpStateFromJson(json);

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/owner_sign_up_view_model.dart';
 import 'photo_upload_screen.dart'; // Import photo_upload_screen
 import '../../model/owner_signup_state_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Main Sign-Up Screen
 class OwnerSignUpScreen extends ConsumerStatefulWidget {
@@ -28,7 +29,6 @@ class _OwnerSignUpScreenState extends ConsumerState<OwnerSignUpScreen> {
     // Navigate to PhotoUploadScreen on successful sign-up
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (signUpState.signUpSuccess) {
-        print('Navigating to PhotoUploadScreen'); // Debug log
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -36,7 +36,7 @@ class _OwnerSignUpScreenState extends ConsumerState<OwnerSignUpScreen> {
           ),
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('アカウント作成が完了しました。写真をアップロードしてください。')),
+          SnackBar(content: Text(AppLocalizations.of(context)?.ownerSignUpScreenOkay ?? '')),
         );
         signUpViewModel.resetSignUpSuccess();
       }
@@ -94,7 +94,7 @@ class _OwnerSignUpScreenState extends ConsumerState<OwnerSignUpScreen> {
                 isFormValid: signUpState.isFormValid,
                 onPressed: () async {
                   if (_formKey.currentState?.validate() ?? false) {
-                    await signUpViewModel.signUp(); // Execute sign-up logic
+                    await signUpViewModel.signUp(context); // Execute sign-up logic
                   }
                 },
                 screenWidth: screenWidth,
@@ -139,7 +139,7 @@ class FormTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        '会員登録', // Title
+        AppLocalizations.of(context)?.firstScreenSignUp ?? '', // Title
         style: TextStyle(
           fontSize: screenWidth * 0.06, // Relative font size
           fontWeight: FontWeight.bold, // Bold font
@@ -161,14 +161,16 @@ class StoreNameField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+
     return CustomTextField(
-      label: '店舗名',
-      hint: '店舗名を入力してください',
+      label: localizations?.ownerSignUpScreenStoreName1 ?? '',
+      hint: localizations?.ownerSignUpScreenStoreName2 ?? '',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateStoreName,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '店舗名を入力してください';
+          return localizations?.ownerSignUpScreenStoreName2 ?? '';
         }
         return null;
       },
@@ -186,11 +188,12 @@ class EmailField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final signUpState = ref.watch(ownerSignUpViewModelProvider);
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
+    final localizations = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('メールアドレス', style: TextStyle(fontSize: screenWidth * 0.05)),
+        Text(localizations?.ownerSignUpScreenEmail1 ?? '', style: TextStyle(fontSize: screenWidth * 0.05)),
         SizedBox(height: 10),
         TextFormField(
           decoration: InputDecoration(
@@ -200,16 +203,16 @@ class EmailField extends ConsumerWidget {
                 color: signUpState.emailError != null ? Colors.red : Colors.grey,
               ),
             ),
-            hintText: 'メールアドレスを入力してください',
+            hintText: localizations?.ownerSignUpScreenEmail2 ?? '',
             errorText: signUpState.emailError,
           ),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) {
-            signUpViewModel.updateEmail(value);
+            signUpViewModel.updateEmail(value, context);
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'メールアドレスを入力してください';
+              return localizations?.ownerSignUpScreenEmail2 ?? '';
             }
             if (signUpState.emailError != null) {
               return signUpState.emailError;
@@ -235,11 +238,12 @@ class PasswordField extends ConsumerWidget {
     final signUpState = ref.watch(ownerSignUpViewModelProvider);
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
     final isVisible = signUpState.isPasswordVisible;
+    final localizations = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('パスワード', style: TextStyle(fontSize: screenWidth * 0.05)),
+        Text(localizations?.ownerSignUpScreenPassword1 ?? '', style: TextStyle(fontSize: screenWidth * 0.05)),
         SizedBox(height: 10),
         TextFormField(
           obscureText: !isVisible,
@@ -258,11 +262,11 @@ class PasswordField extends ConsumerWidget {
             ),
           ),
           onChanged: (value) {
-            signUpViewModel.updatePassword(value);
+            signUpViewModel.updatePassword(value, context);
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'パスワードを入力してください';
+              return localizations?.ownerSignUpScreenPassword2 ?? '';
             }
             if (signUpState.passwordError != null) {
               return signUpState.passwordError;
@@ -288,11 +292,12 @@ class ConfirmPasswordField extends ConsumerWidget {
     final signUpState = ref.watch(ownerSignUpViewModelProvider);
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
     final isVisible = signUpState.isConfirmPasswordVisible;
+    final localizations = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('パスワード確認', style: TextStyle(fontSize: screenWidth * 0.05)),
+        Text(localizations?.ownerSignUpScreenPasswordConfirm1 ?? '', style: TextStyle(fontSize: screenWidth * 0.05)),
         SizedBox(height: 10),
         TextFormField(
           obscureText: !isVisible,
@@ -311,11 +316,11 @@ class ConfirmPasswordField extends ConsumerWidget {
             ),
           ),
           onChanged: (value) {
-            signUpViewModel.updateConfirmPassword(value);
+            signUpViewModel.updateConfirmPassword(value, context);
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'パスワード確認を入力してください';
+              return localizations?.ownerSignUpScreenPasswordConfirm2 ?? '';
             }
             if (signUpState.confirmPasswordError != null) {
               return signUpState.confirmPasswordError;
@@ -339,19 +344,19 @@ class AddressFields extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
-    final signUpState = ref.watch(ownerSignUpViewModelProvider);
+    final localizations = AppLocalizations.of(context);
 
     return Row(
       children: [
         Expanded(
           child: CustomTextField(
-            label: '郵便番号',
-            hint: '郵便番号を入力してください',
+            label: localizations?.ownerSignUpScreenPostalCode1 ?? '',
+            hint: localizations?.ownerSignUpScreenPostalCode2 ?? '',
             screenWidth: screenWidth,
             onChanged: signUpViewModel.updateZipCode,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return '郵便番号を入力してください';
+                return localizations?.ownerSignUpScreenPostalCode2 ?? '';
               }
               return null;
             },
@@ -360,13 +365,13 @@ class AddressFields extends ConsumerWidget {
         SizedBox(width: screenWidth * 0.02), // Spacer between Zip Code and Prefecture
         Expanded(
           child: CustomTextField(
-            label: '都道府県',
-            hint: '都道府県を入力してください',
+            label: localizations?.ownerSignUpScreenCity1 ?? '',
+            hint: localizations?.ownerSignUpScreenCity2 ?? '',
             screenWidth: screenWidth,
             onChanged: signUpViewModel.updateState,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return '都道府県を入力してください';
+                return localizations?.ownerSignUpScreenCity2 ?? '';
               }
               return null;
             },
@@ -386,15 +391,16 @@ class CityField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
-
+    final localizations = AppLocalizations.of(context);
+    
     return CustomTextField(
-      label: '市区町村',
-      hint: '市区町村を入力してください',
+      label: localizations?.ownerSignUpScreenCity3 ?? '',
+      hint: localizations?.ownerSignUpScreenCity4 ?? '',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateCity,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '市区町村を入力してください';
+          return localizations?.ownerSignUpScreenCity4 ?? '';
         }
         return null;
       },
@@ -411,15 +417,16 @@ class AddressField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final signUpViewModel = ref.read(ownerSignUpViewModelProvider.notifier);
+    final localizations = AppLocalizations.of(context);
 
     return CustomTextField(
-      label: '住所',
-      hint: '住所を入力してください',
+      label: localizations?.ownerSignUpScreenAddress1 ?? '',
+      hint: localizations?.ownerSignUpScreenAddress2 ?? '',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateAddress,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return '住所を入力してください';
+          return localizations?.ownerSignUpScreenAddress2 ?? '';
         }
         return null;
       },
@@ -439,9 +446,11 @@ class BuildingField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return CustomTextField(
-      label: '建物名、部屋番号など(任意)',
-      hint: '建物名、部屋番号などを入力してください',
+      label: localizations?.ownerSignUpScreenBuilding1 ?? '',
+      hint: localizations?.ownerSignUpScreenBuilding2 ?? '',
       screenWidth: screenWidth,
       onChanged: signUpViewModel.updateBuilding,
       isOptional: true, // Mark as optional
@@ -481,7 +490,7 @@ class SubmitButton extends StatelessWidget {
           ),
         ),
         child: Text(
-          'アカウント作成', // Button text
+          AppLocalizations.of(context)?.ownerSignUpScreenSubmit1 ?? '', // Button text
           style: TextStyle(
             fontSize: screenWidth * 0.045, // Font size
             color: Colors.white, // Text color
@@ -502,7 +511,7 @@ class TermsText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'アカウント作成することでサービス利用規約およびプライバシーポリシーに同意したことになります。必ず御読みください。',
+        AppLocalizations.of(context)?.ownerSignUpScreenSubmit2 ?? '',
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: screenWidth * 0.03, // Text size
@@ -549,7 +558,7 @@ class CustomTextField extends StatelessWidget {
           validator: validator ??
               (value) {
                 if (!isOptional && (value == null || value.isEmpty)) {
-                  return '$labelを入力してください';
+                  return ('$label') + (AppLocalizations.of(context)?.ownerSignUpScreenInput ?? '');
                 }
                 return null;
               },

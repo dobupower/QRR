@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../model/user_model.dart';
 import '../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserAccountViewModel extends StateNotifier<AsyncValue<User>> {
   UserAccountViewModel() : super(const AsyncValue.loading()); // 초기 상태 설정
@@ -21,7 +21,7 @@ class UserAccountViewModel extends StateNotifier<AsyncValue<User>> {
 
       // 2. Firestore에서 이메일로 사용자 문서 조회
       final userDoc = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('email', isEqualTo: email)
           .get();
 

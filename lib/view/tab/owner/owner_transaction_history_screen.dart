@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/transaction_history_view_model.dart';
 import '../../../model/transaction_history_model.dart'; // TransactionHistory 모델 임포트
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OwnerTransactionHistoryScreen extends ConsumerStatefulWidget {
   @override
@@ -42,9 +43,11 @@ class _OwnerTransactionHistoryScreenState
 
   Future<void> _refreshData() async {
     if (selectedDate != null) {
-      await ref
-          .read(transactionHistoryProvider.notifier)
-          .fetchOwnerTransactionHistory(isInitialLoad: true);
+      // 선택된 날짜에 맞는 거래 내역을 다시 불러옴
+      await ref.read(transactionHistoryProvider.notifier).fetchOwnerTransactionHistory(
+        isInitialLoad: true, 
+        selectedDate: selectedDate,
+      );
     }
   }
 
@@ -129,7 +132,7 @@ class TransactionHistoryHeader extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Text(
-      '取引履歴',
+      AppLocalizations.of(context)?.ownerHomeScreenTransactionHistory ?? '',
       style: TextStyle(
         fontSize: screenWidth * 0.06,
         fontWeight: FontWeight.bold,
@@ -159,6 +162,7 @@ class DateFilterSection extends StatelessWidget {
     final borderRadius = screenWidth * 0.08;
     final buttonHeight = screenHeight * 0.06;
     final buttonWidth = screenWidth * 0.9;
+    final localizations = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: onSelectDate,
@@ -187,8 +191,8 @@ class DateFilterSection extends StatelessWidget {
                   ),
                   child: Text(
                     selectedDate != null
-                        ? DateFormat('yyyy年 MM月 dd日').format(selectedDate!)
-                        : '日付選択',
+                        ? DateFormat(localizations?.ownerTransactionHistoryScreenDataFormat1 ?? '').format(selectedDate!)
+                        : localizations?.ownerTransactionHistoryScreenSelectDate1 ?? '',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: screenWidth * 0.04,
@@ -225,13 +229,14 @@ class TransactionHistoryContent extends ConsumerWidget {
     final screenWidth = screenSize.width;
 
     final transactionHistory = ref.watch(transactionHistoryProvider);
+    final localizations = AppLocalizations.of(context);
 
     if (selectedDate == null) {
       return SizedBox(
         height: screenSize.height * 0.6,
         child: Center(
           child: Text(
-            '日付を選択してください',
+            localizations?.ownerTransactionHistoryScreenSelectDate2 ?? '',
             style: TextStyle(
               fontSize: screenWidth * 0.05,
               color: Colors.grey,
@@ -246,7 +251,7 @@ class TransactionHistoryContent extends ConsumerWidget {
         if (transactions.isEmpty) {
           return Center(
             child: Text(
-              '取引履歴がありません',
+              localizations?.ownerTransactionHistoryScreenNoHistory ?? '',
               style: TextStyle(
                 fontSize: screenWidth * 0.045,
                 color: Colors.grey,
@@ -266,7 +271,7 @@ class TransactionHistoryContent extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) =>
-          Center(child: Text('エラーが発生しました: $error')),
+          Center(child: Text(localizations?.ownerAccountScreenError ?? '' +': $error')),
     );
   }
 }
@@ -282,7 +287,7 @@ class TransactionListItem extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
 
-    final dateFormat = DateFormat('yyyy年M月d日 H時m分');
+    final dateFormat = DateFormat(AppLocalizations.of(context)?.ownerTransactionHistoryScreenDataFormat2 ?? '');
     final formattedDate = dateFormat.format(transaction.timestamp);
     final isPositive = transaction.points > 0;
 

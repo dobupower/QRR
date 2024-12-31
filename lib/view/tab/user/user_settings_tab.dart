@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class UserSettingsTab extends StatefulWidget {
   @override
@@ -47,6 +48,7 @@ class SettingsBody extends StatelessWidget {
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     const dividerColor = Colors.grey;
+    final localizations = AppLocalizations.of(context);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
@@ -56,7 +58,7 @@ class SettingsBody extends StatelessWidget {
           SizedBox(height: screenHeight * 0.05),
           // 상단 제목
           Text(
-            '設定', // 설정 화면의 제목
+            localizations?.ownerHomeScreenSetting ?? '', // 설정 화면의 제목
             style: TextStyle(
               fontSize: screenWidth * 0.05,
               fontWeight: FontWeight.bold,
@@ -75,7 +77,7 @@ class SettingsBody extends StatelessWidget {
           ),
           // 설정 항목 1: 개인정보 처리방침
           SettingsListTile(
-            title: 'プライバシーポリシー', // 개인정보 처리방침
+            title: localizations?.ownerSettingsTabPrivacyPolicy ?? '', // 개인정보 처리방침
             onTap: () => Navigator.pushNamed(context, '/privacyPolicy'),
           ),
           Divider(
@@ -85,8 +87,8 @@ class SettingsBody extends StatelessWidget {
           ),
           // 설정 항목 2: 이용약관
           SettingsListTile(
-            title: '利用規約', // 이용약관
-            onTap: () => Navigator.pushNamed(context, '/termsOfService'),
+            title: localizations?.ownerSettingsTabTermsOfservice ?? '', // 이용약관
+            onTap: () => Navigator.pushNamed(context, '/termsOfservice'),
           ),
           Divider(
             color: dividerColor[300],
@@ -112,7 +114,7 @@ class NotificationToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(
-        '通知', // 알림 토글 텍스트
+        AppLocalizations.of(context)?.ownerSettingsTabNotification ?? '', // 알림 토글 텍스트
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
             ),

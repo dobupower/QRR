@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart'; // 숫자 포맷팅을 위해 추가
 import '../../../viewModel/owner_settings_tab_view_model.dart'; // Firestore 데이터 연동
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PointLimitScreen extends ConsumerWidget {
   PointLimitScreen();
@@ -72,7 +73,7 @@ class _TopTitle extends StatelessWidget {
         left: screenWidth * 0.05,
       ), // 화면 높이의 5%만큼 상단 여백
       child: Text(
-        'ポイント管理',
+        AppLocalizations.of(context)?.ownerSettingsTaPointLimit ?? '',
         style: TextStyle(
           color: Colors.black,
           fontSize: screenWidth * 0.06, // 텍스트 크기 화면 너비의 7%
@@ -259,7 +260,7 @@ class _SubmitButton extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            '確認',
+            AppLocalizations.of(context)?.meberInputScreenSubmit ?? '',
             style: TextStyle(
               fontSize: screenWidth * 0.045, // 텍스트 크기
               fontWeight: FontWeight.bold, // 텍스트 굵기

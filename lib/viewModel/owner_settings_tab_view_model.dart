@@ -21,7 +21,7 @@ class OwnerSettingsTabViewModel extends StateNotifier<int?> {
 
       // 'owners' 컬렉션에서 'email' 필드가 ownerEmail과 일치하는 문서 검색
       final querySnapshot = await _firestore
-          .collection('owners')
+          .collection('Owners')
           .where('email', isEqualTo: ownerEmail)
           .get();
 
@@ -46,7 +46,7 @@ class OwnerSettingsTabViewModel extends StateNotifier<int?> {
         return;
       }
 
-      await _firestore.collection('owners').doc(_ownerDocumentId).set({
+      await _firestore.collection('Owners').doc(_ownerDocumentId).set({
         'pointLimit': newLimit,
       }, SetOptions(merge: true));
       state = newLimit; // Firestore 업데이트 후 상태도 업데이트

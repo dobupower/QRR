@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/point_management_view_model.dart';
 import '../../../viewModel/qrcode_scan_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PointManagementScreen extends ConsumerStatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(transactionProvider.notifier).fetchUserData(ref);
+      ref.read(transactionProvider.notifier).fetchUserData(ref, context);
     });
   }
 
@@ -22,6 +23,7 @@ class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final transaction = ref.watch(transactionProvider);
+    final localizations = AppLocalizations.of(context);
 
     return PopScope<Object?>(
       canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
@@ -38,7 +40,7 @@ class _PointManagementScreenState extends ConsumerState<PointManagementScreen> {
               children: [
                 SizedBox(height: screenSize.height * 0.05),
                 Text(
-                  'ポイント管理',
+                  localizations?.pointManagementConfirmScreenTitle ?? '',
                   style: TextStyle(
                     fontSize: screenSize.width * 0.07,
                     fontWeight: FontWeight.bold,
@@ -82,6 +84,7 @@ class UserProfileSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final profilePicUrl = transaction?.profilePicUrl;
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.02),
@@ -107,7 +110,7 @@ class UserProfileSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                transaction?.name ?? 'ユーザー名を取得中...',
+                transaction?.name ?? localizations?.pointManagementConfirmScreenNameLoading ?? '',
                 style: TextStyle(fontSize: screenWidth * 0.04, fontWeight: FontWeight.bold),
               ),
               Text(
@@ -130,6 +133,7 @@ class PointsInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -141,7 +145,7 @@ class PointsInfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('ご利用可能なポイント', style: TextStyle(fontSize: screenWidth * 0.04)),
+          Text(localizations?.pointManagementScreenPoint ?? '', style: TextStyle(fontSize: screenWidth * 0.04)),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -160,6 +164,7 @@ class TransactionTypeSelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transaction = ref.watch(transactionProvider);
     final screenWidth = MediaQuery.of(context).size.width;
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.025, vertical: screenWidth * 0.03),
@@ -173,30 +178,30 @@ class TransactionTypeSelector extends ConsumerWidget {
         children: [
           Expanded(
             child: ActionButton(
-              text: 'チャージ',
-              isSelected: transaction?.type == 'チャージ',
+              text: localizations?.pointManagementConfirmScreenCharge1 ?? '',
+              isSelected: transaction?.type == localizations?.pointManagementConfirmScreenCharge1 ?? false,
               onPressed: () {
-                ref.read(transactionProvider.notifier).updateTransactionType('チャージ');
+                ref.read(transactionProvider.notifier).updateTransactionType(localizations?.pointManagementConfirmScreenCharge1 ?? '');
               },
             ),
           ),
           SizedBox(width: screenWidth * 0.02),
           Expanded(
             child: ActionButton(
-              text: 'チップ交換',
-              isSelected: transaction?.type == 'チップ交換',
+              text: localizations?.pointManagementConfirmScreenChange ?? '',
+              isSelected: transaction?.type == localizations?.pointManagementConfirmScreenChange ?? false,
               onPressed: () {
-                ref.read(transactionProvider.notifier).updateTransactionType('チップ交換');
+                ref.read(transactionProvider.notifier).updateTransactionType(localizations?.pointManagementConfirmScreenChange ?? '');
               },
             ),
           ),
           SizedBox(width: screenWidth * 0.02),
           Expanded(
             child: ActionButton(
-              text: 'お支払い',
-              isSelected: transaction?.type == 'お支払い',
+              text: localizations?.pointManagementConfirmScreenSpend ?? '',
+              isSelected: transaction?.type == localizations?.pointManagementConfirmScreenSpend ?? false,
               onPressed: () {
-                ref.read(transactionProvider.notifier).updateTransactionType('お支払い');
+                ref.read(transactionProvider.notifier).updateTransactionType(localizations?.pointManagementConfirmScreenSpend ?? '');
               },
             ),
           ),
@@ -282,6 +287,7 @@ class TransactionActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final localizations = AppLocalizations.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -289,7 +295,7 @@ class TransactionActions extends ConsumerWidget {
         Expanded(
           child: GestureDetector(
             onTap: () async {
-              final errorMessage = await ref.read(transactionProvider.notifier).updateUserPoints(ref);
+              final errorMessage = await ref.read(transactionProvider.notifier).updateUserPoints(ref, context);
               if (errorMessage == null) {
                 Navigator.pushNamed(context, '/pointManagementConfirm');
               } else {
@@ -306,7 +312,7 @@ class TransactionActions extends ConsumerWidget {
               ),
               child: Center(
                 child: Text(
-                  '送る',
+                  localizations?.pointManagementScreenSubmit ?? '',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -334,7 +340,7 @@ class TransactionActions extends ConsumerWidget {
               ),
               child: Center(
                 child: Text(
-                  '受け取る',
+                  localizations?.pointManagementConfirmScreenHome ?? '',
                   style: TextStyle(
                     color: Color(0xFF1D2538),
                     fontWeight: FontWeight.bold,

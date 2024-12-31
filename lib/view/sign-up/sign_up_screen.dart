@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewModel/sign_up_view_model.dart';
 import '../../model/signup_state_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends ConsumerWidget {
   final _formKey = GlobalKey<FormState>();
@@ -14,6 +15,7 @@ class SignUpScreen extends ConsumerWidget {
 
     final signUpState = ref.watch(signUpViewModelProvider);
     final signUpViewModel = ref.read(signUpViewModelProvider.notifier);
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,49 +33,52 @@ class SignUpScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(screenWidth),
+              _buildHeader(screenWidth, context),
               SizedBox(height: screenHeight * 0.02),
               _buildTextField(
-                label: '表示名',
-                hint: 'あかばね',
+                label: localizations?.signupScreenName1 ?? '',
+                hint: localizations?.signupScreenName2 ?? '',
                 controller: signUpState.nameController,
                 screenWidth: screenWidth,
                 screenHeight: screenHeight,
               ),
               SizedBox(height: screenHeight * 0.02),
               _buildEmailField(
-                label: 'メールアドレス',
+                label: localizations?.ownerSignUpScreenEmail1 ?? '',
                 hint: 'Enter your email',
                 controller: signUpState.emailController,
                 signUpState: signUpState,
                 signUpViewModel: signUpViewModel,
                 screenWidth: screenWidth,
                 screenHeight: screenHeight,
+                context: context
               ),
               SizedBox(height: screenHeight * 0.02),
               _buildPasswordField(
-                label: 'パスワード',
+                label: localizations?.ownerSignUpScreenPassword1 ?? '',
                 controller: signUpState.passwordController,
                 signUpState: signUpState,
                 signUpViewModel: signUpViewModel,
                 isConfirmField: false,
                 screenWidth: screenWidth,
                 screenHeight: screenHeight,
+                context: context
               ),
               SizedBox(height: screenHeight * 0.02),
               _buildPasswordField(
-                label: 'パスワード確認',
+                label: localizations?.ownerSignUpScreenPasswordConfirm1 ?? '',
                 controller: signUpState.confirmPasswordController,
                 signUpState: signUpState,
                 signUpViewModel: signUpViewModel,
                 isConfirmField: true,
                 screenWidth: screenWidth,
                 screenHeight: screenHeight,
+                context: context
               ),
               SizedBox(height: screenHeight * 0.1),
               _buildSubmitButton(context, signUpState, signUpViewModel, screenWidth, screenHeight),
               SizedBox(height: screenHeight * 0.02),
-              _buildFooterText(screenWidth),
+              _buildFooterText(screenWidth, context),
             ],
           ),
         ),
@@ -81,10 +86,10 @@ class SignUpScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(double screenWidth) {
+  Widget _buildHeader(double screenWidth, BuildContext context) {
     return Center(
       child: Text(
-        '会員登録',
+        AppLocalizations.of(context)?.firstScreenSignUp ?? '',
         style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.bold),
       ),
     );
@@ -123,6 +128,7 @@ class SignUpScreen extends ConsumerWidget {
     required SignUpViewModel signUpViewModel,
     required double screenWidth,
     required double screenHeight,
+    required BuildContext context
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +145,7 @@ class SignUpScreen extends ConsumerWidget {
             errorText: signUpState.emailError,
           ),
           keyboardType: TextInputType.emailAddress,
-          onChanged: (value) => signUpViewModel.validateEmail(value),
+          onChanged: (value) => signUpViewModel.validateEmail(value, context),
         ),
       ],
     );
@@ -153,6 +159,7 @@ class SignUpScreen extends ConsumerWidget {
     required bool isConfirmField,
     required double screenWidth,
     required double screenHeight,
+    required BuildContext context
   }) {
     final bool isVisible = isConfirmField ? signUpState.isConfirmPasswordVisible : signUpState.isPasswordVisible;
     final errorText = isConfirmField ? signUpState.confirmPasswordError : signUpState.passwordError;
@@ -182,8 +189,8 @@ class SignUpScreen extends ConsumerWidget {
           ),
           onChanged: (value) {
             isConfirmField
-                ? signUpViewModel.validateConfirmPassword(value)
-                : signUpViewModel.validatePassword(value);
+                ? signUpViewModel.validateConfirmPassword(value, context)
+                : signUpViewModel.validatePassword(value, context);
           },
         ),
       ],
@@ -199,7 +206,7 @@ class SignUpScreen extends ConsumerWidget {
   ) {
     return Center(
       child: ElevatedButton(
-        onPressed: signUpState.isFormValid
+        onPressed: signUpState.isFormValid && !signUpState.isLoading
             ? () {
                 if (_formKey.currentState?.validate() ?? false) {
                   signUpViewModel.signUp(context);
@@ -207,7 +214,9 @@ class SignUpScreen extends ConsumerWidget {
               }
             : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: signUpState.isFormValid ? Color(0xFF1D2538) : Colors.grey,
+          backgroundColor: signUpState.isFormValid && !signUpState.isLoading
+              ? Color(0xFF1D2538)
+              : Colors.grey,
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.3,
             vertical: screenHeight * 0.01,
@@ -216,18 +225,20 @@ class SignUpScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(50),
           ),
         ),
-        child: Text(
-          'アカウント作成',
-          style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white),
-        ),
+        child: signUpState.isLoading
+            ? CircularProgressIndicator(color: Colors.white)  // 로딩 중일 경우
+            : Text(
+                AppLocalizations.of(context)?.ownerSignUpScreenSubmit1 ?? '',
+                style: TextStyle(fontSize: screenWidth * 0.045, color: Colors.white),
+              ),
       ),
     );
   }
 
-  Widget _buildFooterText(double screenWidth) {
+  Widget _buildFooterText(double screenWidth, BuildContext context) {
     return Center(
       child: Text(
-        'アカウント作成することでサービス利用規約およびプライバシーポリシーに同意したことになります。必ず御読みください。',
+        AppLocalizations.of(context)?.ownerSignUpScreenSubmit2 ?? '',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: screenWidth * 0.03),
       ),

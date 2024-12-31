@@ -37,7 +37,7 @@ class UpdatePubIdViewModel extends StateNotifier<UserUpdatePubIdState> {
 
   Future<void> fetchStoresFromFirestore() async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance.collection('owners').get();
+      final querySnapshot = await FirebaseFirestore.instance.collection('Owners').get();
 
       // storeName 필드를 추출하여 리스트로 변환
       final storeNames = querySnapshot.docs
@@ -84,7 +84,7 @@ class UpdatePubIdViewModel extends StateNotifier<UserUpdatePubIdState> {
 
       // 3. Firestore에서 이메일로 사용자 문서 찾기
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
+          .collection('Users')
           .where('email', isEqualTo: email)
           .get();
 
@@ -93,7 +93,7 @@ class UpdatePubIdViewModel extends StateNotifier<UserUpdatePubIdState> {
 
         // 4. Firestore에서 pubId 필드를 업데이트
         await FirebaseFirestore.instance
-            .collection('users')
+            .collection('Users')
             .doc(docId)
             .update({'pubId': storeName});
 

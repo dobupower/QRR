@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart'; // debugPrint 사용을 위한 패키지
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/owner_signup_state_model.dart';
 import '../model/owner_model.dart';
@@ -7,116 +8,138 @@ import '../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+// OwnerSignUpViewModel은 OwnerSignUpState 상태를 관리하는 클래스
 class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
-  final AuthService _authService;
-  final firebase_auth.FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firestore;
+  final AuthService _authService; // AuthService 인스턴스
+  final firebase_auth.FirebaseAuth _firebaseAuth; // FirebaseAuth 인스턴스
+  final FirebaseFirestore _firestore; // FirebaseFirestore 인스턴스
 
+  // 생성자 - AuthService 인스턴스를 의존성 주입받음
   OwnerSignUpViewModel(this._authService)
       : _firebaseAuth = firebase_auth.FirebaseAuth.instance,
         _firestore = FirebaseFirestore.instance,
         super(OwnerSignUpState());
 
   // 상태 업데이트 메서드들
+
+  // 매장 이름 업데이트
   void updateStoreName(String value) {
     state = state.copyWith(storeName: value);
   }
 
-  void updateEmail(String value) {
+  // 이메일 업데이트 및 검증
+  void updateEmail(String value, BuildContext context) {
     value = value.trim(); // 공백 제거
     state = state.copyWith(email: value);
-    validateEmail(value);
+    validateEmail(value, context);
   }
 
-  void updatePassword(String value) {
+  // 비밀번호 업데이트 및 검증
+  void updatePassword(String value, BuildContext context) {
     state = state.copyWith(password: value);
-    validatePassword(value);
+    validatePassword(value, context);
   }
 
-  void updateConfirmPassword(String value) {
+  // 비밀번호 확인 업데이트 및 검증
+  void updateConfirmPassword(String value, BuildContext context) {
     state = state.copyWith(confirmPassword: value);
-    validateConfirmPassword(value);
+    validateConfirmPassword(value, context);
   }
 
+  // 우편번호 업데이트
   void updateZipCode(String value) {
     state = state.copyWith(zipCode: value);
   }
 
+  // 주(state) 업데이트
   void updateState(String value) {
     state = state.copyWith(state: value);
   }
 
+  // 도시(city) 업데이트
   void updateCity(String value) {
     state = state.copyWith(city: value);
   }
 
+  // 주소(address) 업데이트
   void updateAddress(String value) {
     state = state.copyWith(address: value);
   }
 
+  // 건물(building) 업데이트
   void updateBuilding(String value) {
     state = state.copyWith(building: value);
   }
 
+  // 비밀번호 가시성 토글
   void togglePasswordVisibility() {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
 
+  // 비밀번호 확인 가시성 토글
   void toggleConfirmPasswordVisibility() {
     state = state.copyWith(
         isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
 
   // 검증 메서드들
-  void validateEmail(String email) {
+
+  // 이메일 검증
+  void validateEmail(String email, BuildContext context) {
     print('Validating email: "$email"');
     const emailRegex =
         r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
     if (!RegExp(emailRegex).hasMatch(email)) {
-      state = state.copyWith(emailError: '正しいメールアドレスを入力してください。');
+      state = state.copyWith(emailError: AppLocalizations.of(context)?.ownerSignUpViewModelEmailError ?? '');
     } else {
       state = state.copyWith(emailError: null);
     }
   }
 
-  void validatePassword(String password) {
+  // 비밀번호 검증
+  void validatePassword(String password, BuildContext context) {
     if (password.length < 8) {
-      state = state.copyWith(passwordError: 'パスワードは8文字以上である必要があります。');
+      state = state.copyWith(passwordError: AppLocalizations.of(context)?.ownerSignUpViewModelPasswordError1 ?? '');
     } else {
       state = state.copyWith(passwordError: null);
     }
     if (state.confirmPassword.isNotEmpty) {
-      validateConfirmPassword(state.confirmPassword);
+      validateConfirmPassword(state.confirmPassword, context);
     }
   }
 
-  void validateConfirmPassword(String confirmPassword) {
+  // 비밀번호 확인 검증
+  void validateConfirmPassword(String confirmPassword, BuildContext context) {
     if (confirmPassword != state.password) {
-      state = state.copyWith(confirmPasswordError: 'パスワードが一致しません。');
+      state = state.copyWith(confirmPasswordError: AppLocalizations.of(context)?.ownerSignUpViewModelPasswordError2 ?? '');
     } else {
       state = state.copyWith(confirmPasswordError: null);
     }
   }
 
+  // 인증 코드 생성
   String _generateVerificationCode() {
     final random = Random();
     return (random.nextInt(9000) + 1000).toString();
   }
 
   // 회원가입 요청 함수
-  Future<void> signUp() async {
+  Future<void> signUp(BuildContext context) async {
     if (state.isFormValid) {
       state = state.copyWith(isLoading: true);
       try {
         final email = state.email;
 
-        if (await _authService.OwnerisEmailAlreadyRegistered(email)) {
+        // 이메일 중복 체크
+        if (await _authService.OwnerisEmailAlreadyRegistered(email, context)) {
           state = state.copyWith(
-              emailError: 'このメールアドレスは既に登録されています。', isLoading: false);
+              emailError: AppLocalizations.of(context)?.ownerSignUpViewModelEmailAllready ?? '', isLoading: false);
           return;
         }
 
+        // Owner 객체 생성
         final owner = Owner(
           uid: '', // uid는 나중에 설정됩니다.
           storeName: state.storeName,
@@ -131,6 +154,7 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
           pointLimit: 100000,
         );
 
+        // 인증 코드 생성
         final verificationCode = _generateVerificationCode();
         state = state.copyWith(
           verificationCode: verificationCode,
@@ -138,12 +162,13 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
           signUpSuccess: true, // 회원가입 성공 이벤트 표시
         );
 
-        await _authService.sendVerificationEmail(owner.email, verificationCode);
+        // 인증 이메일 전송
+        await _authService.sendVerificationEmail(owner.email, verificationCode, context);
       } catch (e) {
         print('회원가입 오류: $e');
         state = state.copyWith(
           isLoading: false,
-          signUpError: '회원가입 중 오류가 발생했습니다。',
+          signUpError: AppLocalizations.of(context)?.ownerSignUpViewModelSignupError1 ?? '',
         );
       } finally {
         state = state.copyWith(isLoading: false);
@@ -151,13 +176,14 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
     } else {
       print('Form is not valid');
       state = state.copyWith(
-        signUpError: '입력된 정보를 확인해주세요。',
+        signUpError: AppLocalizations.of(context)?.ownerSignUpViewModelSignupError2 ?? '',
       );
     }
   }
 
   // 인증 코드 검증 함수
-  Future<void> verifyCode(String inputCode) async {
+  Future<void> verifyCode(String inputCode, BuildContext context) async {
+    final localizations = AppLocalizations.of(context);
     if (state.verificationCode == inputCode) {
       state = state.copyWith(verificationErrorMessage: null);
       try {
@@ -179,43 +205,43 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
         );
       } on firebase_auth.FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
-          state = state.copyWith(emailError: 'このメールアドレスは既に登録されています。');
+          state = state.copyWith(emailError: localizations?.ownerSignUpViewModelEmailAllready ?? '');
         } else {
           debugPrint('Firebase Auth error: $e');
           state = state.copyWith(
-            verificationErrorMessage: 'ユーザー登録中にエラーが発生しました。',
+            verificationErrorMessage: localizations?.ownerSignUpViewModelSignupError3 ?? '',
           );
         }
       } catch (e) {
         debugPrint('Error during authentication or Firestore saving: $e');
         state = state.copyWith(
-          verificationErrorMessage: 'ユーザー登録中にエラーが発生しました。',
+          verificationErrorMessage: localizations?.ownerSignUpViewModelSignupError3 ?? '',
         );
       }
     } else {
-      state = state.copyWith(verificationErrorMessage: '認証コードが正しくありません。');
+      state = state.copyWith(verificationErrorMessage: localizations?.ownerSignUpViewModelCodeError ?? '');
+      print('verificationErrorMessage');
     }
   }
 
   // 코드 재전송 함수
-  Future<void> resendVerificationCode() async {
+  Future<void> resendVerificationCode(BuildContext context) async {
     final newCode = _generateVerificationCode();
     state = state.copyWith(verificationCode: newCode);
 
     if (state.email.isNotEmpty) {
       try {
-        await _authService.sendVerificationEmail(state.email, newCode);
+        await _authService.sendVerificationEmail(state.email, newCode, context);
         state = state.copyWith(resendCodeSuccess: true); // 코드 재전송 성공 이벤트
       } catch (e) {
-        debugPrint('인증 코드 재전송 실패: $e');
         state = state.copyWith(
-          resendCodeError: '인증 코드 재전송 실패',
+          resendCodeError: AppLocalizations.of(context)?.ownerSignUpViewModelCodeRetransmissionFail ?? '',
         );
       }
     }
   }
 
-  // 이벤트 플래그 리셋 메서드
+  // 이벤트 플래그 리셋 메서드들
   void resetSignUpSuccess() {
     state = state.copyWith(signUpSuccess: false);
   }
@@ -240,7 +266,7 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
     state = state.copyWith(resendCodeError: null);
   }
 
-  // owners 컬렉션의 문서를 업데이트하는 메서드
+  // Firestore에서 owner 정보 업데이트
   Future<void> updateOwnerInfo() async {
     try {
       // 현재 사용자 이메일 가져오기
@@ -248,7 +274,7 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
 
       // email 필드로 Firestore에서 문서를 검색
       final querySnapshot = await _firestore
-          .collection('owners')
+          .collection('Owners')
           .where('email', isEqualTo: email)
           .get();
 
@@ -268,18 +294,14 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
 
         if (updatedData.isNotEmpty) {
           // 문서 업데이트
-          await _firestore.collection('owners').doc(docId).update(updatedData);
-          debugPrint('Owner 정보가 성공적으로 업데이트되었습니다.');
+          await _firestore.collection('Owners').doc(docId).update(updatedData);
         } else {
-          debugPrint('업데이트할 데이터가 없습니다.');
           state = state.copyWith(signUpError: '업데이트할 데이터가 없습니다。');
         }
       } else {
-        debugPrint('해당 이메일로 등록된 문서를 찾을 수 없습니다.');
         state = state.copyWith(signUpError: '등록된 이메일을 찾을 수 없습니다。');
       }
     } catch (e) {
-      debugPrint('오너 정보 업데이트 중 오류 발생: $e');
       state = state.copyWith(
         signUpError: '정보 업데이트 중 오류가 발생했습니다。',
       );
@@ -287,8 +309,10 @@ class OwnerSignUpViewModel extends StateNotifier<OwnerSignUpState> {
   }
 }
 
+// AuthService를 provider로 제공
 final authServiceProvider = Provider((ref) => AuthService());
 
+// OwnerSignUpViewModel을 Provider로 제공
 final ownerSignUpViewModelProvider =
     StateNotifierProvider<OwnerSignUpViewModel, OwnerSignUpState>(
   (ref) {

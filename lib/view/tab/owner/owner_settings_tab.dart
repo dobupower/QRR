@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../viewModel/owner_settings_tab_view_model.dart';
 import '../../../services/preferences_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OwnerSettingsTab extends ConsumerWidget {
   @override
@@ -54,6 +55,7 @@ class _SettingsBodyState extends State<SettingsBody> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
@@ -63,7 +65,7 @@ class _SettingsBodyState extends State<SettingsBody> {
           // 상단 제목
           SizedBox(height: screenHeight * 0.08),
           Text(
-            '設定', // 설정 화면의 제목
+            localizations?.ownerHomeScreenSetting ?? '', // 설정 화면의 제목
             style: TextStyle(
               fontSize: screenWidth * 0.06,
               fontWeight: FontWeight.bold,
@@ -77,7 +79,7 @@ class _SettingsBodyState extends State<SettingsBody> {
               children: [
                 // 포인트 리미트 설정
                 SettingsSection(
-                  title: 'ポイントチャージ上限設定',
+                  title: localizations?.ownerSettingsTaPointLimit ?? '',
                   trailingWidget: Text(
                     '${NumberFormat("#,###").format(widget.pointLimit)} pt',
                     style: TextStyle(
@@ -95,7 +97,7 @@ class _SettingsBodyState extends State<SettingsBody> {
 
                 // 알림 토글
                 SettingsSection(
-                  title: '通知',
+                  title: localizations?.ownerSettingsTabNotification ?? '',
                   trailingWidget: Switch(
                     value: _notificationStatus,
                     onChanged: (value) async {
@@ -115,7 +117,7 @@ class _SettingsBodyState extends State<SettingsBody> {
 
                 // 개인정보 처리방침
                 SettingsSection(
-                  title: 'プライバシーポリシー',
+                  title: localizations?.ownerSettingsTabPrivacyPolicy ?? '',
                   onTap: () => Navigator.pushNamed(context, '/privacyPolicy'),
                 ),
                 Divider(
@@ -126,7 +128,7 @@ class _SettingsBodyState extends State<SettingsBody> {
 
                 // 이용약관
                 SettingsSection(
-                  title: '利用規約',
+                  title: localizations?.ownerSettingsTabTermsOfservice ?? '',
                   onTap: () => Navigator.pushNamed(context, '/termsOfservice'),
                 ),
                 Divider(

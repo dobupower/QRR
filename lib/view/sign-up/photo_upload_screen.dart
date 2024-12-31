@@ -5,6 +5,7 @@ import '../../viewModel/owner_sign_up_view_model.dart'; // ownerEmail을 가져�
 import 'dart:io';
 import 'owner_email_auth_screen.dart'; // 이메일 인증 페이지로 이동
 import '../../model/photo_upload_state_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PhotoUploadScreen extends ConsumerStatefulWidget {
   @override
@@ -35,6 +36,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
+    final localizations = AppLocalizations.of(context);
 
     return PopScope<Object?>(
       canPop: false, // 뒤로 가기 제스처 및 버튼을 막음
@@ -57,7 +59,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
             children: [
               Center(
                 child: Text(
-                  '店舗詳細情報',
+                  localizations?.photoUploadScreenStoreInfo ?? '',
                   style: TextStyle(
                     fontSize: screenWidth * 0.06,
                     fontWeight: FontWeight.bold,
@@ -65,13 +67,13 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.02),
-              _buildSectionTitle('店舗イメージ登録', screenWidth),
+              _buildSectionTitle(localizations?.photoUploadScreenPhotoUpload ?? '', screenWidth),
               _buildImageUploadRow(screenWidth, screenHeight, viewModel, state),
               SizedBox(height: screenHeight * 0.02),
-              _buildSectionTitle('店舗ロゴ登録', screenWidth),
+              _buildSectionTitle(localizations?.photoUploadScreenLogoUpload ?? '', screenWidth),
               _buildLogoUpload(screenWidth, screenHeight, viewModel, state),
               SizedBox(height: screenHeight * 0.02),
-              _buildSectionTitle('店舗からのメッセージ', screenWidth),
+              _buildSectionTitle(localizations?.photoUploadScreenStoreMessage1 ?? '', screenWidth),
               _buildMessageField(screenWidth, viewModel),
               SizedBox(height: screenHeight * 0.04),
               Center(
@@ -79,7 +81,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                   onPressed: state.isLoading || !viewModel.isFormValid
                       ? null
                       : () async {
-                          await viewModel.submitDetails();
+                          await viewModel.submitDetails(context);
 
                           Navigator.push(
                             context,
@@ -101,7 +103,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                     ),
                   ),
                   child: Text(
-                    '詳細情報登録',
+                    localizations?.photoUploadScreenDetailInfo ?? '',
                     style: TextStyle(
                       fontSize: screenWidth * 0.045,
                       color: Colors.white,
@@ -167,7 +169,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                                   Icon(Icons.camera_alt,
                                       size: screenWidth * 0.08,
                                       color: Colors.grey),
-                                  Text("必須",
+                                  Text(AppLocalizations.of(context)?.photoUploadScreenEssential ?? '',
                                       style: TextStyle(
                                           color: Colors.blue,
                                           fontSize: screenWidth * 0.035)),
@@ -243,7 +245,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
                       children: [
                         Icon(Icons.camera_alt,
                             size: screenWidth * 0.1, color: Colors.grey),
-                        Text("必須",
+                        Text(AppLocalizations.of(context)?.photoUploadScreenEssential ?? '',
                             style: TextStyle(
                                 color: Colors.blue,
                                 fontSize: screenWidth * 0.035)),
@@ -272,7 +274,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
         },
         decoration: InputDecoration(
           border: InputBorder.none,
-          hintText: '店舗からのメッセージを入力してください',
+          hintText: AppLocalizations.of(context)?.photoUploadScreenStoreMessage2 ?? '',
           hintStyle:
               TextStyle(color: Colors.grey[500], fontSize: screenWidth * 0.04),
         ),

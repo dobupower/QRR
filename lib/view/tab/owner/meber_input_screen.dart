@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewModel/point_management_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MemberInputScreen extends ConsumerStatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
   void initState() {
     super.initState();
     _controller.addListener(() {
-      ref.read(transactionProvider.notifier).updateUid(_controller.text);
+      ref.read(transactionProvider.notifier).updateUid(_controller.text, context);
     });
   }
 
@@ -22,7 +23,8 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
@@ -34,7 +36,7 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '会員番号入力',
+                localizations?.meberInputScreenUserNumber1 ?? '',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: screenWidth * 0.07,
@@ -60,7 +62,7 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
             SizedBox(height: screenHeight * 0.015),
             Center(
               child: Text(
-                '会員番号',
+                localizations?.meberInputScreenUserNumber2 ?? '',
                 style: TextStyle(fontSize: screenWidth * 0.04, color: Colors.grey),
               ),
             ),
@@ -151,7 +153,7 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
                     Navigator.pushNamed(context, '/pointManagement');
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('사용자의 Id를 확인해주세요')),
+                      SnackBar(content: Text(localizations?.meberInputScreenError ?? '')),
                     );
                   }
                 },
@@ -166,7 +168,7 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
                   ),
                 ),
                 child: Text(
-                  '確認',
+                  localizations?.meberInputScreenSubmit ?? '',
                   style: TextStyle(
                     fontSize: screenWidth * 0.045,
                     color: Colors.white, // 글씨 색을 흰색으로 설정
