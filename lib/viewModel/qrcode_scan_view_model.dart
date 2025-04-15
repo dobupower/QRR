@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -11,74 +11,72 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // QR 코드 스캔 및 상태 관리를 담당하는 ViewModel
 class QRViewModel extends StateNotifier<QrCode?> {
-  QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final MobileScannerController controller = MobileScannerController();
   bool isScanned = false; // QR 코드가 이미 스캔된 상태인지 여부를 추적하는 변수
 
   QRViewModel() : super(null);
 
-  // QR 뷰가 생성되면 호출되며, QR 코드 스캔된 데이터를 처리
-  void onQRViewCreated(QRViewController qrController, BuildContext context) {
-    controller = qrController;
-    // QR 코드 스캔된 데이터를 스트림으로 받아 처리
-    qrController.scannedDataStream.listen((scanData) async {
-      if (isScanned) return; // 이미 스캔 중이라면 처리하지 않음
+  // QR 코드 감지 처리 함수
+  void onDetect(BarcodeCapture capture, BuildContext context) async {
+    if (isScanned) return;
 
-      _setScanningState(true); // 스캔 상태를 true로 설정 (카메라 일시 정지)
+    final barcode = capture.barcodes.first;
+    final scanText = barcode.rawValue;
+    if (scanText == null) return;
 
-      try {
-        final scanText = scanData.code!;
-        print('스캔된 데이터: $scanText');
-        Map<String, dynamic> scannedData = jsonDecode(scanText);
+    _setScanningState(true);
 
-        // 암호화된 데이터와 IV(초기화 벡터) 추출
-        String encryptedData = scannedData['encryptedData'];
-        String iv = scannedData['iv'];
-        
-        // 외부 API를 호출하여 데이터를 복호화
-        String decryptedData = await _callDecryptApi(encryptedData, iv);
-        print('복호화된 데이터: $decryptedData');
+    try {
+      print('스캔된 데이터: $scanText');
+      Map<String, dynamic> scannedData = jsonDecode(scanText);
 
-        // 복호화된 데이터를 JSON으로 변환
-        Map<String, dynamic> decryptedJson = jsonDecode(decryptedData);
+      String encryptedData = scannedData['encryptedData'];
+      String iv = scannedData['iv'];
 
-        // 복호화된 데이터로 QR 코드 객체 생성
-        final qrCode = QrCode(
-          token: decryptedJson['token'],
-          createdAt: decryptedJson['createdAt'],
-          expiryDate: decryptedJson['expiryDate'],
-          isUsed: false,
-          userId: decryptedJson['email'],
-        );
+      String decryptedData = await _callDecryptApi(encryptedData, iv);
+      print('복호화된 데이터: $decryptedData');
 
-        state = qrCode; // 상태를 QR 코드 객체로 업데이트
+      Map<String, dynamic> decryptedJson = jsonDecode(decryptedData);
 
-        // QR 코드 유효성 검사
-        final isValid = await validateQrCode(context, qrCode);
-        if (isValid) {
-          Navigator.pushNamed(context, '/pointManagement'); // 유효한 QR 코드면 포인트 관리 화면으로 이동
-        }
-      } catch (e) {
-        state = null; // 오류 발생 시 상태를 null로 초기화
-        print('복호화 실패: $e');
-      } finally {
-        resumeCamera(); // 스캔 후 카메라 다시 시작
+      final qrCode = QrCode(
+        token: decryptedJson['token'],
+        createdAt: decryptedJson['createdAt'],
+        expiryDate: decryptedJson['expiryDate'],
+        isUsed: false,
+        userId: decryptedJson['email'],
+      );
+
+      state = qrCode;
+
+      final isValid = await validateQrCode(context, qrCode);
+      if (isValid) {
+        Navigator.pushNamed(context, '/pointManagement');
       }
-    });
-  }
-
-  // 스캔 상태를 설정하고, 스캔 중이면 카메라를 일시 정지
-  void _setScanningState(bool state) {
-    isScanned = state;
-    if (state) {
-      controller?.pauseCamera(); // 카메라 일시 정지
+    } catch (e) {
+      state = null;
+      print('복호화 실패: $e');
+    } finally {
+      resumeCamera();
     }
   }
 
-  // 스캔 상태를 초기화하고 카메라를 다시 시작
+  void _setScanningState(bool state) {
+    isScanned = state;
+    if (state) {
+      controller.stop();
+    }
+  }
+
   void resumeCamera() {
     isScanned = false;
-    controller?.resumeCamera();
+    controller.start();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   // QR 코드 유효성 검사 함수
@@ -148,7 +146,7 @@ class QRViewModel extends StateNotifier<QrCode?> {
   // 서버로 복호화 요청을 보내는 함수
   Future<String> _callDecryptApi(String encryptedData, String iv) async {
     final url = Uri.parse(dotenv.env['DECRYPT_API_URL']!);
-    
+
     // 암호화된 데이터와 IV를 JSON 형식으로 전송
     final response = await http.post(
       url,
@@ -168,12 +166,6 @@ class QRViewModel extends StateNotifier<QrCode?> {
       print('서버 오류 메시지: ${response.body}');
       throw Exception('Decrypt Fail'); // 복호화 실패 시 예외 발생
     }
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose(); // QR 컨트롤러가 더 이상 필요 없을 때 해제
-    super.dispose();
   }
 }
 

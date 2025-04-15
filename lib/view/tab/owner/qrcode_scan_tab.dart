@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../viewModel/qrcode_scan_view_model.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -24,13 +24,11 @@ class ScanTab extends ConsumerWidget {
         body: Stack(
           children: <Widget>[
             // QR View Camera Preview
-            QRView(
-              key: qrViewModel.qrKey,
-              onQRViewCreated: (QRViewController controller) {
-                qrViewModel.onQRViewCreated(controller, context);
-              },
+            MobileScanner(
+              controller: qrViewModel.controller,
+              onDetect: (capture) => qrViewModel.onDetect(capture, context),
             ),
-            
+
             // Top Left Text Overlay
             Positioned(
               top: screenHeight * 0.05, // 화면 높이의 5%만큼 위에 배치
@@ -56,7 +54,7 @@ class ScanTab extends ConsumerWidget {
                 },
               ),
             ),
-            
+
             // Bottom Button to Enter Member Number
             Positioned(
               bottom: screenHeight * 0.08, // 화면 높이의 8%만큼 아래에 배치
