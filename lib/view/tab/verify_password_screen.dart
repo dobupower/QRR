@@ -24,11 +24,23 @@ class _VerifyPasswordScreenState extends ConsumerState<VerifyPasswordScreen> {
     final screenHeight = screenSize.height;
 
     return Scaffold(
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: screenWidth * 0.06,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: screenHeight * 0.05),
             HeaderSection(screenHeight: screenHeight, screenWidth: screenWidth),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
@@ -73,7 +85,6 @@ class HeaderSection extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(
         left: screenWidth * 0.05,
-        top: screenHeight * 0.03,
       ),
       child: Text(
         AppLocalizations.of(context)?.ownerSignUpScreenPasswordConfirm1 ?? '', // 일본어로 비밀번호 확인
