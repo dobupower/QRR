@@ -27,12 +27,23 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
     
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: screenWidth * 0.06,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: screenHeight * 0.07),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -142,7 +153,6 @@ class _MemberInputScreenState extends ConsumerState<MemberInputScreen> {
                 }),
               ),
             ),
-            SizedBox(height: screenHeight * 0.03),
             Center(
               child: ElevatedButton(
                 onPressed: () async {

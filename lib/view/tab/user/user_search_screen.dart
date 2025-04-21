@@ -28,15 +28,26 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: screenWidth * 0.06,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: screenWidth * 0.05, top: screenHeight * 0.03),
+            padding: EdgeInsets.only(left: screenWidth * 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: screenHeight * 0.05),
                 Text(
                   localizations?.userSearchScreenTitle ?? '',
                   style: TextStyle(

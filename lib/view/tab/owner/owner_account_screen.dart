@@ -61,7 +61,7 @@ class OwnerAccountScreen extends ConsumerWidget {
       children: [
         Container(
           width: double.infinity,
-          height: screenHeight * 0.3,
+          height: screenHeight * 0.2,
           color: const Color(0xFFE3E8EF), // 배경색 설정
         ),
         Positioned(
@@ -193,7 +193,7 @@ class OwnerAccountScreen extends ConsumerWidget {
         Navigator.pushNamed(context, '/verifyPassword');
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -223,7 +223,7 @@ class OwnerAccountScreen extends ConsumerWidget {
         Navigator.pushNamed(context, '/photoUpdate'); // 매장 사진 설정 화면 이동
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

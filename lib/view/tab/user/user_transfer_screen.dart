@@ -31,7 +31,20 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
     final localizations = AppLocalizations.of(context);
 
     return Scaffold(
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: screenWidth * 0.06,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
         child: userState!.when(
           data: (users) {
             if (users.isEmpty) {
@@ -40,25 +53,24 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
             final user = users.first;
 
             return Padding(
-              padding: EdgeInsets.all(screenWidth * 0.05),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: screenHeight * 0.05),
                   Text(
                     localizations?.userTransferScreenInputPoint ?? '',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: screenWidth * 0.07,
+                      fontSize: screenWidth * 0.06,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.03),
+                  SizedBox(height: screenHeight * 0.02),
                   Center(
                     child: Column(
                       children: [
                         CircleAvatar(
-                          radius: screenWidth * 0.15,
+                          radius: screenWidth * 0.1,
                           backgroundColor: Colors.grey,
                           foregroundImage: user.profilePicUrl != null
                               ? NetworkImage(user.profilePicUrl!)
@@ -172,7 +184,6 @@ class _UserTransferScreenState extends ConsumerState<UserTransferScreen> {
                       }),
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
                   Center(
                     child: ElevatedButton(
                       onPressed: transactionAmount > 0
