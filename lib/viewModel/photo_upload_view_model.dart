@@ -8,6 +8,9 @@ import '../model/photo_upload_state_model.dart'; // 수정된 PhotoUploadState�
 import '../model/photo_upload_model.dart'; // 수정된 PhotoUpload 모델
 import '../services/preferences_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -35,17 +38,29 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
   }
 
   Future<void> pickImage(int index, {bool isLogo = false}) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      if (isLogo) {
-        state = state.copyWith(storeLogo: pickedFile);
-      } else {
-        List<XFile?> updatedImages = List.from(state.storeImages);
-        updatedImages[index] = pickedFile;
-        state = state.copyWith(storeImages: updatedImages);
-      }
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 2048,
+      maxHeight: 2048,
+    );
+    if (picked == null) return;
+
+    // 1) XFile → File
+    final original = File(picked.path);
+
+    // 2) 압축
+    final compressed = await compressImage(original);
+
+    // 3) 다시 XFile 형태로
+    final xFileCompressed = XFile(compressed.path);
+
+    if (isLogo) {
+      state = state.copyWith(storeLogo: xFileCompressed);
     } else {
-      print("이미지 선택이 취소되었습니다.");
+      final imgs = [...state.storeImages];
+      imgs[index] = xFileCompressed;
+      state = state.copyWith(storeImages: imgs);
     }
   }
 
@@ -64,6 +79,25 @@ class PhotoUploadViewModel extends StateNotifier<PhotoUploadState> {
       print('Image upload failed: $e');
       return null;
     }
+  }
+
+  Future<File> compressImage(File file) async {
+    // 임시 파일 경로
+    final tmpDir = await getTemporaryDirectory();
+    final targetPath = p.join(
+      tmpDir.path,
+      '${DateTime.now().millisecondsSinceEpoch}_${p.basename(file.path)}',
+    );
+
+    final compressedBytes = await FlutterImageCompress.compressWithFile(
+      file.absolute.path,
+      quality: 70,         // 0~100
+      minWidth: 1024,
+      minHeight: 1024,
+      format: CompressFormat.jpeg,
+    );
+
+    return File(targetPath).writeAsBytes(compressedBytes!);
   }
 
   Future<void> submitDetails(BuildContext context) async {
