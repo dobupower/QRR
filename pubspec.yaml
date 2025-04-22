@@ -57,6 +57,8 @@ dependencies:
   cloud_functions: ^5.0.4
   cached_network_image: ^3.4.0
   flutter_line_sdk: ^2.3.8
+  flutter_image_compress: ^2.4.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   freezed: 2.5.7
