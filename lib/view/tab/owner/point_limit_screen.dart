@@ -25,6 +25,18 @@ class PointLimitScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white, // 배경 색상 설정
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+            size: screenWidth * 0.06,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -65,11 +77,9 @@ class _TopTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Padding(
       padding: EdgeInsets.only(
-        top: screenHeight * 0.08,
         left: screenWidth * 0.05,
       ), // 화면 높이의 5%만큼 상단 여백
       child: Text(
