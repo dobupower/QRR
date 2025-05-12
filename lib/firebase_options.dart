@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '95994485173',
     projectId: 'qrr-project-9fb5a',
     storageBucket: 'qrr-project-9fb5a.appspot.com',
-    iosBundleId: 'com.example.qrrProject',
+    iosBundleId: 'com.hab.qrr',
   );
 
 }

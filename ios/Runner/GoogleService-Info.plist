@@ -2,22 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CLIENT_ID</key>
-	<string>95994485173-sbprlovmdbjk6g8sptvu2ae4lfck8ff5.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.95994485173-sbprlovmdbjk6g8sptvu2ae4lfck8ff5</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAboiB7yAV4n-bAKaTTGBBDbueDyIqCSGk</string>
+	<string>AIzaSyCi2XvgL2PZqPjvh0Ne_jROr9yGDFjOTTc</string>
 	<key>GCM_SENDER_ID</key>
-	<string>95994485173</string>
+	<string>1034564779420</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.qrrProject</string>
+	<string>com.hab.qrr</string>
 	<key>PROJECT_ID</key>
-	<string>qrr-project-9fb5a</string>
+	<string>qrr-flutter</string>
 	<key>STORAGE_BUCKET</key>
-	<string>qrr-project-9fb5a.appspot.com</string>
+	<string>qrr-flutter.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:95994485173:ios:fd00527872db893bd1a1fc</string>
+	<string>1:1034564779420:ios:477832ae597ec419471c59</string>
 </dict>
 </plist>

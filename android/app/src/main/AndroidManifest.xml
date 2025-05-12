@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.qrr_project">
+    package="com.hab.qrr">
 
     <!-- 카메라 및 저장소 권한 추가 -->
     <uses-permission android:name="android.permission.CAMERA" />
