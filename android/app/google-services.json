@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "95994485173",
-    "project_id": "qrr-project-9fb5a",
-    "storage_bucket": "qrr-project-9fb5a.appspot.com"
+    "project_number": "1034564779420",
+    "project_id": "qrr-flutter",
+    "storage_bucket": "qrr-flutter.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:95994485173:android:036633e3f0a8b0f7d1a1fc",
+        "mobilesdk_app_id": "1:1034564779420:android:d63309c1faa94be9471c59",
         "android_client_info": {
-          "package_name": "com.example.qrr_project"
+          "package_name": "com.hab.qrr"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBW_wJ19TPECn_plph1c-JP98t8rD-VmNk"
+          "current_key": "AIzaSyCtBRJZm0OmcxTgeRqEl-kAhE66LwVvEQs"
         }
       ],
       "services": {
