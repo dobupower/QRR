@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBW_wJ19TPECn_plph1c-JP98t8rD-VmNk',
-    appId: '1:95994485173:android:036633e3f0a8b0f7d1a1fc',
-    messagingSenderId: '95994485173',
-    projectId: 'qrr-project-9fb5a',
-    storageBucket: 'qrr-project-9fb5a.appspot.com',
+    apiKey: 'AIzaSyCtBRJZm0OmcxTgeRqEl-kAhE66LwVvEQs',
+    appId: '1:1034564779420:android:d63309c1faa94be9471c59',
+    messagingSenderId: '1034564779420',
+    projectId: 'qrr-flutter',
+    storageBucket: 'qrr-flutter.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAboiB7yAV4n-bAKaTTGBBDbueDyIqCSGk',
-    appId: '1:95994485173:ios:fd00527872db893bd1a1fc',
-    messagingSenderId: '95994485173',
-    projectId: 'qrr-project-9fb5a',
-    storageBucket: 'qrr-project-9fb5a.appspot.com',
+    apiKey: 'AIzaSyCtBRJZm0OmcxTgeRqEl-kAhE66LwVvEQs',
+    appId: '1:1034564779420:ios:477832ae597ec419471c59',
+    messagingSenderId: '1034564779420',
+    projectId: 'qrr-flutter',
+    storageBucket: 'qrr-flutter.appspot.com',
     iosBundleId: 'com.hab.qrr',
   );
 
